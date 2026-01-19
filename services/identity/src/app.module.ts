@@ -6,6 +6,7 @@ import { PolicyModule } from './modules/policy/policy.module';
 import { KycModule } from './modules/kyc/kyc.module';
 import { DeviceModule } from './modules/device/device.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { HomeModule } from './modules/home/home.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { PrismaModule } from './prisma/prisma.module';
     PolicyModule,
     KycModule,
     DeviceModule,
+    HomeModule,
   ],
 })
 export class AppModule {}
