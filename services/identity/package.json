@@ -6,7 +6,7 @@
   "main": "dist/main.js",
   "scripts": {
     "dev": "ts-node src/main.ts",
-    "build": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.json && node ./scripts/copy-site.mjs",
     "clean": "rimraf dist",
     "lint": "eslint \"src/**/*.{ts,tsx}\"",
     "test": "vitest run",
