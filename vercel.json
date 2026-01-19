@@ -1,7 +1,0 @@
-{
-  "version": 2,
-  "framework": null,
-  "installCommand": "cd services/identity && npm install --workspaces=false",
-  "buildCommand": "cd services/identity && npm run build",
-  "outputDirectory": "services/identity/dist"
-}
