@@ -1,5 +1,5 @@
 import { Gender } from '../../../common/enums/gender.enum';
-import { Orientation } from '../user.entity';
+import { Orientation } from '../../../common/enums/orientation.enum';
 import { IsEmail, IsEnum, IsString, MinLength } from 'class-validator';
 
 export class CreateUserDto {

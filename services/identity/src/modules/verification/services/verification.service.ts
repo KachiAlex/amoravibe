@@ -41,7 +41,10 @@ export class VerificationService {
     const updated = await this.updateOrThrow(id, {
       status: input.status,
       reference: input.reference,
-      metadata: input.metadata as Prisma.JsonValue | undefined,
+      metadata: input.metadata as
+        | Prisma.InputJsonValue
+        | Prisma.NullableJsonNullValueInput
+        | undefined,
     });
 
     if (input.status === VerificationStatus.VERIFIED) {

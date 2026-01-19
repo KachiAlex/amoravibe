@@ -4,7 +4,7 @@ import {
   OrientationPool,
   defaultConfig,
   isOrientationSupported,
-} from '@lovedate/config';
+} from './lovedate-config';
 
 @Injectable()
 export class AppConfigService {
