@@ -17,3 +17,5 @@ pnpm-debug.log*
 .husky/_
 prisma/*.db
 prisma/*.sqlite
+.vercel
+.env*.local
