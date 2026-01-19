@@ -104,10 +104,32 @@
       }
 
       .hero {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 3rem;
-        align-items: center;
+        position: relative;
+        min-height: 560px;
+        padding: clamp(1.25rem, 4vw, 4rem);
+        border-radius: 36px;
+        background-image: linear-gradient(145deg, rgba(3, 3, 15, 0.4), rgba(3, 3, 15, 0.8)),
+          url('https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?auto=format&fit=crop&w=1600&q=80');
+        background-size: cover;
+        background-position: center;
+        overflow: hidden;
+        display: flex;
+        align-items: flex-end;
+      }
+
+      .hero::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at 20% 20%, rgba(255, 77, 164, 0.35), transparent 50%);
+        mix-blend-mode: screen;
+        pointer-events: none;
+      }
+
+      .hero-content {
+        position: relative;
+        z-index: 1;
+        max-width: 540px;
       }
 
       .eyebrow {
@@ -177,11 +199,6 @@
         transform: translateY(-3px);
       }
 
-      .hero-visual {
-        display: grid;
-        gap: 1.35rem;
-      }
-
       .photo-card {
         position: relative;
         border-radius: 28px;
@@ -203,15 +220,11 @@
       }
 
       .photo-card.card-one::after {
-        background-image: url('https://images.unsplash.com/photo-1543269865-cbf427effbad?auto=format&fit=crop&w=900&q=80');
+        background-image: url('https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=80');
       }
 
       .photo-card.card-two::after {
-        background-image: url('https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=800&q=80');
-      }
-
-      .photo-card.card-three::after {
-        background-image: url('https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=900&q=80');
+        background-image: url('https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=900&q=80');
       }
 
       .photo-card > * {
@@ -266,6 +279,24 @@
         border: 1px solid var(--stroke);
         border-radius: 24px;
         padding: 1.8rem;
+        background-size: cover;
+        background-position: center;
+        background-blend-mode: overlay;
+      }
+
+      .value-card:nth-child(1) {
+        background-image: linear-gradient(145deg, rgba(3, 3, 15, 0.8), rgba(15, 10, 30, 0.9)),
+          url('https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=900&q=60');
+      }
+
+      .value-card:nth-child(2) {
+        background-image: linear-gradient(145deg, rgba(3, 3, 15, 0.85), rgba(15, 10, 30, 0.9)),
+          url('https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?auto=format&fit=crop&w=900&q=60');
+      }
+
+      .value-card:nth-child(3) {
+        background-image: linear-gradient(145deg, rgba(3, 3, 15, 0.85), rgba(15, 10, 30, 0.9)),
+          url('https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=900&q=60');
       }
 
       .value-card p,
@@ -299,11 +330,41 @@
         font-size: 1.2rem;
       }
 
+      .section-figure {
+        margin-top: 2rem;
+        border-radius: 32px;
+        height: 260px;
+        background-size: cover;
+        background-position: center;
+        background-image: linear-gradient(145deg, rgba(3, 3, 15, 0.2), rgba(3, 3, 15, 0.5)),
+          url('https://images.unsplash.com/photo-1500048993953-d23a436266cf?auto=format&fit=crop&w=1200&q=60');
+        border: 1px solid rgba(255, 255, 255, 0.12);
+      }
+
       .for-everyone {
         background: linear-gradient(120deg, rgba(255, 77, 164, 0.12), rgba(143, 123, 255, 0.12));
         border: 1px solid rgba(255, 142, 199, 0.3);
         border-radius: 28px;
         padding: 2.5rem;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .for-everyone::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background-image: url('https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=1200&q=60');
+        background-size: cover;
+        background-position: center;
+        opacity: 0.2;
+        mix-blend-mode: screen;
+        pointer-events: none;
+      }
+
+      .for-everyone > * {
+        position: relative;
+        z-index: 1;
       }
 
       .for-everyone ul {
@@ -381,7 +442,7 @@
     </header>
     <main>
       <section class="hero" id="hero">
-        <div>
+        <div class="hero-content">
           <p class="eyebrow">Real connections · Real people</p>
           <h1>Real Connections. Real People. Right Spaces.</h1>
           <p class="lede">
@@ -391,20 +452,6 @@
           <div class="cta-row">
             <button class="cta-button">Get Started</button>
             <button class="cta-button secondary">How It Works</button>
-          </div>
-        </div>
-        <div class="hero-visual" aria-hidden="true">
-          <div class="photo-card card-one">
-            <p class="stat-badge">97%</p>
-            <p class="stat-copy">of members feel safer meeting on AmoraVibe.</p>
-            <div class="badge-list">
-              <span class="badge">Verified vibes</span>
-              <span class="badge">Orientation aware</span>
-            </div>
-          </div>
-          <div class="photo-card card-two">
-            <p class="stat-badge">Spaces</p>
-            <p class="stat-copy">Straight · LGBTQ · Fluid discovery pools curated with intent.</p>
           </div>
         </div>
       </section>
@@ -425,6 +472,7 @@
             <p>Advanced orientation and preference settings ensure people meet those who belong.</p>
           </article>
         </div>
+        <div class="section-figure" aria-hidden="true"></div>
       </section>
 
       <section id="work">
