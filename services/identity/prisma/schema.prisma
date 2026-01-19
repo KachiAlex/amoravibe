@@ -1,0 +1,71 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Gender {
+  male
+  female
+  non_binary
+}
+
+enum Orientation {
+  heterosexual
+  gay
+  lesbian
+  bisexual
+  pansexual
+  asexual
+}
+
+enum VerificationStatus {
+  unverified
+  pending
+  verified
+  flagged
+}
+
+model User {
+  id                String               @id @default(uuid())
+  legalName         String
+  displayName       String
+  email             String               @unique
+  gender            Gender
+  orientation       Orientation
+  isVerified        Boolean              @default(false)
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+  deviceFingerprints DeviceFingerprint[]
+  verifications     Verification[]
+}
+
+model Verification {
+  id        String             @id @default(uuid())
+  userId    String
+  provider  String
+  status    VerificationStatus @default(pending)
+  reference String?
+  metadata  Json?
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+}
+
+model DeviceFingerprint {
+  id         String   @id @default(uuid())
+  userId     String?
+  hash       String
+  userAgent  String?
+  riskLabel  String?
+  signals    Json?
+  observedAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id])
+}

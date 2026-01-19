@@ -1,0 +1,44 @@
+{
+  "name": "lovedate",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Authenticity-first dating platform monorepo",
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "test:unit": "vitest run",
+    "clean": "turbo run clean",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "prepare": "husky install"
+  },
+  "engines": {
+    "node": ">=20.10.0"
+  },
+  "workspaces": [
+    "apps/*",
+    "services/*",
+    "packages/*"
+  ],
+  "devDependencies": {
+    "turbo": "^2.7.5",
+    "typescript": "^5.3.3",
+    "eslint": "^8.56.0",
+    "prettier": "^3.2.4",
+    "husky": "^9.0.10",
+    "lint-staged": "^15.2.0",
+    "@typescript-eslint/parser": "^6.21.0",
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "vitest": "^1.2.0"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx}": [
+      "npx eslint --max-warnings=0"
+    ],
+    "*.{ts,tsx,js,jsx,json,md,yml,yaml}": [
+      "npx prettier --check"
+    ]
+  }
+}
