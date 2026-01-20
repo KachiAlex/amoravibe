@@ -10,8 +10,8 @@ export interface OrientationPolicyInput {
 @Injectable()
 export class OrientationPolicyService {
   validateAccess(input: OrientationPolicyInput): boolean {
-    if (input.requestedPool === Orientation.HETEROSEXUAL) {
-      return input.userOrientation === Orientation.HETEROSEXUAL && input.verified;
+    if (input.requestedPool === Orientation.STRAIGHT) {
+      return input.userOrientation === Orientation.STRAIGHT && input.verified;
     }
 
     return input.verified;
