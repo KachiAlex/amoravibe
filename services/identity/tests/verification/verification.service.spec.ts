@@ -5,6 +5,28 @@ import { UserService } from '../../src/modules/user/services/user.service';
 import { InMemoryPrismaService } from '../utils/in-memory-prisma.service';
 import { Gender } from '../../src/common/enums/gender.enum';
 import { Orientation } from '../../src/common/enums/orientation.enum';
+import { DiscoverySpace } from '../../src/common/enums/discovery-space.enum';
+import { MatchPreference } from '../../src/common/enums/match-preference.enum';
+import { VerificationIntent } from '../../src/common/enums/verification-intent.enum';
+import { CreateUserDto } from '../../src/modules/user/dto/create-user.dto';
+
+const buildUserPayload = (overrides: Partial<CreateUserDto> = {}): CreateUserDto => ({
+  legalName: 'Test User',
+  displayName: 'tester',
+  dateOfBirth: '1990-01-01',
+  email: `${Math.random().toString(36).slice(2)}@example.com`,
+  password: 'StrongPass123',
+  gender: Gender.MAN,
+  orientation: Orientation.STRAIGHT,
+  orientationPreferences: [Orientation.STRAIGHT],
+  discoverySpace: DiscoverySpace.STRAIGHT,
+  matchPreferences: [MatchPreference.WOMEN],
+  city: 'Lagos',
+  bio: 'Here for intentional matches',
+  photos: ['data:image/png;base64,placeholder'],
+  verificationIntent: VerificationIntent.VERIFY_NOW,
+  ...overrides,
+});
 
 describe('VerificationService', () => {
   let prisma: InMemoryPrismaService;
@@ -18,13 +40,7 @@ describe('VerificationService', () => {
   });
 
   it('initiates a verification record', async () => {
-    const user = await userService.create({
-      legalName: 'Test User',
-      displayName: 'tester',
-      email: 'test@example.com',
-      gender: Gender.MALE,
-      orientation: Orientation.HETEROSEXUAL,
-    });
+    const user = await userService.create(buildUserPayload());
 
     const record = await verificationService.initiate({
       userId: user.id,
@@ -37,13 +53,13 @@ describe('VerificationService', () => {
   });
 
   it('completes a verification and marks user verified', async () => {
-    const user = await userService.create({
-      legalName: 'Another User',
-      displayName: 'another',
-      email: 'another@example.com',
-      gender: Gender.FEMALE,
-      orientation: Orientation.HETEROSEXUAL,
-    });
+    const user = await userService.create(
+      buildUserPayload({
+        legalName: 'Another User',
+        displayName: 'another',
+        gender: Gender.WOMAN,
+      })
+    );
 
     const record = await verificationService.initiate({
       userId: user.id,

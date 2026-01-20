@@ -8,9 +8,12 @@ datasource db {
 }
 
 enum Gender {
-  male
-  female
+  man
+  woman
   non_binary
+  trans_man
+  trans_woman
+  self_describe
 }
 
 enum Orientation {
@@ -20,6 +23,30 @@ enum Orientation {
   bisexual
   pansexual
   asexual
+  queer
+}
+
+enum DiscoverySpace {
+  straight
+  lgbtq
+  both
+}
+
+enum MatchPreference {
+  men
+  women
+  everyone
+}
+
+enum VisibilityStatus {
+  limited
+  trusted
+  restricted
+}
+
+enum VerificationIntent {
+  verify_now
+  skip
 }
 
 enum VerificationStatus {
@@ -30,17 +57,29 @@ enum VerificationStatus {
 }
 
 model User {
-  id                String               @id @default(uuid())
-  legalName         String
-  displayName       String
-  email             String               @unique
-  gender            Gender
-  orientation       Orientation
-  isVerified        Boolean              @default(false)
-  createdAt         DateTime             @default(now())
-  updatedAt         DateTime             @updatedAt
+  id                 String               @id @default(uuid())
+  legalName          String
+  displayName        String
+  dateOfBirth        DateTime
+  email              String?              @unique
+  phone              String?              @unique
+  passwordHash       String
+  gender             Gender
+  orientation        Orientation
+  orientationPreferences String[]         @default([])
+  discoverySpace     DiscoverySpace
+  matchPreferences   MatchPreference[]    @default([])
+  city               String
+  bio                String?
+  photos             Json?
+  verificationIntent VerificationIntent   @default(skip)
+  trustScore         Int                  @default(50)
+  visibility         VisibilityStatus     @default(limited)
+  isVerified         Boolean              @default(false)
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
   deviceFingerprints DeviceFingerprint[]
-  verifications     Verification[]
+  verifications      Verification[]
 }
 
 model Verification {

@@ -6,13 +6,27 @@ import { VerificationStatus } from '../../src/common/enums/verification-status.e
 import { InMemoryPrismaService } from '../utils/in-memory-prisma.service';
 import { Gender } from '../../src/common/enums/gender.enum';
 import { Orientation } from '../../src/common/enums/orientation.enum';
+import { DiscoverySpace } from '../../src/common/enums/discovery-space.enum';
+import { MatchPreference } from '../../src/common/enums/match-preference.enum';
+import { VerificationIntent } from '../../src/common/enums/verification-intent.enum';
+import { CreateUserDto } from '../../src/modules/user/dto/create-user.dto';
 
-const createUserPayload = () => ({
+const buildUserPayload = (overrides: Partial<CreateUserDto> = {}): CreateUserDto => ({
   legalName: 'Test User',
   displayName: 'tester',
+  dateOfBirth: '1990-01-01',
   email: `${Math.random().toString(36).slice(2)}@example.com`,
-  gender: Gender.MALE,
-  orientation: Orientation.HETEROSEXUAL,
+  password: 'StrongPass123',
+  gender: Gender.MAN,
+  orientation: Orientation.STRAIGHT,
+  orientationPreferences: [Orientation.STRAIGHT],
+  discoverySpace: DiscoverySpace.STRAIGHT,
+  matchPreferences: [MatchPreference.WOMEN],
+  city: 'Lagos',
+  bio: 'Here for intentional matches',
+  photos: ['data:image/png;base64,placeholder'],
+  verificationIntent: VerificationIntent.VERIFY_NOW,
+  ...overrides,
 });
 
 describe('KycService', () => {
@@ -29,7 +43,7 @@ describe('KycService', () => {
     verificationService = new VerificationService(prisma, userService);
     kycService = new KycService(verificationService);
 
-    const user = await userService.create(createUserPayload());
+    const user = await userService.create(buildUserPayload());
     userId = user.id;
 
     const verification = await verificationService.initiate({

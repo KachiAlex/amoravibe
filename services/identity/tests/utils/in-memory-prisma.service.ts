@@ -5,9 +5,21 @@ interface UserRecord {
   id: string;
   legalName: string;
   displayName: string;
-  email: string;
+  dateOfBirth: Date;
+  email?: string | null;
+  phone?: string | null;
+  passwordHash: string;
   gender: string;
   orientation: string;
+  orientationPreferences: string[];
+  discoverySpace: string;
+  matchPreferences: string[];
+  city: string;
+  bio?: string | null;
+  photos?: unknown;
+  verificationIntent: string;
+  trustScore: number;
+  visibility: string;
   isVerified: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -46,24 +58,13 @@ export class InMemoryPrismaService {
   private deviceFingerprints = new Map<string, DeviceFingerprintRecord>();
 
   user = {
-    create: async ({
-      data,
-    }: {
-      data: Omit<UserRecord, 'id' | 'createdAt' | 'updatedAt' | 'isVerified'> & {
-        isVerified?: boolean;
-      };
-    }) => {
+    create: async ({ data }: { data: Omit<UserRecord, 'id' | 'createdAt' | 'updatedAt'> }) => {
       const now = new Date();
       const record: UserRecord = {
         id: randomUUID(),
         createdAt: now,
         updatedAt: now,
-        isVerified: data.isVerified ?? false,
-        legalName: data.legalName,
-        displayName: data.displayName,
-        email: data.email,
-        gender: data.gender,
-        orientation: data.orientation,
+        ...data,
       };
       this.users.set(record.id, record);
       return { ...record };
