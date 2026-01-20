@@ -493,6 +493,363 @@
         color: rgba(26, 31, 54, 0.6);
       }
 
+      .profile-hub {
+        background: rgba(255, 255, 255, 0.9);
+      }
+
+      .profile-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 1.5rem;
+        align-items: stretch;
+      }
+
+      .profile-card {
+        border-radius: 28px;
+        border: 1px solid rgba(15, 23, 42, 0.08);
+        background: #fff;
+        padding: 2rem;
+        box-shadow: 0 20px 50px rgba(6, 20, 24, 0.08);
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+      }
+
+      .profile-progress {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+
+      .progress-pill {
+        font-size: 0.9rem;
+        color: rgba(26, 31, 54, 0.7);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .progress-bar {
+        position: relative;
+        height: 12px;
+        border-radius: 999px;
+        background: rgba(15, 23, 42, 0.08);
+        overflow: hidden;
+      }
+
+      .progress-fill {
+        position: absolute;
+        inset: 0;
+        width: 82%;
+        border-radius: inherit;
+        background: linear-gradient(120deg, var(--primary), var(--secondary));
+      }
+
+      .checklist {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: grid;
+        gap: 0.9rem;
+      }
+
+      .checklist li {
+        display: flex;
+        gap: 0.75rem;
+        align-items: flex-start;
+        font-size: 0.95rem;
+        color: rgba(26, 31, 54, 0.8);
+      }
+
+      .check-icon {
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        border: 2px solid var(--primary);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        color: var(--primary);
+      }
+
+      .trust-badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+      }
+
+      .trust-badge {
+        border-radius: 999px;
+        padding: 0.45rem 1.2rem;
+        background: rgba(42, 179, 166, 0.12);
+        color: var(--primary);
+        font-weight: 600;
+        font-size: 0.9rem;
+      }
+
+      .verification-card {
+        border-radius: 24px;
+        border: 1px dashed rgba(26, 31, 54, 0.25);
+        padding: 1.5rem;
+        background: rgba(42, 179, 166, 0.05);
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+
+      .verification-card button {
+        align-self: flex-start;
+        border-radius: 14px;
+        border: none;
+        padding: 0.8rem 1.8rem;
+        font-weight: 600;
+        cursor: pointer;
+        background: var(--primary);
+        color: #fff;
+        box-shadow: 0 12px 30px rgba(42, 179, 166, 0.25);
+      }
+
+      .profile-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+      }
+
+      .profile-actions button {
+        border-radius: 12px;
+        border: 1px solid rgba(26, 31, 54, 0.12);
+        background: #fff;
+        padding: 0.75rem 1.4rem;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      .discovery-section {
+        background: #f8f7f5;
+      }
+
+      .discovery-header {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 1rem;
+        align-items: center;
+        margin-bottom: 2rem;
+      }
+
+      .discovery-tabs {
+        display: inline-flex;
+        gap: 0.5rem;
+        background: #fff;
+        padding: 0.4rem;
+        border-radius: 999px;
+        border: 1px solid rgba(26, 31, 54, 0.12);
+      }
+
+      .discovery-tab {
+        border: none;
+        border-radius: 999px;
+        padding: 0.45rem 1.5rem;
+        font-weight: 600;
+        background: transparent;
+        cursor: pointer;
+        color: rgba(26, 31, 54, 0.6);
+      }
+
+      .discovery-tab.is-active {
+        background: linear-gradient(120deg, var(--primary), var(--secondary));
+        color: #052826;
+        box-shadow: 0 12px 24px rgba(42, 179, 166, 0.25);
+      }
+
+      .filter-chip {
+        border: 1px solid rgba(26, 31, 54, 0.12);
+        border-radius: 999px;
+        padding: 0.4rem 1rem;
+        background: #fff;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      .discovery-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 1.5rem;
+      }
+
+      .discovery-card {
+        border-radius: 28px;
+        background: #fff;
+        border: 1px solid rgba(15, 23, 42, 0.08);
+        box-shadow: 0 18px 55px rgba(6, 20, 24, 0.08);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .discovery-card img {
+        width: 100%;
+        height: 260px;
+        object-fit: cover;
+        display: block;
+      }
+
+      .card-body {
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+
+      .card-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.9rem;
+        color: rgba(26, 31, 54, 0.6);
+      }
+
+      .card-actions {
+        display: flex;
+        gap: 0.75rem;
+        margin-top: 0.5rem;
+      }
+
+      .card-actions button {
+        flex: 1;
+        border-radius: 14px;
+        border: none;
+        padding: 0.8rem 1rem;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      .btn-like {
+        background: var(--primary);
+        color: #fff;
+        box-shadow: 0 15px 35px rgba(42, 179, 166, 0.3);
+      }
+
+      .btn-save {
+        background: rgba(26, 31, 54, 0.06);
+        color: var(--ink);
+      }
+
+      .match-section {
+        background: rgba(255, 255, 255, 0.92);
+      }
+
+      .match-layout {
+        display: grid;
+        grid-template-columns: 320px minmax(0, 1fr);
+        gap: 1.5rem;
+        align-items: flex-start;
+      }
+
+      .match-sidebar,
+      .match-content {
+        border-radius: 28px;
+        border: 1px solid rgba(15, 23, 42, 0.08);
+        background: #fff;
+        box-shadow: 0 18px 45px rgba(6, 20, 24, 0.08);
+      }
+
+      .match-sidebar {
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .match-tablist {
+        display: flex;
+        gap: 0.5rem;
+        border-radius: 999px;
+        padding: 0.25rem;
+        background: rgba(26, 31, 54, 0.04);
+      }
+
+      .match-tab {
+        flex: 1;
+        border: none;
+        border-radius: 999px;
+        padding: 0.5rem 0.8rem;
+        font-weight: 600;
+        background: transparent;
+        cursor: pointer;
+        color: rgba(26, 31, 54, 0.6);
+      }
+
+      .match-tab.is-active {
+        background: #fff;
+        color: var(--primary-dark);
+        box-shadow: 0 8px 20px rgba(42, 179, 166, 0.2);
+      }
+
+      .match-filters {
+        display: grid;
+        gap: 0.6rem;
+      }
+
+      .match-section-title {
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.18em;
+        color: rgba(26, 31, 54, 0.6);
+        margin: 0;
+      }
+
+      .match-content {
+        padding: 1.5rem;
+      }
+
+      .match-list {
+        display: grid;
+        gap: 1rem;
+      }
+
+      .match-card {
+        border: 1px solid rgba(15, 23, 42, 0.08);
+        border-radius: 22px;
+        padding: 1rem 1.25rem;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 1rem;
+        align-items: center;
+      }
+
+      .match-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem 1rem;
+        font-size: 0.9rem;
+        color: rgba(26, 31, 54, 0.6);
+      }
+
+      .match-actions {
+        display: flex;
+        gap: 0.4rem;
+      }
+
+      .match-actions button {
+        border-radius: 999px;
+        border: none;
+        padding: 0.55rem 1.2rem;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      .match-actions .primary {
+        background: var(--primary);
+        color: #fff;
+      }
+
+      .match-actions .ghost {
+        background: rgba(26, 31, 54, 0.06);
+        color: var(--ink);
+      }
+
       footer {
         border-top: 1px solid rgba(15, 23, 42, 0.08);
         padding: 3rem 0;
@@ -1119,6 +1476,18 @@
         .footer-grid {
           grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
         }
+
+        .match-layout {
+          grid-template-columns: 1fr;
+        }
+
+        .match-sidebar {
+          order: 2;
+        }
+
+        .match-content {
+          order: 1;
+        }
       }
 
       @media (max-width: 640px) {
@@ -1250,6 +1619,108 @@
                 <strong>Sarah & Marcus</strong>
                 <p>Matched across 5,000 miles, now planning their future together.</p>
               </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="profile-hub" id="profile">
+        <div class="container">
+          <div class="section-header">
+            <h2>Complete Your Profile & Earn Trust</h2>
+            <p>Finish verification steps so you appear higher in discovery spaces.</p>
+          </div>
+          <div class="profile-grid">
+            <article class="profile-card" data-profile-card>
+              <div class="profile-progress">
+                <div class="progress-pill">
+                  <span>Profile strength</span>
+                  <strong data-profile-strength>--%</strong>
+                </div>
+                <div class="progress-bar">
+                  <div class="progress-fill" data-profile-progress-fill aria-hidden="true"></div>
+                </div>
+              </div>
+              <ul class="checklist" data-profile-checklist></ul>
+              <div class="trust-badges" data-trust-badges></div>
+            </article>
+            <article class="profile-card">
+              <h3>Media Manager</h3>
+              <p>Arrange the order your photos appear and upload new shots that show your authentic self.</p>
+              <div class="profile-actions">
+                <button type="button" data-media-action="upload">Upload photo</button>
+                <button type="button" data-media-action="gallery">Open gallery</button>
+                <button type="button" data-media-action="reorder">Reorder</button>
+              </div>
+              <div class="verification-card">
+                <strong>Selfie verification</strong>
+                <p>Record a quick selfie video to unlock the Trust badge and boost visibility in both spaces.</p>
+                <button type="button" data-media-action="verify">Start verification</button>
+              </div>
+            </article>
+            <article class="profile-card">
+              <h3>Preferences & Boundaries</h3>
+              <p>Review how you show up in Straight and LGBTQ discovery pools.</p>
+              <ul class="checklist" data-preference-list></ul>
+              <div class="profile-actions">
+                <button type="button" data-preference-action="identity">Edit identity</button>
+                <button type="button" data-preference-action="visibility">Set visibility</button>
+                <button type="button" data-preference-action="safety">Manage safety cues</button>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="discovery-section" id="discovery">
+        <div class="container">
+          <div class="section-header" style="margin-bottom: 2rem;">
+            <h2>Discovery & Matching</h2>
+            <p>Separate spaces keep straight and queer members comfortable.</p>
+          </div>
+          <div class="discovery-header">
+            <div class="discovery-tabs" role="tablist">
+              <button class="discovery-tab is-active" type="button" data-discovery-tab="straight">Straight space</button>
+              <button class="discovery-tab" type="button" data-discovery-tab="lgbtq">Queer space</button>
+            </div>
+            <div class="filter-row" style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+              <button class="filter-chip" type="button" data-filter="distance">Within 50km</button>
+              <button class="filter-chip" type="button" data-filter="age">Age 25-38</button>
+              <button class="filter-chip" type="button" data-filter="intent">Serious dating</button>
+            </div>
+          </div>
+          <div class="discovery-grid" data-discovery-grid></div>
+        </div>
+      </section>
+
+      <section class="match-section" id="matches">
+        <div class="container">
+          <div class="section-header" style="margin-bottom: 2rem;">
+            <h2>Match Management</h2>
+            <p>Stay in control of every connection with clear states, timers, and safety tools.</p>
+          </div>
+          <div class="match-layout">
+            <aside class="match-sidebar">
+              <div class="match-tablist" role="tablist">
+                <button class="match-tab is-active" type="button" data-match-tab="active">Active</button>
+                <button class="match-tab" type="button" data-match-tab="archived">Archived</button>
+              </div>
+              <div>
+                <p class="match-section-title">Reminders</p>
+                <div class="match-filters">
+                  <label><input type="checkbox" data-match-filter="expiring" checked /> Matches expiring soon</label>
+                  <label><input type="checkbox" data-match-filter="new" checked /> New matches awaiting reply</label>
+                  <label><input type="checkbox" data-match-filter="flagged" /> Reported users</label>
+                </div>
+              </div>
+              <div>
+                <p class="match-section-title">Safety shortcuts</p>
+                <button class="filter-chip" type="button" data-match-safety="report">Report user</button>
+                <button class="filter-chip" type="button" data-match-safety="block">Block list</button>
+              </div>
+            </aside>
+            <div class="match-content">
+              <div class="match-list" data-match-list></div>
             </div>
           </div>
         </div>
@@ -1737,6 +2208,122 @@
         bio: document.getElementById('bio'),
       };
 
+      const profileHubData = {
+        strength: 82,
+        tasks: [
+          { label: 'Add at least 4 recent photos', complete: true },
+          { label: 'Confirm gender, orientation, and visibility lanes', complete: true },
+          { label: 'Record selfie verification for trust badge', complete: false },
+        ],
+        trustBadges: [
+          { label: 'Photo verified', tone: 'primary' },
+          { label: 'ID pending', tone: 'secondary' },
+          { label: 'Safety pledge', tone: 'warm' },
+        ],
+        preferences: [
+          { label: 'Pronouns', value: 'She/Her' },
+          { label: 'Orientation', value: 'Bisexual (visible in both spaces)' },
+          { label: 'Discovery lanes', value: 'Straight + Queer' },
+        ],
+      };
+
+      const matchData = {
+        active: [
+          {
+            id: 'match-1',
+            name: 'Ife & You',
+            status: 'New match · 2h ago',
+            expiresIn: 'Expires in 22h',
+            context: 'Met in Straight space · Lagos',
+          },
+          {
+            id: 'match-2',
+            name: 'Sam (They/Them)',
+            status: 'Waiting on reply',
+            expiresIn: 'Renewed weekly',
+            context: 'Queer lane · Nairobi',
+            flagged: true,
+          },
+        ],
+        archived: [
+          {
+            id: 'match-3',
+            name: 'Wura',
+            status: 'Unmatched · last month',
+            expiresIn: '—',
+            context: 'Closed respectfully',
+          },
+        ],
+      };
+
+      const discoveryData = {
+        straight: [
+          {
+            name: 'Lola, 29',
+            city: 'Abuja • 12km away',
+            pronouns: 'She/Her',
+            intent: 'Serious dating',
+            compatibility: '90% vibe match',
+            bio: 'Founder, traveler, book-club starter. Looking for depth over DMs.',
+            image: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=800&q=80',
+          },
+          {
+            name: 'Tunde, 32',
+            city: 'Lagos • 5km away',
+            pronouns: 'He/Him',
+            intent: 'Ready for marriage',
+            compatibility: '82% vibe match',
+            bio: 'Creative director who cooks egusi like a pro. Sundays = family brunch.',
+            image: 'https://images.unsplash.com/photo-1504593811423-6dd665756598?auto=format&fit=crop&w=800&q=80',
+          },
+        ],
+        lgbtq: [
+          {
+            name: 'Amara, 27',
+            city: 'Nairobi • 8km away',
+            pronouns: 'They/She',
+            intent: 'Queer joy & partnership',
+            compatibility: '95% vibe match',
+            bio: 'Multidisciplinary artist. Looking for someone who loves markets + museums.',
+            image: 'https://images.unsplash.com/photo-1525130413817-d45c1d127c42?auto=format&fit=crop&w=800&q=80',
+          },
+          {
+            name: 'Noah, 30',
+            city: 'New York • 3km away',
+            pronouns: 'He/They',
+            intent: 'Intentional queer dating',
+            compatibility: '88% vibe match',
+            bio: 'Product manager + spoken word poet. Soft life only.',
+            image: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=800&q=80',
+          },
+        ],
+      };
+
+      const profileStrengthEl = document.querySelector('[data-profile-strength]');
+      const profileProgressFill = document.querySelector('[data-profile-progress-fill]');
+      const profileChecklist = document.querySelector('[data-profile-checklist]');
+      const trustBadgeContainer = document.querySelector('[data-trust-badges]');
+      const preferenceList = document.querySelector('[data-preference-list]');
+      const mediaButtons = document.querySelectorAll('[data-media-action]');
+      const preferenceButtons = document.querySelectorAll('[data-preference-action]');
+      const discoveryGrid = document.querySelector('[data-discovery-grid]');
+      const discoveryTabs = document.querySelectorAll('[data-discovery-tab]');
+      const filterChips = document.querySelectorAll('[data-filter]');
+      const matchList = document.querySelector('[data-match-list]');
+      const matchTabs = document.querySelectorAll('[data-match-tab]');
+      const matchFilters = document.querySelectorAll('[data-match-filter]');
+      const matchSafetyButtons = document.querySelectorAll('[data-match-safety]');
+
+      const discoveryState = {
+        space: 'straight',
+        filters: new Set(['distance', 'age', 'intent']),
+      };
+
+      const matchState = {
+        tab: 'active',
+        filters: new Set(['expiring', 'new']),
+      };
+
       const MAX_PHOTOS = 6;
       const state = {
         step: 0,
@@ -1784,6 +2371,214 @@
         }
         return allow;
       };
+
+      const toneStyles = {
+        primary: 'background: rgba(42, 179, 166, 0.12); color: var(--primary);',
+        secondary: 'background: rgba(185, 167, 255, 0.18); color: var(--secondary);',
+        warm: 'background: rgba(255, 210, 200, 0.4); color: #d37d6b;',
+      };
+
+      const renderProfileHub = () => {
+        if (!profileStrengthEl || !profileProgressFill) return;
+        profileStrengthEl.textContent = `${profileHubData.strength}%`;
+        profileProgressFill.style.width = `${profileHubData.strength}%`;
+        profileChecklist.innerHTML = '';
+        profileHubData.tasks.forEach((task) => {
+          const li = document.createElement('li');
+          const icon = document.createElement('span');
+          icon.className = 'check-icon';
+          icon.textContent = task.complete ? '✓' : '•';
+          li.appendChild(icon);
+          li.append(task.label);
+          profileChecklist.appendChild(li);
+        });
+        trustBadgeContainer.innerHTML = '';
+        profileHubData.trustBadges.forEach((badge) => {
+          const span = document.createElement('span');
+          span.className = 'trust-badge';
+          span.style = toneStyles[badge.tone] ?? '';
+          span.textContent = badge.label;
+          trustBadgeContainer.appendChild(span);
+        });
+        preferenceList.innerHTML = '';
+        profileHubData.preferences.forEach((pref) => {
+          const li = document.createElement('li');
+          const icon = document.createElement('span');
+          icon.className = 'check-icon';
+          icon.textContent = '✓';
+          li.appendChild(icon);
+          li.append(`${pref.label}: ${pref.value}`);
+          preferenceList.appendChild(li);
+        });
+      };
+
+      const handleMediaAction = (type) => {
+        const messages = {
+          upload: 'Photo uploader coming soon — connect storage service.',
+          gallery: 'Gallery management UI coming soon.',
+          reorder: 'Drag-and-drop ordering will unlock post-MVP.',
+          verify: 'Selfie verification will redirect to the trust service.',
+        };
+        const message = messages[type] ?? 'Action coming soon!';
+        alert(message);
+      };
+
+      mediaButtons.forEach((btn) =>
+        btn.addEventListener('click', () => handleMediaAction(btn.dataset.mediaAction))
+      );
+
+      preferenceButtons.forEach((btn) =>
+        btn.addEventListener('click', () => alert('Preference editing will be wired to account settings.'))
+      );
+
+      const renderDiscovery = () => {
+        if (!discoveryGrid) return;
+        const entries = discoveryData[discoveryState.space] ?? [];
+        discoveryGrid.innerHTML = '';
+        entries.forEach((entry) => {
+          const card = document.createElement('article');
+          card.className = 'discovery-card';
+          const img = document.createElement('img');
+          img.src = entry.image;
+          img.alt = `${entry.name} profile photo`;
+          card.appendChild(img);
+          const body = document.createElement('div');
+          body.className = 'card-body';
+          const title = document.createElement('h3');
+          title.textContent = entry.name;
+          const meta = document.createElement('div');
+          meta.className = 'card-meta';
+          meta.innerHTML = `<span>${entry.city}</span><span>${entry.pronouns}</span>`;
+          const intent = document.createElement('p');
+          intent.style.margin = '0';
+          intent.style.color = 'var(--muted)';
+          intent.textContent = entry.intent;
+          const bio = document.createElement('p');
+          bio.textContent = entry.bio;
+          const compat = document.createElement('small');
+          compat.style.color = 'rgba(26, 31, 54, 0.6)';
+          compat.textContent = entry.compatibility;
+          const actions = document.createElement('div');
+          actions.className = 'card-actions';
+          const likeBtn = document.createElement('button');
+          likeBtn.className = 'btn-like';
+          likeBtn.type = 'button';
+          likeBtn.textContent = 'Like';
+          likeBtn.addEventListener('click', () => alert(`Sent a like to ${entry.name.split(',')[0]}!`));
+          const saveBtn = document.createElement('button');
+          saveBtn.className = 'btn-save';
+          saveBtn.type = 'button';
+          saveBtn.textContent = 'Save';
+          saveBtn.addEventListener('click', () => alert('Saved to your list.'));
+          actions.append(likeBtn, saveBtn);
+          body.append(title, meta, intent, bio, compat, actions);
+          card.appendChild(body);
+          discoveryGrid.appendChild(card);
+        });
+      };
+
+      discoveryTabs.forEach((tab) => {
+        tab.addEventListener('click', () => {
+          discoveryTabs.forEach((btn) => btn.classList.remove('is-active'));
+          tab.classList.add('is-active');
+          discoveryState.space = tab.dataset.discoveryTab;
+          renderDiscovery();
+        });
+      });
+
+      const renderMatches = () => {
+        if (!matchList) return;
+        const matches = matchData[matchState.tab] ?? [];
+        matchList.innerHTML = '';
+        matches
+          .filter((match) => {
+            if (match.flagged && !matchState.filters.has('flagged')) {
+              return matchState.tab === 'archived';
+            }
+            if (match.flagged) return true;
+            if (matchState.filters.has('expiring') && match.expiresIn.includes('Expires')) return true;
+            if (matchState.filters.has('new') && match.status.toLowerCase().includes('new')) return true;
+            return matchState.filters.size === 0;
+          })
+          .forEach((match) => {
+            const card = document.createElement('article');
+            card.className = 'match-card';
+            const body = document.createElement('div');
+            const title = document.createElement('h3');
+            title.textContent = match.name;
+            const status = document.createElement('p');
+            status.style.margin = '0.1rem 0';
+            status.textContent = match.status;
+            const meta = document.createElement('div');
+            meta.className = 'match-meta';
+            meta.innerHTML = `<span>${match.context}</span><span>${match.expiresIn}</span>`;
+            if (match.flagged) {
+              const flag = document.createElement('span');
+              flag.style.color = '#d37d6b';
+              flag.textContent = 'Flagged for review';
+              meta.appendChild(flag);
+            }
+            body.append(title, status, meta);
+            const actions = document.createElement('div');
+            actions.className = 'match-actions';
+            const openBtn = document.createElement('button');
+            openBtn.type = 'button';
+            openBtn.className = 'primary';
+            openBtn.textContent = 'Open chat';
+            openBtn.addEventListener('click', () => alert(`Opening chat with ${match.name.split(' ')[0]}`));
+            const snoozeBtn = document.createElement('button');
+            snoozeBtn.type = 'button';
+            snoozeBtn.className = 'ghost';
+            snoozeBtn.textContent = 'Snooze';
+            snoozeBtn.addEventListener('click', () => alert('Snoozed match for 24h'));
+            const unmatchBtn = document.createElement('button');
+            unmatchBtn.type = 'button';
+            unmatchBtn.className = 'ghost';
+            unmatchBtn.textContent = 'Unmatch';
+            unmatchBtn.addEventListener('click', () => alert('Unmatch flow coming soon.'));
+            actions.append(openBtn, snoozeBtn, unmatchBtn);
+            card.append(body, actions);
+            matchList.appendChild(card);
+          });
+      };
+
+      matchTabs.forEach((tab) => {
+        tab.addEventListener('click', () => {
+          matchTabs.forEach((btn) => btn.classList.remove('is-active'));
+          tab.classList.add('is-active');
+          matchState.tab = tab.dataset.matchTab;
+          renderMatches();
+        });
+      });
+
+      matchFilters.forEach((checkbox) => {
+        checkbox.addEventListener('change', () => {
+          const key = checkbox.dataset.matchFilter;
+          if (checkbox.checked) {
+            matchState.filters.add(key);
+          } else {
+            matchState.filters.delete(key);
+          }
+          renderMatches();
+        });
+      });
+
+      matchSafetyButtons.forEach((btn) =>
+        btn.addEventListener('click', () => alert(`Safety toolkit coming soon for ${btn.dataset.matchSafety}.`))
+      );
+
+      filterChips.forEach((chip) => {
+        chip.addEventListener('click', () => {
+          const key = chip.dataset.filter;
+          if (discoveryState.filters.has(key)) {
+            discoveryState.filters.delete(key);
+            chip.classList.remove('is-active');
+          } else {
+            discoveryState.filters.add(key);
+            chip.classList.add('is-active');
+          }
+        });
+      });
 
       const updateMatchOptions = () => {
         const allow = allowedMatchMap();
@@ -1956,6 +2751,10 @@
 
       openers.forEach((btn) => btn.addEventListener('click', openOverlay));
       closers.forEach((btn) => btn.addEventListener('click', closeOverlay));
+
+      renderProfileHub();
+      renderDiscovery();
+      renderMatches();
 
       stepBack.addEventListener('click', () => {
         if (state.step === 0) return;
