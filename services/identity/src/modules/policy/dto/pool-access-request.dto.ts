@@ -1,10 +1,10 @@
 import { IsEnum, IsUUID } from 'class-validator';
-import { Orientation } from '../../../common/enums/orientation.enum';
+import { DiscoverySpace } from '../../../common/enums/discovery-space.enum';
 
 export class PoolAccessRequestDto {
   @IsUUID()
   userId!: string;
 
-  @IsEnum(Orientation)
-  requestedPool!: Orientation;
+  @IsEnum(DiscoverySpace)
+  requestedPool!: DiscoverySpace;
 }

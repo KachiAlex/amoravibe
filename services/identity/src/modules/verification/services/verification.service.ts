@@ -5,6 +5,7 @@ import { InitiateVerificationDto } from '../dto/initiate-verification.dto';
 import { UserService } from '../../user/services/user.service';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { PrismaClientLike } from '../../../prisma/prisma.types';
+import { AuditService } from '../../audit/services/audit.service';
 
 interface ProviderDecisionInput {
   status: VerificationStatus;
@@ -16,17 +17,26 @@ interface ProviderDecisionInput {
 export class VerificationService {
   constructor(
     @Inject(PrismaService) private readonly prisma: PrismaClientLike,
-    private readonly userService: UserService
+    private readonly userService: UserService,
+    private readonly auditService: AuditService
   ) {}
 
-  initiate(dto: InitiateVerificationDto): Promise<Verification> {
-    return this.prisma.verification.create({
+  async initiate(dto: InitiateVerificationDto): Promise<Verification> {
+    const verification = await this.prisma.verification.create({
       data: {
         userId: dto.userId,
         provider: dto.kycProvider,
         status: dto.targetStatus ?? VerificationStatus.PENDING,
       },
     });
+
+    await this.auditService.logVerificationInitiated(
+      verification.userId,
+      verification.id,
+      dto.kycProvider
+    );
+
+    return verification;
   }
 
   async complete(id: string): Promise<Verification> {
@@ -38,6 +48,7 @@ export class VerificationService {
   }
 
   async applyProviderDecision(id: string, input: ProviderDecisionInput): Promise<Verification> {
+    const existing = await this.findOrThrow(id);
     const updated = await this.updateOrThrow(id, {
       status: input.status,
       reference: input.reference,
@@ -46,6 +57,16 @@ export class VerificationService {
         | Prisma.NullableJsonNullValueInput
         | undefined,
     });
+
+    if (existing.status !== updated.status || input.metadata) {
+      await this.auditService.logVerificationStatusChange(
+        updated.userId,
+        updated.id,
+        existing.status,
+        updated.status,
+        input.metadata
+      );
+    }
 
     if (input.status === VerificationStatus.VERIFIED) {
       await this.userService.markVerified(updated.userId);
@@ -66,5 +87,13 @@ export class VerificationService {
       }
       throw error;
     }
+  }
+
+  private async findOrThrow(id: string): Promise<Verification> {
+    const record = await this.prisma.verification.findUnique({ where: { id } });
+    if (!record) {
+      throw new NotFoundException(`Verification ${id} not found`);
+    }
+    return record;
   }
 }

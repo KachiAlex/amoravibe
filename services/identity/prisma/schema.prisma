@@ -56,6 +56,19 @@ enum VerificationStatus {
   flagged
 }
 
+enum AuditAction {
+  verification_initiated
+  verification_status_changed
+  orientation_pool_denied
+  device_alert_created
+}
+
+enum ModerationSeverity {
+  info
+  warning
+  critical
+}
+
 model User {
   id                 String               @id @default(uuid())
   legalName          String
@@ -107,4 +120,36 @@ model DeviceFingerprint {
   observedAt DateTime @default(now())
 
   user User? @relation(fields: [userId], references: [id])
+  moderationEvents ModerationEvent[]
+}
+
+model AuditEvent {
+  id              String      @id @default(uuid())
+  userId          String
+  verificationId  String?
+  action          AuditAction
+  details         Json?
+  createdAt       DateTime    @default(now())
+
+  user         User         @relation(fields: [userId], references: [id])
+  verification Verification? @relation(fields: [verificationId], references: [id])
+
+  @@index([userId])
+  @@index([verificationId])
+}
+
+model ModerationEvent {
+  id                  String            @id @default(uuid())
+  userId              String?
+  deviceFingerprintId String?
+  severity            ModerationSeverity
+  message             String
+  metadata            Json?
+  createdAt           DateTime          @default(now())
+
+  user              User?              @relation(fields: [userId], references: [id])
+  deviceFingerprint DeviceFingerprint? @relation(fields: [deviceFingerprintId], references: [id])
+
+  @@index([userId])
+  @@index([deviceFingerprintId])
 }

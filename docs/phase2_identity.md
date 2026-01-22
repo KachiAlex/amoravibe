@@ -39,17 +39,19 @@
 
 ### 4. Device Fingerprinting & Multi-Account Detection
 
-- [ ] Capture device identifiers during onboarding/login (UA string hash + optional fingerprintJS vendor).
-- [ ] Store `DeviceProfile` records linked to `User` with trust score.
+- [x] Capture device identifiers during onboarding/login (UA string hash + optional fingerprintJS vendor).
+- [x] Store `DeviceFingerprint` records linked to `User` with derived `riskLabel`.
+- [x] Emit Moderation events + AuditService logs when high-turnover or spoofing alerts trigger (see `DeviceService.ingest`).
+- [x] Hourly correlation job scans shared fingerprints/IP clusters and emits linked-account moderation events (see `DeviceCorrelationService`).
 - [ ] Background job comparing shared devices/IPs → flag suspicious clusters and emit Moderation events.
-- [ ] Add API for support agents to review linked accounts.
+- [x] Support API (`GET /devices/clusters`, `/devices/clusters/:hash`) to review linked accounts.
 
 ## Deliverables
 
 1. `docs/identity_service.md` — API/DB schema reference (to be authored after implementation).
 2. Updated services/identity code with modules, entities, and mock KYC adapter.
 3. Terraform secrets placeholders for KYC provider keys + webhooks.
-4. Unit/integration tests verifying verification state transitions and policy enforcement.
+4. Unit/integration tests verifying verification state transitions, policy enforcement, and device moderation alerts/cluster surfacing (see `tests/device/device.service.spec.ts`).
 
 ## Dependencies
 

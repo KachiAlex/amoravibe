@@ -1,5 +1,7 @@
 import { randomUUID } from 'crypto';
 import { VerificationStatus } from '../../src/common/enums/verification-status.enum';
+import { AuditAction } from '../../src/common/enums/audit-action.enum';
+import { ModerationSeverity } from '../../src/common/enums/moderation-severity.enum';
 
 interface UserRecord {
   id: string;
@@ -46,6 +48,25 @@ interface DeviceFingerprintRecord {
   observedAt: Date;
 }
 
+interface AuditEventRecord {
+  id: string;
+  userId: string;
+  verificationId?: string | null;
+  action: AuditAction;
+  details?: Record<string, unknown> | null;
+  createdAt: Date;
+}
+
+interface ModerationEventRecord {
+  id: string;
+  userId?: string | null;
+  deviceFingerprintId?: string | null;
+  severity: ModerationSeverity;
+  message: string;
+  metadata?: Record<string, unknown> | null;
+  createdAt: Date;
+}
+
 type DeviceFingerprintWhereInput = {
   userId?: string | { not?: string };
   hash?: string;
@@ -56,6 +77,8 @@ export class InMemoryPrismaService {
   private users = new Map<string, UserRecord>();
   private verifications = new Map<string, VerificationRecord>();
   private deviceFingerprints = new Map<string, DeviceFingerprintRecord>();
+  private auditEvents = new Map<string, AuditEventRecord>();
+  private moderationEvents = new Map<string, ModerationEventRecord>();
 
   user = {
     create: async ({ data }: { data: Omit<UserRecord, 'id' | 'createdAt' | 'updatedAt'> }) => {
@@ -183,7 +206,11 @@ export class InMemoryPrismaService {
         return results.map((fp) => ({ ...fp }));
       }
 
-      return [];
+      const allFingerprints = Array.from(this.deviceFingerprints.values());
+      if (orderBy?.observedAt === 'desc') {
+        allFingerprints.sort((a, b) => b.observedAt.getTime() - a.observedAt.getTime());
+      }
+      return allFingerprints.map((fp) => ({ ...fp }));
     },
     create: async ({ data }: { data: Omit<DeviceFingerprintRecord, 'id' | 'observedAt'> }) => {
       const record: DeviceFingerprintRecord = {
@@ -196,10 +223,99 @@ export class InMemoryPrismaService {
     },
   };
 
+  auditEvent = {
+    create: async ({
+      data,
+    }: {
+      data: {
+        userId: string;
+        verificationId?: string | null;
+        action: AuditAction;
+        details?: Record<string, unknown> | null;
+      };
+    }) => {
+      const record: AuditEventRecord = {
+        id: randomUUID(),
+        createdAt: new Date(),
+        verificationId: data.verificationId ?? null,
+        details: data.details ?? null,
+        ...data,
+      };
+      this.auditEvents.set(record.id, record);
+      return { ...record };
+    },
+    findMany: async ({ where }: { where: { verificationId?: string; userId?: string } }) => {
+      return Array.from(this.auditEvents.values())
+        .filter((event) => {
+          if (where.verificationId && event.verificationId !== where.verificationId) {
+            return false;
+          }
+          if (where.userId && event.userId !== where.userId) {
+            return false;
+          }
+          return true;
+        })
+        .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
+        .map((event) => ({ ...event }));
+    },
+  };
+
+  moderationEvent = {
+    create: async ({
+      data,
+    }: {
+      data: {
+        userId?: string | null;
+        deviceFingerprintId?: string | null;
+        severity: ModerationSeverity;
+        message: string;
+        metadata?: Record<string, unknown> | null;
+      };
+    }) => {
+      const record: ModerationEventRecord = {
+        id: randomUUID(),
+        createdAt: new Date(),
+        userId: data.userId ?? null,
+        deviceFingerprintId: data.deviceFingerprintId ?? null,
+        metadata: data.metadata ?? null,
+        ...data,
+      };
+      this.moderationEvents.set(record.id, record);
+      return { ...record };
+    },
+    findMany: async ({
+      where,
+      orderBy,
+    }: {
+      where: { deviceFingerprintId?: string; userId?: string };
+      orderBy?: { createdAt: 'asc' | 'desc' };
+    }) => {
+      const results = Array.from(this.moderationEvents.values()).filter((event) => {
+        if (where.deviceFingerprintId && event.deviceFingerprintId !== where.deviceFingerprintId) {
+          return false;
+        }
+        if (where.userId && event.userId !== where.userId) {
+          return false;
+        }
+        return true;
+      });
+
+      if (orderBy?.createdAt === 'desc') {
+        results.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+      } else {
+        results.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+      }
+
+      return results.map((event) => ({ ...event }));
+    },
+  };
+
   reset() {
     this.users.clear();
     this.verifications.clear();
     this.deviceFingerprints.clear();
+    this.auditEvents.clear();
+    this.moderationEvents.clear();
   }
 
   private cloneUser(user?: UserRecord) {
