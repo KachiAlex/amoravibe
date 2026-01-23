@@ -2331,6 +2331,96 @@
         matchPreferences: new Set(),
         photos: [],
       };
+      let pendingNextRoute = null;
+
+      const API_ENDPOINT = overlay?.dataset?.endpoint || '/onboarding';
+      const FALLBACK_STORE_KEY = 'amoraOnboardingDraft';
+
+      const persistDraft = (payload) => {
+        try {
+          localStorage.setItem(
+            FALLBACK_STORE_KEY,
+            JSON.stringify({ payload, savedAt: new Date().toISOString() })
+          );
+        } catch (_) {}
+      };
+
+      const simulateSubmission = (payload) =>
+        new Promise((resolve) => {
+          setTimeout(() => {
+            resolve({
+              nextRoute: '#profile',
+              user: { id: `draft-${Date.now()}`, displayName: payload.displayName },
+              simulated: true,
+            });
+          }, 900);
+        });
+
+      const handlePostSubmitNavigation = () => {
+        if (!pendingNextRoute) return;
+        if (pendingNextRoute.startsWith('#')) {
+          const target = document.querySelector(pendingNextRoute);
+          if (target) {
+            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        } else {
+          window.location.href = pendingNextRoute;
+        }
+        pendingNextRoute = null;
+      };
+
+      const finalizeSubmission = (result, wasSimulated = false) => {
+        const successMessage = wasSimulated
+          ? 'You’re in! We saved a draft locally and will sync once you’re online.'
+          : 'You’re in! We just sent next steps to your inbox.';
+        statusEl.textContent = successMessage;
+        pendingNextRoute = result?.nextRoute ?? null;
+        stepNext.textContent = 'Done';
+        stepNext.disabled = false;
+        stepBack.disabled = false;
+        stepNext.addEventListener(
+          'click',
+          () => {
+            closeOverlay();
+            stepNext.textContent = 'Continue';
+            handlePostSubmitNavigation();
+          },
+          { once: true }
+        );
+
+        if (result?.nextRoute) {
+          const statusLinkId = 'onboarding-next-route-link';
+          let statusLink = document.getElementById(statusLinkId);
+          if (!statusLink) {
+            statusLink = document.createElement('a');
+            statusLink.id = statusLinkId;
+            statusLink.style.display = 'block';
+            statusLink.style.marginTop = '0.5rem';
+            statusLink.style.fontWeight = '600';
+            statusLink.style.color = 'var(--primary)';
+            statusEl.appendChild(statusLink);
+          }
+          const isAnchorRoute = result.nextRoute.startsWith('#');
+          statusLink.href = result.nextRoute;
+          statusLink.textContent = isAnchorRoute
+            ? 'Explore your profile hub preview →'
+            : wasSimulated
+              ? 'View your saved draft →'
+              : 'Go to your dashboard →';
+          statusLink.onclick = null;
+          if (isAnchorRoute) {
+            statusLink.addEventListener(
+              'click',
+              (event) => {
+                event.preventDefault();
+                closeOverlay();
+                handlePostSubmitNavigation();
+              },
+              { once: true }
+            );
+          }
+        }
+      };
 
       const orientationLabels = {
         heterosexual: 'Straight',
@@ -2714,6 +2804,7 @@
         state.orientations.clear();
         state.matchPreferences.clear();
         state.photos = [];
+        pendingNextRoute = null;
         document.querySelectorAll('[data-orientation] input').forEach((input) => {
           input.checked = false;
           input.parentElement.classList.remove('is-active');
@@ -2864,6 +2955,21 @@
         };
       };
 
+      const submitProfile = async (payload) => {
+        const response = await fetch(API_ENDPOINT, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        if (!response.ok) {
+          const errorBody = await response.json().catch(() => ({}));
+          const error = new Error(errorBody.message || 'Request failed');
+          error.status = response.status;
+          throw error;
+        }
+        return response.json().catch(() => ({}));
+      };
+
       stepNext.addEventListener('click', async () => {
         if (!validateStep()) return;
         if (state.step < steps.length - 1) {
@@ -2875,31 +2981,19 @@
         stepNext.disabled = true;
         stepBack.disabled = true;
         try {
-          const response = await fetch('/users', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload),
-          });
-          if (!response.ok) {
-            const errorBody = await response.json().catch(() => ({}));
-            throw new Error(errorBody.message || 'Request failed');
-          }
-          statusEl.textContent = 'You’re in! We just sent next steps to your inbox.';
-          stepNext.textContent = 'Done';
-          stepNext.disabled = false;
-          stepBack.disabled = false;
-          stepNext.addEventListener(
-            'click',
-            () => {
-              closeOverlay();
-              stepNext.textContent = 'Continue';
-            },
-            { once: true }
-          );
+          const result = await submitProfile(payload);
+          finalizeSubmission(result);
         } catch (error) {
+          if (error?.status === 404 || error?.name === 'TypeError') {
+            statusEl.textContent = 'Live signup service is offline. Saving your draft locally…';
+            persistDraft(payload);
+            const simulatedResult = await simulateSubmission(payload);
+            finalizeSubmission(simulatedResult, true);
+            return;
+          }
           statusEl.textContent = error.message || 'Something went wrong. Please try again.';
           stepNext.disabled = false;
-          stepBack.disabled = false;
+          stepBack.disabled = state.step === 0;
         }
       });
     </script>

@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { RequestMethod, ValidationPipe } from '@nestjs/common';
+import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 
@@ -8,9 +8,7 @@ async function bootstrap() {
     logger: ['log', 'warn', 'error'],
   });
 
-  app.setGlobalPrefix('api/v1', {
-    exclude: [{ path: '/', method: RequestMethod.GET }],
-  });
+  app.setGlobalPrefix('api/v1');
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -19,9 +17,9 @@ async function bootstrap() {
     })
   );
 
-  const port = process.env.PORT || 4001;
+  const port = process.env.PORT || 4010;
   await app.listen(port);
-  console.log(`[identity-service] running on port ${port}`);
+  console.log(`[moderation-service] running on port ${port}`);
 }
 
 bootstrap();

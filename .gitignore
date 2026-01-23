@@ -21,3 +21,4 @@ prisma/*.sqlite
 .env*.local
 services/profile/generated/
 services/identity/generated/
+services/moderation/generated/
