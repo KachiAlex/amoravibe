@@ -1,14 +1,7 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { VerificationService } from '../../verification/services/verification.service';
 import { VerificationStatus } from '../../../common/enums/verification-status.enum';
-
-export interface KycCallbackPayload {
-  verificationId: string;
-  provider: string;
-  status: 'approved' | 'rejected' | 'pending';
-  reference?: string;
-  metadata?: Record<string, unknown>;
-}
+import { KycCallbackPayload } from '../dto/kyc-callback-payload';
 
 export interface KycCallbackResult {
   verification: Awaited<ReturnType<VerificationService['findById']>>;

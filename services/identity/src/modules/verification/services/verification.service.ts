@@ -39,6 +39,10 @@ export class VerificationService {
     return verification;
   }
 
+  attachProviderReference(id: string, reference: string): Promise<Verification> {
+    return this.updateOrThrow(id, { reference });
+  }
+
   async complete(id: string): Promise<Verification> {
     return this.applyProviderDecision(id, { status: VerificationStatus.VERIFIED });
   }

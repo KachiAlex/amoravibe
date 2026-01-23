@@ -1,0 +1,121 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/profile-client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Orientation {
+  heterosexual
+  gay
+  lesbian
+  bisexual
+  pansexual
+  asexual
+  queer
+}
+
+enum VisibilityPool {
+  hetero
+  lgbtq
+  both
+}
+
+enum ProfileMediaType {
+  photo
+  video
+}
+
+enum ProfileMediaStatus {
+  pending
+  processing
+  approved
+  rejected
+}
+
+enum ProfileVersionStatus {
+  draft
+  pending_review
+  approved
+  locked
+  rejected
+}
+
+model Profile {
+  id                   String                @id @default(uuid())
+  userId               String                @unique
+  handle               String?               @unique
+  orientationVisibility VisibilityPool       @default(hetero)
+  currentVersionId     String?               @unique
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+
+  versions             ProfileVersion[]
+  media                ProfileMedia[]
+  visibilityRules      ProfileVisibilityRule[]
+  currentVersion       ProfileVersion?       @relation("ProfileCurrentVersion", fields: [currentVersionId], references: [id])
+}
+
+model ProfileVersion {
+  id                String                @id @default(uuid())
+  profileId         String
+  legalName         String
+  displayName       String
+  pronouns          String?
+  bio               String?
+  orientation       Orientation
+  lifestyleTags     String[]              @default([])
+  verifiedAt        DateTime?
+  lockedBy          String?
+  previousVersionId String?
+  metadata          Json?
+  status            ProfileVersionStatus  @default(draft)
+  createdAt         DateTime              @default(now())
+
+  profile           Profile               @relation(fields: [profileId], references: [id])
+  previousVersion   ProfileVersion?       @relation("ProfileVersionHistory", fields: [previousVersionId], references: [id])
+  nextVersions      ProfileVersion[]      @relation("ProfileVersionHistory")
+  currentOwner      Profile?              @relation("ProfileCurrentVersion")
+
+  @@index([profileId])
+  @@index([status])
+}
+
+model ProfileMedia {
+  id            String             @id @default(uuid())
+  profileId     String
+  type          ProfileMediaType
+  status        ProfileMediaStatus @default(pending)
+  visibility    VisibilityPool     @default(hetero)
+  storageKey    String
+  bucket        String
+  checksum      String?
+  label         String?
+  metadata      Json?
+  moderationFlags Json?
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+
+  profile       Profile            @relation(fields: [profileId], references: [id])
+
+  @@index([profileId])
+  @@index([status])
+}
+
+model ProfileVisibilityRule {
+  id             String         @id @default(uuid())
+  profileId      String
+  pool           VisibilityPool
+  visibleFields  Json?
+  visibleMediaIds Json?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  profile        Profile        @relation(fields: [profileId], references: [id])
+
+  @@unique([profileId, pool])
+  @@index([profileId])
+}

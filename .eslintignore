@@ -1,0 +1,3 @@
+services/profile/generated/
+services/profile/dist/
+**/node_modules/

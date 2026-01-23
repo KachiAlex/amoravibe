@@ -1,0 +1,1 @@
+export const KYC_PROVIDER_TOKEN = 'KYC_PROVIDER_TOKEN';

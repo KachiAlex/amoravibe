@@ -4,6 +4,7 @@ import {
   OrientationPool,
   defaultConfig,
   isOrientationSupported,
+  KycConfig,
 } from './lovedate-config';
 
 @Injectable()
@@ -20,6 +21,14 @@ export class AppConfigService {
 
   get orientationPools(): OrientationPool[] {
     return this.config.orientationPools;
+  }
+
+  get kyc(): KycConfig {
+    return this.config.kyc;
+  }
+
+  getKycWebhookToleranceMs(): number {
+    return this.config.kyc.webhookToleranceSeconds * 1000;
   }
 
   assertOrientationPool(pool: string): asserts pool is OrientationPool {

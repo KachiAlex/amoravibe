@@ -4,6 +4,8 @@ import { VerificationService } from '../../src/modules/verification/services/ver
 import { KycService } from '../../src/modules/kyc/services/kyc.service';
 import { VerificationStatus } from '../../src/common/enums/verification-status.enum';
 import { InMemoryPrismaService } from '../utils/in-memory-prisma.service';
+import { AuditService } from '../../src/modules/audit/services/audit.service';
+import { PrismaClientLike } from '../../src/prisma/prisma.types';
 import { Gender } from '../../src/common/enums/gender.enum';
 import { Orientation } from '../../src/common/enums/orientation.enum';
 import { DiscoverySpace } from '../../src/common/enums/discovery-space.enum';
@@ -31,16 +33,20 @@ const buildUserPayload = (overrides: Partial<CreateUserDto> = {}): CreateUserDto
 
 describe('KycService', () => {
   let prisma: InMemoryPrismaService;
+  let prismaClient: PrismaClientLike;
   let userService: UserService;
   let verificationService: VerificationService;
   let kycService: KycService;
+  let auditService: AuditService;
   let userId: string;
   let verificationId: string;
 
   beforeEach(async () => {
     prisma = new InMemoryPrismaService();
-    userService = new UserService(prisma);
-    verificationService = new VerificationService(prisma, userService);
+    prismaClient = prisma as unknown as PrismaClientLike;
+    userService = new UserService(prismaClient);
+    auditService = new AuditService(prismaClient);
+    verificationService = new VerificationService(prismaClient, userService, auditService);
     kycService = new KycService(verificationService);
 
     const user = await userService.create(buildUserPayload());

@@ -1,13 +1,14 @@
-import { Body, Controller, Post } from '@nestjs/common';
-import { KycUploadService } from '../services/kyc-upload.service';
+import { Body, Controller, Inject, Post } from '@nestjs/common';
 import { GenerateKycUploadDto } from '../dto/generate-kyc-upload.dto';
+import { KycProvider } from '../interfaces/kyc-provider.interface';
+import { KYC_PROVIDER_TOKEN } from '../kyc.constants';
 
 @Controller('kyc/uploads')
 export class KycUploadController {
-  constructor(private readonly uploadService: KycUploadService) {}
+  constructor(@Inject(KYC_PROVIDER_TOKEN) private readonly provider: KycProvider) {}
 
   @Post()
   generateUpload(@Body() dto: GenerateKycUploadDto) {
-    return this.uploadService.generate(dto);
+    return this.provider.getUploadTarget(dto);
   }
 }

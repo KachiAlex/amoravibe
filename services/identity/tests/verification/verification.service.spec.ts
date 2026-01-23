@@ -3,6 +3,8 @@ import { VerificationService } from '../../src/modules/verification/services/ver
 import { VerificationStatus } from '../../src/common/enums/verification-status.enum';
 import { UserService } from '../../src/modules/user/services/user.service';
 import { InMemoryPrismaService } from '../utils/in-memory-prisma.service';
+import { AuditService } from '../../src/modules/audit/services/audit.service';
+import { PrismaClientLike } from '../../src/prisma/prisma.types';
 import { Gender } from '../../src/common/enums/gender.enum';
 import { Orientation } from '../../src/common/enums/orientation.enum';
 import { DiscoverySpace } from '../../src/common/enums/discovery-space.enum';
@@ -30,13 +32,17 @@ const buildUserPayload = (overrides: Partial<CreateUserDto> = {}): CreateUserDto
 
 describe('VerificationService', () => {
   let prisma: InMemoryPrismaService;
+  let prismaClient: PrismaClientLike;
   let userService: UserService;
   let verificationService: VerificationService;
+  let auditService: AuditService;
 
   beforeEach(() => {
     prisma = new InMemoryPrismaService();
-    userService = new UserService(prisma);
-    verificationService = new VerificationService(prisma, userService);
+    prismaClient = prisma as unknown as PrismaClientLike;
+    userService = new UserService(prismaClient);
+    auditService = new AuditService(prismaClient);
+    verificationService = new VerificationService(prismaClient, userService, auditService);
   });
 
   it('initiates a verification record', async () => {
