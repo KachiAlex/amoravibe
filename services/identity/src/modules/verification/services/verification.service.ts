@@ -1,5 +1,5 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma, Verification } from '@prisma/client';
+import { Prisma, Verification } from '../../../prisma/client';
 import { VerificationStatus } from '../../../common/enums/verification-status.enum';
 import { InitiateVerificationDto } from '../dto/initiate-verification.dto';
 import { UserService } from '../../user/services/user.service';

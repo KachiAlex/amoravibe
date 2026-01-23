@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { Prisma, $Enums } from '../../../prisma/client';
 import { AuditAction } from '../../../common/enums/audit-action.enum';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { PrismaClientLike } from '../../../prisma/prisma.types';
@@ -24,8 +24,8 @@ export class AuditService {
       data: {
         userId: input.userId,
         verificationId: input.verificationId ?? null,
-        action: input.action,
-        details: input.details ?? null,
+        action: input.action as $Enums.AuditAction,
+        details: this.toJsonValue(input.details),
       },
     });
   }
@@ -82,5 +82,15 @@ export class AuditService {
       where: { userId },
       orderBy: { createdAt: 'asc' },
     });
+  }
+
+  private toJsonValue(value?: Record<string, unknown> | null) {
+    if (value === undefined) {
+      return undefined;
+    }
+    if (value === null) {
+      return Prisma.JsonNull;
+    }
+    return value as Prisma.InputJsonValue;
   }
 }

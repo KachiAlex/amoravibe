@@ -3,6 +3,7 @@ import { PoolAccessRequestDto } from '../dto/pool-access-request.dto';
 import { OrientationPolicyService } from '../services/orientation-policy.service';
 import { UserService } from '../../user/services/user.service';
 import { AuditService } from '../../audit/services/audit.service';
+import { Orientation } from '../../../common/enums/orientation.enum';
 
 @Controller('policy/pools')
 export class PoolAccessController {
@@ -21,7 +22,7 @@ export class PoolAccessController {
 
     const decision = this.policy.evaluateAccess({
       requestedPool: dto.requestedPool,
-      userOrientation: user.orientation,
+      userOrientation: user.orientation as Orientation,
       verified: user.isVerified,
     });
 

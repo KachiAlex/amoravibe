@@ -1,5 +1,5 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { Verification } from '@prisma/client';
+import { Verification } from '../../../prisma/client';
 import { VerificationService } from '../../verification/services/verification.service';
 import { KYC_PROVIDER_TOKEN } from '../kyc.constants';
 import { KycProvider } from '../interfaces/kyc-provider.interface';

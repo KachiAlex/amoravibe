@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client-js"
+  output   = "../generated/identity-client"
 }
 
 datasource db {
@@ -93,6 +94,8 @@ model User {
   updatedAt          DateTime             @updatedAt
   deviceFingerprints DeviceFingerprint[]
   verifications      Verification[]
+  auditEvents        AuditEvent[]        @relation("UserAuditEvents")
+  moderationEvents   ModerationEvent[]   @relation("UserModerationEvents")
 }
 
 model Verification {
@@ -105,7 +108,8 @@ model Verification {
   createdAt DateTime           @default(now())
   updatedAt DateTime           @updatedAt
 
-  user User @relation(fields: [userId], references: [id])
+  user        User         @relation(fields: [userId], references: [id])
+  auditEvents AuditEvent[] @relation("VerificationAuditEvents")
 
   @@index([userId])
 }
@@ -131,8 +135,8 @@ model AuditEvent {
   details         Json?
   createdAt       DateTime    @default(now())
 
-  user         User         @relation(fields: [userId], references: [id])
-  verification Verification? @relation(fields: [verificationId], references: [id])
+  user         User         @relation("UserAuditEvents", fields: [userId], references: [id])
+  verification Verification? @relation("VerificationAuditEvents", fields: [verificationId], references: [id])
 
   @@index([userId])
   @@index([verificationId])
@@ -147,7 +151,7 @@ model ModerationEvent {
   metadata            Json?
   createdAt           DateTime          @default(now())
 
-  user              User?              @relation(fields: [userId], references: [id])
+  user              User?              @relation("UserModerationEvents", fields: [userId], references: [id])
   deviceFingerprint DeviceFingerprint? @relation(fields: [deviceFingerprintId], references: [id])
 
   @@index([userId])

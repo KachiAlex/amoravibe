@@ -20,3 +20,4 @@ prisma/*.sqlite
 .vercel
 .env*.local
 services/profile/generated/
+services/identity/generated/
