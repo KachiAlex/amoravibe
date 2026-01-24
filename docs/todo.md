@@ -31,10 +31,11 @@
 
 ## Phase 4 — Trust, Moderation, and Analytics
 
-- [ ] Moderation service with case management UI, reporting pipeline, and automation rules.
-- [ ] ML safety models (torch/TF) for behavior anomaly detection and impersonation signals.
-- [ ] Centralized audit/event log with retention policy + privacy tooling (export/delete requests).
-- [ ] Analytics warehouse & dashboards segmented by PII classification.
+- [x] Moderation service with case management UI, reporting pipeline, and automation rules.
+- [x] ML safety models (Torch/TF placeholder via heuristic engine) for behavior anomaly detection and impersonation signals.
+- [x] Centralized audit/event log with retention policy + privacy tooling (export/delete requests).
+- [x] Analytics warehouse ingestion + schema (PII segmentation ready for warehouse exports).
+- [ ] Analytics dashboards + privacy-reviewed reporting surfaces.
 
 ## Phase 5 — Client Applications
 
@@ -50,4 +51,4 @@
 
 ---
 
-**In Progress:** Phase 1 — Infra baselines (IaC, observability) next.
+**In Progress:** Phase 4 — Analytics dashboards & privacy-reviewed reporting surfaces.

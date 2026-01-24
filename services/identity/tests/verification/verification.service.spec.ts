@@ -4,6 +4,7 @@ import { VerificationStatus } from '../../src/common/enums/verification-status.e
 import { UserService } from '../../src/modules/user/services/user.service';
 import { InMemoryPrismaService } from '../utils/in-memory-prisma.service';
 import { AuditService } from '../../src/modules/audit/services/audit.service';
+import { AppConfigService } from '../../src/config/config.service';
 import { PrismaClientLike } from '../../src/prisma/prisma.types';
 import { Gender } from '../../src/common/enums/gender.enum';
 import { Orientation } from '../../src/common/enums/orientation.enum';
@@ -37,11 +38,13 @@ describe('VerificationService', () => {
   let verificationService: VerificationService;
   let auditService: AuditService;
 
+  const fakeConfig = { audit: { retentionDays: 1 } } as AppConfigService;
+
   beforeEach(() => {
     prisma = new InMemoryPrismaService();
     prismaClient = prisma as unknown as PrismaClientLike;
     userService = new UserService(prismaClient);
-    auditService = new AuditService(prismaClient);
+    auditService = new AuditService(prismaClient, fakeConfig);
     verificationService = new VerificationService(prismaClient, userService, auditService);
   });
 

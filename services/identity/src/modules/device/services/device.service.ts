@@ -1,10 +1,16 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { DeviceFingerprint, Prisma } from '../../../prisma/client';
+import { DeviceFingerprint, Prisma, AuditActorType, AuditEntityType } from '../../../prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { IngestDeviceFingerprintDto } from '../dto/ingest-device-fingerprint.dto';
 import { PrismaClientLike } from '../../../prisma/prisma.types';
 import { AuditService } from '../../audit/services/audit.service';
 import { ModerationSeverity } from '../../../common/enums/moderation-severity.enum';
+import { TrustSignalsService } from '../../trust/services/trust-signals.service';
+import {
+  RiskSignalChannel,
+  RiskSignalSeverity,
+  RiskSignalType,
+} from '../../../common/enums/risk.enums';
 
 export interface DeviceAlert {
   message: string;
@@ -31,7 +37,8 @@ export interface DeviceCluster {
 export class DeviceService {
   constructor(
     @Inject(PrismaService) private readonly prisma: PrismaClientLike,
-    private readonly auditService: AuditService
+    private readonly auditService: AuditService,
+    private readonly trustSignals: TrustSignalsService
   ) {}
 
   async ingest(payload: IngestDeviceFingerprintDto): Promise<DeviceIngestResult> {
@@ -94,8 +101,30 @@ export class DeviceService {
             payload.userId,
             alert.message,
             alert.severity,
-            fingerprint.id
+            fingerprint.id,
+            {
+              actor: { type: AuditActorType.service, id: 'device_pipeline' },
+              entity: { type: AuditEntityType.device_fingerprint, id: fingerprint.id },
+              channel: 'device_pipeline',
+            }
           );
+
+          await this.trustSignals.ingestSignal({
+            userId: payload.userId,
+            deviceFingerprintId: fingerprint.id,
+            type: RiskSignalType.DEVICE_FINGERPRINT,
+            channel: RiskSignalChannel.DEVICE_PIPELINE,
+            severity: this.mapSeverity(alert.severity),
+            metadata: {
+              hash: payload.hash,
+              userAgent: payload.userAgent,
+            },
+            features: [
+              { key: 'device_count', value: sharedHashUsers.length },
+              { key: 'alert_message', value: alert.message },
+            ],
+            score: alert.severity === ModerationSeverity.CRITICAL ? 20 : 10,
+          });
         }
       }
     }
@@ -194,5 +223,16 @@ export class DeviceService {
       return 'high';
     }
     return 'medium';
+  }
+
+  private mapSeverity(severity: ModerationSeverity): RiskSignalSeverity {
+    switch (severity) {
+      case ModerationSeverity.CRITICAL:
+        return RiskSignalSeverity.CRITICAL;
+      case ModerationSeverity.WARNING:
+        return RiskSignalSeverity.HIGH;
+      default:
+        return RiskSignalSeverity.MEDIUM;
+    }
   }
 }

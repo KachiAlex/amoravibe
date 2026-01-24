@@ -2,6 +2,16 @@ import { randomUUID } from 'crypto';
 import { VerificationStatus } from '../../src/common/enums/verification-status.enum';
 import { AuditAction } from '../../src/common/enums/audit-action.enum';
 import { ModerationSeverity } from '../../src/common/enums/moderation-severity.enum';
+import {
+  AuditActorType,
+  AuditEntityType,
+  AuditExportStatus,
+  AuditPurgeStatus,
+  RiskSignalChannel,
+  RiskSignalSeverity,
+  RiskSignalType,
+  AnalyticsPiiTier,
+} from '../../src/prisma/client';
 
 interface UserRecord {
   id: string;
@@ -54,7 +64,99 @@ interface AuditEventRecord {
   verificationId?: string | null;
   action: AuditAction;
   details?: Record<string, unknown> | null;
+  actorType: AuditActorType;
+  actorId?: string | null;
+  entityType?: AuditEntityType | null;
+  entityId?: string | null;
+  channel?: string | null;
+  ipAddress?: string | null;
+  userAgent?: string | null;
+  expiresAt: Date;
   createdAt: Date;
+}
+
+interface AuditExportRequestRecord {
+  id: string;
+  userId: string;
+  status: AuditExportStatus;
+  storageLocation?: string | null;
+  failureReason?: string | null;
+  payload?: Record<string, unknown> | null;
+  requestedAt: Date;
+  processedAt?: Date | null;
+}
+
+interface AuditPurgeRequestRecord {
+  id: string;
+  userId: string;
+  status: AuditPurgeStatus;
+  reason?: string | null;
+  requestedAt: Date;
+  processedAt?: Date | null;
+}
+
+interface RiskSignalRecord {
+  id: string;
+  userId?: string | null;
+  relatedUserId?: string | null;
+  deviceFingerprintId?: string | null;
+  type: RiskSignalType;
+  channel: RiskSignalChannel;
+  severity: RiskSignalSeverity;
+  metadata?: Record<string, unknown> | null;
+  features?: Record<string, unknown> | null;
+  score?: number | null;
+  createdAt: Date;
+}
+
+interface AnalyticsUserSnapshotRecord {
+  id: string;
+  userId: string;
+  snapshotDate: Date;
+  hashedEmail?: string | null;
+  hashedPhone?: string | null;
+  orientation: string;
+  discoverySpace: string;
+  trustScore: number;
+  isVerified: boolean;
+  piiTier: AnalyticsPiiTier;
+  metadata?: Record<string, unknown> | null;
+  createdAt: Date;
+}
+
+interface AnalyticsTrustSignalFactRecord {
+  id: string;
+  signalId: string;
+  userId?: string | null;
+  hashedUserId?: string | null;
+  signalType: RiskSignalType;
+  channel: RiskSignalChannel;
+  severity: RiskSignalSeverity;
+  score?: number | null;
+  piiTier: AnalyticsPiiTier;
+  occurredAt: Date;
+  createdAt: Date;
+}
+
+interface AnalyticsModerationFactRecord {
+  id: string;
+  moderationEventId: string;
+  userId?: string | null;
+  hashedUserId?: string | null;
+  severity: ModerationSeverity;
+  message: string;
+  piiTier: AnalyticsPiiTier;
+  occurredAt: Date;
+  createdAt: Date;
+}
+
+interface AnalyticsIngestionRunRecord {
+  id: string;
+  jobName: string;
+  lastRunAt?: Date | null;
+  checkpoint?: Record<string, unknown> | null;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 interface ModerationEventRecord {
@@ -79,6 +181,13 @@ export class InMemoryPrismaService {
   private deviceFingerprints = new Map<string, DeviceFingerprintRecord>();
   private auditEvents = new Map<string, AuditEventRecord>();
   private moderationEvents = new Map<string, ModerationEventRecord>();
+  private auditExportRequests = new Map<string, AuditExportRequestRecord>();
+  private auditPurgeRequests = new Map<string, AuditPurgeRequestRecord>();
+  private riskSignals = new Map<string, RiskSignalRecord>();
+  private analyticsUserSnapshots = new Map<string, AnalyticsUserSnapshotRecord>();
+  private analyticsTrustSignals = new Map<string, AnalyticsTrustSignalFactRecord>();
+  private analyticsModerationFacts = new Map<string, AnalyticsModerationFactRecord>();
+  private analyticsRuns = new Map<string, AnalyticsIngestionRunRecord>();
 
   user = {
     create: async ({ data }: { data: Omit<UserRecord, 'id' | 'createdAt' | 'updatedAt'> }) => {
@@ -115,6 +224,168 @@ export class InMemoryPrismaService {
       this.users.set(where.id, updated);
       return { ...updated };
     },
+    findMany: async ({ where }: { where?: { updatedAt?: { gte?: Date } } } = {}) => {
+      let results = Array.from(this.users.values());
+      if (where?.updatedAt?.gte) {
+        results = results.filter((user) => user.updatedAt >= where.updatedAt!.gte!);
+      }
+      return results.map((user) => ({ ...user }));
+    },
+  };
+
+  riskSignal = {
+    create: async ({ data }: { data: Omit<RiskSignalRecord, 'id' | 'createdAt'> }) => {
+      const record: RiskSignalRecord = {
+        id: randomUUID(),
+        createdAt: new Date(),
+        ...data,
+      };
+      this.riskSignals.set(record.id, record);
+      return { ...record };
+    },
+    findMany: async (args?: {
+      where?: { createdAt?: { gt?: Date } };
+      orderBy?: { createdAt: 'asc' | 'desc' };
+    }) => {
+      let results = Array.from(this.riskSignals.values());
+      if (args?.where?.createdAt?.gt) {
+        results = results.filter((signal) => signal.createdAt > args.where!.createdAt!.gt!);
+      }
+      const order = args?.orderBy?.createdAt;
+      if (order === 'asc') {
+        results.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+      } else if (order === 'desc') {
+        results.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+      }
+      return results.map((signal) => ({ ...signal }));
+    },
+  };
+
+  analyticsUserSnapshot = {
+    upsert: async ({
+      where,
+      update,
+      create,
+    }: {
+      where: { userId_snapshotDate: { userId: string; snapshotDate: Date } };
+      update: Partial<AnalyticsUserSnapshotRecord>;
+      create: Omit<AnalyticsUserSnapshotRecord, 'id'> & { id?: string };
+    }) => {
+      const key = this.snapshotKey(
+        where.userId_snapshotDate.userId,
+        where.userId_snapshotDate.snapshotDate
+      );
+      const existing = this.analyticsUserSnapshots.get(key);
+      if (existing) {
+        const next = { ...existing, ...update };
+        this.analyticsUserSnapshots.set(key, next as AnalyticsUserSnapshotRecord);
+        return { ...next };
+      }
+      const record = {
+        id: create.id ?? randomUUID(),
+        ...create,
+      } as AnalyticsUserSnapshotRecord;
+      this.analyticsUserSnapshots.set(key, record);
+      return { ...record };
+    },
+    findMany: async () =>
+      Array.from(this.analyticsUserSnapshots.values()).map((entry) => ({ ...entry })),
+  };
+
+  analyticsTrustSignalFact = {
+    upsert: async ({
+      where,
+      update,
+      create,
+    }: {
+      where: { signalId: string };
+      update: Partial<AnalyticsTrustSignalFactRecord>;
+      create: Omit<AnalyticsTrustSignalFactRecord, 'id'> & { id?: string };
+    }) => {
+      const id = where.signalId;
+      const existing = this.analyticsTrustSignals.get(id);
+      if (existing) {
+        const next = { ...existing, ...update };
+        this.analyticsTrustSignals.set(id, next as AnalyticsTrustSignalFactRecord);
+        return { ...next };
+      }
+      const record: AnalyticsTrustSignalFactRecord = {
+        id: create.id ?? randomUUID(),
+        ...create,
+      };
+      this.analyticsTrustSignals.set(id, record);
+      return { ...record };
+    },
+    findMany: async () =>
+      Array.from(this.analyticsTrustSignals.values()).map((entry) => ({ ...entry })),
+  };
+
+  analyticsModerationFact = {
+    upsert: async ({
+      where,
+      update,
+      create,
+    }: {
+      where: { moderationEventId: string };
+      update: Partial<AnalyticsModerationFactRecord>;
+      create: Omit<AnalyticsModerationFactRecord, 'id'> & { id?: string };
+    }) => {
+      const id = where.moderationEventId;
+      const existing = this.analyticsModerationFacts.get(id);
+      if (existing) {
+        const next = { ...existing, ...update };
+        this.analyticsModerationFacts.set(id, next as AnalyticsModerationFactRecord);
+        return { ...next };
+      }
+      const record: AnalyticsModerationFactRecord = {
+        id: create.id ?? randomUUID(),
+        ...create,
+      };
+      this.analyticsModerationFacts.set(id, record);
+      return { ...record };
+    },
+    findMany: async () =>
+      Array.from(this.analyticsModerationFacts.values()).map((entry) => ({ ...entry })),
+  };
+
+  analyticsIngestionRun = {
+    findUnique: async ({ where }: { where: { jobName: string } }) => {
+      const run = this.analyticsRuns.get(where.jobName);
+      return run ? { ...run } : null;
+    },
+    upsert: async ({
+      where,
+      update,
+      create,
+    }: {
+      where: { jobName: string };
+      update: Partial<AnalyticsIngestionRunRecord>;
+      create: Omit<AnalyticsIngestionRunRecord, 'id' | 'createdAt' | 'updatedAt'> & {
+        id?: string;
+        createdAt?: Date;
+        updatedAt?: Date;
+      };
+    }) => {
+      const existing = this.analyticsRuns.get(where.jobName);
+      if (existing) {
+        const next: AnalyticsIngestionRunRecord = {
+          ...existing,
+          ...update,
+          updatedAt: new Date(),
+        };
+        this.analyticsRuns.set(where.jobName, next);
+        return { ...next };
+      }
+      const record: AnalyticsIngestionRunRecord = {
+        id: create.id ?? randomUUID(),
+        createdAt: create.createdAt ?? new Date(),
+        updatedAt: create.updatedAt ?? new Date(),
+        ...create,
+      };
+      this.analyticsRuns.set(where.jobName, record);
+      return { ...record };
+    },
+    findMany: async () => Array.from(this.analyticsRuns.values()).map((entry) => ({ ...entry })),
   };
 
   verification = {
@@ -239,6 +510,12 @@ export class InMemoryPrismaService {
         createdAt: new Date(),
         verificationId: data.verificationId ?? null,
         details: data.details ?? null,
+        actorId: data.actorId ?? null,
+        entityId: data.entityId ?? null,
+        channel: data.channel ?? null,
+        ipAddress: data.ipAddress ?? null,
+        userAgent: data.userAgent ?? null,
+        expiresAt: data.expiresAt ?? new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
         ...data,
       };
       this.auditEvents.set(record.id, record);
@@ -257,6 +534,140 @@ export class InMemoryPrismaService {
         })
         .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
         .map((event) => ({ ...event }));
+    },
+    deleteMany: async ({ where }: { where: { userId?: string; expiresAt?: { lt?: Date } } }) => {
+      let count = 0;
+      for (const [id, event] of this.auditEvents.entries()) {
+        const matchesUser = where.userId ? event.userId === where.userId : true;
+        const matchesExpiry = where.expiresAt?.lt ? event.expiresAt < where.expiresAt.lt : true;
+        if (matchesUser && matchesExpiry) {
+          this.auditEvents.delete(id);
+          count += 1;
+        }
+      }
+      return { count };
+    },
+  };
+
+  auditExportRequest = {
+    create: async ({
+      data,
+    }: {
+      data: {
+        userId: string;
+        status: AuditExportStatus;
+        storageLocation?: string | null;
+        failureReason?: string | null;
+        payload?: Record<string, unknown> | null;
+      };
+    }) => {
+      const record: AuditExportRequestRecord = {
+        id: randomUUID(),
+        requestedAt: new Date(),
+        processedAt: null,
+        ...data,
+      };
+      this.auditExportRequests.set(record.id, record);
+      return { ...record };
+    },
+    findMany: async ({
+      where,
+      orderBy,
+      take,
+    }: {
+      where: { status?: AuditExportStatus };
+      orderBy?: { requestedAt: 'asc' | 'desc' };
+      take?: number;
+    }) => {
+      let results = Array.from(this.auditExportRequests.values());
+      if (where.status) {
+        results = results.filter((request) => request.status === where.status);
+      }
+      if (orderBy?.requestedAt === 'asc') {
+        results.sort((a, b) => a.requestedAt.getTime() - b.requestedAt.getTime());
+      } else if (orderBy?.requestedAt === 'desc') {
+        results.sort((a, b) => b.requestedAt.getTime() - a.requestedAt.getTime());
+      }
+      if (take) {
+        results = results.slice(0, take);
+      }
+      return results.map((record) => ({ ...record }));
+    },
+    update: async ({
+      where,
+      data,
+    }: {
+      where: { id: string };
+      data: Partial<AuditExportRequestRecord>;
+    }) => {
+      const existing = this.auditExportRequests.get(where.id);
+      if (!existing) {
+        throw Object.assign(new Error('Record not found'), { code: 'P2025' });
+      }
+      const updated: AuditExportRequestRecord = {
+        ...existing,
+        ...data,
+      };
+      this.auditExportRequests.set(where.id, updated);
+      return { ...updated };
+    },
+  };
+
+  auditPurgeRequest = {
+    create: async ({
+      data,
+    }: {
+      data: { userId: string; status: AuditPurgeStatus; reason?: string | null };
+    }) => {
+      const record: AuditPurgeRequestRecord = {
+        id: randomUUID(),
+        requestedAt: new Date(),
+        processedAt: null,
+        ...data,
+      };
+      this.auditPurgeRequests.set(record.id, record);
+      return { ...record };
+    },
+    findMany: async ({
+      where,
+      orderBy,
+      take,
+    }: {
+      where: { status?: AuditPurgeStatus };
+      orderBy?: { requestedAt: 'asc' | 'desc' };
+      take?: number;
+    }) => {
+      let results = Array.from(this.auditPurgeRequests.values());
+      if (where.status) {
+        results = results.filter((request) => request.status === where.status);
+      }
+      if (orderBy?.requestedAt === 'asc') {
+        results.sort((a, b) => a.requestedAt.getTime() - b.requestedAt.getTime());
+      } else if (orderBy?.requestedAt === 'desc') {
+        results.sort((a, b) => b.requestedAt.getTime() - a.requestedAt.getTime());
+      }
+      if (take) {
+        results = results.slice(0, take);
+      }
+      return results.map((record) => ({ ...record }));
+    },
+    update: async ({
+      where,
+      data,
+    }: {
+      where: { id: string };
+      data: Partial<AuditPurgeRequestRecord>;
+    }) => {
+      const existing = this.auditPurgeRequests.get(where.id);
+      if (!existing) {
+        throw Object.assign(new Error('Record not found'), { code: 'P2025' });
+      }
+      const updated: AuditPurgeRequestRecord = {
+        ...existing,
+        ...data,
+      };
+      this.auditPurgeRequests.set(where.id, updated);
+      return { ...updated };
     },
   };
 
@@ -287,14 +698,17 @@ export class InMemoryPrismaService {
       where,
       orderBy,
     }: {
-      where: { deviceFingerprintId?: string; userId?: string };
+      where?: { deviceFingerprintId?: string; userId?: string; createdAt?: { gt?: Date } };
       orderBy?: { createdAt: 'asc' | 'desc' };
-    }) => {
+    } = {}) => {
       const results = Array.from(this.moderationEvents.values()).filter((event) => {
-        if (where.deviceFingerprintId && event.deviceFingerprintId !== where.deviceFingerprintId) {
+        if (where?.deviceFingerprintId && event.deviceFingerprintId !== where.deviceFingerprintId) {
           return false;
         }
-        if (where.userId && event.userId !== where.userId) {
+        if (where?.userId && event.userId !== where.userId) {
+          return false;
+        }
+        if (where?.createdAt?.gt && !(event.createdAt > where.createdAt.gt)) {
           return false;
         }
         return true;
@@ -302,7 +716,7 @@ export class InMemoryPrismaService {
 
       if (orderBy?.createdAt === 'desc') {
         results.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-      } else {
+      } else if (orderBy?.createdAt === 'asc') {
         results.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
       }
 
@@ -316,9 +730,20 @@ export class InMemoryPrismaService {
     this.deviceFingerprints.clear();
     this.auditEvents.clear();
     this.moderationEvents.clear();
+    this.auditExportRequests.clear();
+    this.auditPurgeRequests.clear();
+    this.riskSignals.clear();
+    this.analyticsUserSnapshots.clear();
+    this.analyticsTrustSignals.clear();
+    this.analyticsModerationFacts.clear();
+    this.analyticsRuns.clear();
   }
 
   private cloneUser(user?: UserRecord) {
     return user ? { ...user } : null;
+  }
+
+  private snapshotKey(userId: string, snapshotDate: Date) {
+    return `${userId}:${snapshotDate.toISOString()}`;
   }
 }

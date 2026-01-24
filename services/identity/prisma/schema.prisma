@@ -64,10 +64,68 @@ enum AuditAction {
   device_alert_created
 }
 
+enum AuditActorType {
+  user
+  system
+  service
+  admin
+}
+
+enum AuditEntityType {
+  user
+  verification
+  device_fingerprint
+  trust_profile
+  moderation_case
+}
+
+enum AuditExportStatus {
+  pending
+  processing
+  completed
+  failed
+}
+
+enum AuditPurgeStatus {
+  pending
+  processing
+  completed
+  failed
+}
+
 enum ModerationSeverity {
   info
   warning
   critical
+}
+
+enum RiskSignalType {
+  device_fingerprint
+  auth_pattern
+  behavior_anomaly
+  content_violation
+  manual_report
+}
+
+enum RiskSignalChannel {
+  device_pipeline
+  auth_service
+  moderation_service
+  manual_review
+  external_feed
+}
+
+enum RiskSignalSeverity {
+  low
+  medium
+  high
+  critical
+}
+
+enum AnalyticsPiiTier {
+  direct
+  hashed
+  aggregate
 }
 
 model User {
@@ -96,6 +154,12 @@ model User {
   verifications      Verification[]
   auditEvents        AuditEvent[]        @relation("UserAuditEvents")
   moderationEvents   ModerationEvent[]   @relation("UserModerationEvents")
+  riskProfile        RiskProfile?
+  riskSignals        RiskSignal[]        @relation("RiskSignalUser")
+  relatedRiskSignals RiskSignal[]        @relation("RiskSignalRelatedUser")
+  riskModelRuns      RiskModelRun[]
+  auditExportRequests AuditExportRequest[]
+  auditPurgeRequests  AuditPurgeRequest[]
 }
 
 model Verification {
@@ -125,6 +189,7 @@ model DeviceFingerprint {
 
   user User? @relation(fields: [userId], references: [id])
   moderationEvents ModerationEvent[]
+  riskSignals      RiskSignal[]
 }
 
 model AuditEvent {
@@ -133,6 +198,14 @@ model AuditEvent {
   verificationId  String?
   action          AuditAction
   details         Json?
+  actorType       AuditActorType @default(system)
+  actorId         String?
+  entityType      AuditEntityType?
+  entityId        String?
+  channel         String?
+  ipAddress       String?
+  userAgent       String?
+  expiresAt       DateTime
   createdAt       DateTime    @default(now())
 
   user         User         @relation("UserAuditEvents", fields: [userId], references: [id])
@@ -140,6 +213,100 @@ model AuditEvent {
 
   @@index([userId])
   @@index([verificationId])
+  @@index([actorType])
+  @@index([entityType, entityId])
+  @@index([expiresAt])
+}
+
+model AuditExportRequest {
+  id               String            @id @default(uuid())
+  userId           String
+  status           AuditExportStatus @default(pending)
+  storageLocation  String?
+  failureReason    String?
+  payload          Json?
+  requestedAt      DateTime          @default(now())
+  processedAt      DateTime?
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([status])
+}
+
+model AuditPurgeRequest {
+  id            String           @id @default(uuid())
+  userId        String
+  status        AuditPurgeStatus @default(pending)
+  reason        String?
+  requestedAt   DateTime         @default(now())
+  processedAt   DateTime?
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([status])
+}
+
+model AnalyticsUserSnapshot {
+  id             String           @id @default(uuid())
+  userId         String
+  snapshotDate   DateTime         @default(now())
+  hashedEmail    String?
+  hashedPhone    String?
+  orientation    Orientation
+  discoverySpace DiscoverySpace
+  trustScore     Int
+  isVerified     Boolean
+  piiTier        AnalyticsPiiTier
+  metadata       Json?
+  createdAt      DateTime         @default(now())
+
+  @@index([snapshotDate])
+  @@unique([userId, snapshotDate])
+}
+
+model AnalyticsTrustSignalFact {
+  id             String            @id @default(uuid())
+  signalId       String            @unique
+  userId         String?
+  hashedUserId   String?
+  signalType     RiskSignalType
+  channel        RiskSignalChannel
+  severity       RiskSignalSeverity
+  score          Float?
+  piiTier        AnalyticsPiiTier
+  occurredAt     DateTime          @default(now())
+  createdAt      DateTime          @default(now())
+
+  @@index([userId])
+  @@index([occurredAt])
+}
+
+model AnalyticsModerationFact {
+  id               String             @id @default(uuid())
+  moderationEventId String            @unique
+  userId           String?
+  hashedUserId     String?
+  severity         ModerationSeverity
+  message          String
+  piiTier          AnalyticsPiiTier
+  occurredAt       DateTime           @default(now())
+  createdAt        DateTime           @default(now())
+
+  @@index([userId])
+  @@index([occurredAt])
+}
+
+model AnalyticsIngestionRun {
+  id        String   @id @default(uuid())
+  jobName   String
+  lastRunAt DateTime?
+  checkpoint Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([jobName])
 }
 
 model ModerationEvent {
@@ -156,4 +323,58 @@ model ModerationEvent {
 
   @@index([userId])
   @@index([deviceFingerprintId])
+}
+
+model RiskSignal {
+  id                  String              @id @default(uuid())
+  userId              String?
+  relatedUserId       String?
+  deviceFingerprintId String?
+  type                RiskSignalType
+  channel             RiskSignalChannel
+  severity            RiskSignalSeverity
+  metadata            Json?
+  features            Json?
+  score               Float?
+  createdAt           DateTime            @default(now())
+  processedAt         DateTime?
+
+  user           User?              @relation("RiskSignalUser", fields: [userId], references: [id])
+  relatedUser    User?              @relation("RiskSignalRelatedUser", fields: [relatedUserId], references: [id])
+  fingerprint    DeviceFingerprint? @relation(fields: [deviceFingerprintId], references: [id])
+  modelRuns      RiskModelRun[]
+
+  @@index([userId])
+  @@index([relatedUserId])
+  @@index([deviceFingerprintId])
+  @@index([type])
+}
+
+model RiskProfile {
+  userId          String   @id
+  trustScore      Int      @default(50)
+  metrics         Json?
+  lastEvaluatedAt DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model RiskModelRun {
+  id           String   @id @default(uuid())
+  userId       String
+  signalId     String?
+  modelVersion String
+  algorithm    String?
+  features     Json?
+  output       Json?
+  score        Float
+  createdAt    DateTime @default(now())
+
+  user   User       @relation(fields: [userId], references: [id])
+  signal RiskSignal? @relation(fields: [signalId], references: [id])
+
+  @@index([userId])
+  @@index([signalId])
 }

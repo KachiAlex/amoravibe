@@ -5,6 +5,7 @@ import { KycService } from '../../src/modules/kyc/services/kyc.service';
 import { VerificationStatus } from '../../src/common/enums/verification-status.enum';
 import { InMemoryPrismaService } from '../utils/in-memory-prisma.service';
 import { AuditService } from '../../src/modules/audit/services/audit.service';
+import { AppConfigService } from '../../src/config/config.service';
 import { PrismaClientLike } from '../../src/prisma/prisma.types';
 import { Gender } from '../../src/common/enums/gender.enum';
 import { Orientation } from '../../src/common/enums/orientation.enum';
@@ -41,11 +42,13 @@ describe('KycService', () => {
   let userId: string;
   let verificationId: string;
 
+  const fakeConfig = { audit: { retentionDays: 1 } } as AppConfigService;
+
   beforeEach(async () => {
     prisma = new InMemoryPrismaService();
     prismaClient = prisma as unknown as PrismaClientLike;
     userService = new UserService(prismaClient);
-    auditService = new AuditService(prismaClient);
+    auditService = new AuditService(prismaClient, fakeConfig);
     verificationService = new VerificationService(prismaClient, userService, auditService);
     kycService = new KycService(verificationService);
 

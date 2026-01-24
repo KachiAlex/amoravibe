@@ -44,17 +44,37 @@ modules/
 
 ## Configuration Surface (`src/config/lovedate-config.ts`)
 
-| Env Var                         | Description                                                   | Default                  |
-| ------------------------------- | ------------------------------------------------------------- | ------------------------ |
-| `KYC_PROVIDER`                  | provider slug stored on `Verification` rows + adapter binding | `persona`                |
-| `KYC_API_BASE_URL`              | downstream provider base URL (mock only)                      | `https://mock-kyc.local` |
-| `KYC_API_KEY`                   | provider credential (mock placeholder)                        | `mock-api-key`           |
-| `KYC_WEBHOOK_SECRET`            | shared secret for webhook signature                           | `mock-webhook-secret`    |
-| `KYC_WEBHOOK_TOLERANCE_SECONDS` | timestamp skew window (seconds)                               | `300`                    |
-| `KYC_UPLOAD_BUCKET`             | S3 bucket for KYC uploads                                     | `lovedate-kyc-uploads`   |
-| `KYC_UPLOAD_TTL_MINUTES`        | TTL for presigned URLs                                        | `30`                     |
+| Env Var                             | Description                                                   | Default                                         |
+| ----------------------------------- | ------------------------------------------------------------- | ----------------------------------------------- |
+| `KYC_PROVIDER`                      | provider slug stored on `Verification` rows + adapter binding | `persona`                                       |
+| `KYC_API_BASE_URL`                  | downstream provider base URL (mock only)                      | `https://mock-kyc.local`                        |
+| `KYC_API_KEY`                       | provider credential (mock placeholder)                        | `mock-api-key`                                  |
+| `KYC_WEBHOOK_SECRET`                | shared secret for webhook signature                           | `mock-webhook-secret`                           |
+| `KYC_WEBHOOK_TOLERANCE_SECONDS`     | timestamp skew window (seconds)                               | `300`                                           |
+| `KYC_UPLOAD_BUCKET`                 | S3 bucket for KYC uploads                                     | `lovedate-kyc-uploads`                          |
+| `KYC_UPLOAD_TTL_MINUTES`            | TTL for presigned URLs                                        | `30`                                            |
+| `ANALYTICS_DB_URL`                  | Postgres replica/warehouse used by analytics ingestion        | `postgresql://localhost:5432/lovedate_identity` |
+| `PII_HASH_SALT`                     | Salt prepended before hashing identifiers for analytics facts | `local-dev-salt`                                |
+| `ANALYTICS_SNAPSHOT_WINDOW_MINUTES` | Sliding window (minutes) used for user snapshot alignment     | `60`                                            |
 
 `AppConfigService` exposes `kyc` and `getKycWebhookToleranceMs()` helpers for module injection.
+
+### Analytics Warehouse & Ingestion (Phase 4)
+
+Phase 4 introduces an analytics warehouse pipeline to power trust reporting while respecting PII segmentation:
+
+1. **`AnalyticsIngestionService`** runs on a schedule (via cron/queue) and orchestrates three pipelines:
+   - `snapshotUsers` captures user attributes updated within the configured window, hashing email/phone via `sha256(salt + value)` and storing preference metadata under the `hashed` tier.
+   - `ingestTrustSignals` streams `RiskSignal` rows into `AnalyticsTrustSignalFact`, deriving hashed user IDs and tagging each record with the correct PII tier (`direct` when a user reference exists, else `aggregate`).
+   - `ingestModerationEvents` mirrors moderation facts, preserving severity/message while hashing identifiers.
+2. **Checkpointing** is persisted in `AnalyticsIngestionRun` so incremental loads resume from the last successful timestamp per job (`analytics-user-snapshots`, `analytics-trust-signals`, `analytics-moderation-events`).
+3. **PII Tiering**
+   - `direct`: includes userId for privileged analysts.
+   - `hashed`: salted hashes only, for cross-system correlation without direct identifiers.
+   - `aggregate`: no user reference; suitable for public reporting.
+4. **Configuration** leverages the new env vars above and is surfaced through `AppConfigService.analytics` for modules/tests.
+
+Vitest coverage (`tests/analytics/analytics-ingestion.service.spec.ts`) exercises all three pipelines against the in-memory Prisma mock to guarantee hashing, tier assignment, and checkpoint behavior.
 
 ## Testing Coverage
 

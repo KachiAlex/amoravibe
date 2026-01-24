@@ -3,17 +3,22 @@ import { KycUploadService } from '../../src/modules/kyc/services/kyc-upload.serv
 import { KycUploadPurpose } from '../../src/modules/kyc/dto/generate-kyc-upload.dto';
 import { AppConfigService } from '../../src/config/config.service';
 
-const createPresignedPostMock = vi.fn(async () => ({
-  url: 'https://uploads.lovedate.test',
-  fields: { Policy: 'stub-policy', 'x-amz-signature': 'stub-signature' },
-}));
+const createPresignedPostMock = vi.fn(async (client: unknown, options: unknown) => {
+  void client;
+  void options;
+  return {
+    url: 'https://uploads.lovedate.test',
+    fields: { Policy: 'stub-policy', 'x-amz-signature': 'stub-signature' },
+  };
+});
 
 vi.mock('@aws-sdk/client-s3', () => ({
   S3Client: vi.fn().mockImplementation(() => ({ config: {} })),
 }));
 
 vi.mock('@aws-sdk/s3-presigned-post', () => ({
-  createPresignedPost: (...args: unknown[]) => createPresignedPostMock(...args),
+  createPresignedPost: (client: unknown, options: unknown) =>
+    createPresignedPostMock(client, options),
 }));
 
 describe('KycUploadService', () => {
@@ -22,6 +27,7 @@ describe('KycUploadService', () => {
     apiBaseUrl: 'https://persona.test',
     apiKey: 'stub-key',
     webhookSecret: 'stub-secret',
+    webhookToleranceSeconds: 300,
     uploadBucket: 'pii-bucket',
     uploadTtlMinutes: 30,
   };
@@ -47,17 +53,20 @@ describe('KycUploadService', () => {
     const response = await service.generate(dto);
 
     expect(createPresignedPostMock).toHaveBeenCalledTimes(1);
-    const [, options] = createPresignedPostMock.mock.calls[0];
+    const call = createPresignedPostMock.mock.calls[0];
+    expect(call).toBeDefined();
+    const [, options] = call as [unknown, Record<string, unknown>];
     expect(options).toMatchObject({
       Bucket: baseConfig.uploadBucket,
+      Key: expect.stringMatching(/^kyc\//),
       Fields: expect.objectContaining({
+        key: expect.stringContaining(dto.userId),
         'x-amz-meta-user-id': dto.userId,
         'x-amz-meta-verification-id': dto.verificationId,
         'x-amz-meta-purpose': dto.purpose,
         'x-amz-meta-label': dto.label,
       }),
     });
-    expect(options.Key).toBeUndefined();
     expect(Array.isArray(options.Conditions)).toBe(true);
 
     expect(response.bucket).toBe(baseConfig.uploadBucket);

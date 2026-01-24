@@ -38,3 +38,9 @@ export enum AutomationTriggerType {
   CASE_ESCALATED = 'CASE_ESCALATED',
   SCHEDULED = 'SCHEDULED',
 }
+
+export enum AutomationActionType {
+  ESCALATE_CASE = 'ESCALATE_CASE',
+  AUTO_CLOSE_CASE = 'AUTO_CLOSE_CASE',
+  ADD_CASE_NOTE = 'ADD_CASE_NOTE',
+}

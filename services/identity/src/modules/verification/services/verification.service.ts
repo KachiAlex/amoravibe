@@ -1,5 +1,5 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma, Verification } from '../../../prisma/client';
+import { Prisma, Verification, AuditActorType, AuditEntityType } from '../../../prisma/client';
 import { VerificationStatus } from '../../../common/enums/verification-status.enum';
 import { InitiateVerificationDto } from '../dto/initiate-verification.dto';
 import { UserService } from '../../user/services/user.service';
@@ -33,7 +33,12 @@ export class VerificationService {
     await this.auditService.logVerificationInitiated(
       verification.userId,
       verification.id,
-      dto.kycProvider
+      dto.kycProvider,
+      {
+        actor: { type: AuditActorType.service, id: dto.kycProvider },
+        entity: { type: AuditEntityType.verification, id: verification.id },
+        channel: 'verification_service',
+      }
     );
 
     return verification;
@@ -68,7 +73,12 @@ export class VerificationService {
         updated.id,
         existing.status,
         updated.status,
-        input.metadata
+        input.metadata,
+        {
+          actor: { type: AuditActorType.service, id: input.reference ?? 'kyc_provider' },
+          entity: { type: AuditEntityType.verification, id: updated.id },
+          channel: 'verification_service',
+        }
       );
     }
 

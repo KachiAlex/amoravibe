@@ -3,6 +3,7 @@ import { PoolAccessRequestDto } from '../dto/pool-access-request.dto';
 import { OrientationPolicyService } from '../services/orientation-policy.service';
 import { UserService } from '../../user/services/user.service';
 import { AuditService } from '../../audit/services/audit.service';
+import { AuditActorType, AuditEntityType } from '../../../prisma/client';
 import { Orientation } from '../../../common/enums/orientation.enum';
 
 @Controller('policy/pools')
@@ -30,7 +31,12 @@ export class PoolAccessController {
       await this.auditService.logOrientationPoolDenied(
         user.id,
         dto.requestedPool,
-        decision.reason ?? 'Access denied by policy'
+        decision.reason ?? 'Access denied by policy',
+        {
+          actor: { type: AuditActorType.admin, id: 'policy_engine' },
+          entity: { type: AuditEntityType.user, id: user.id },
+          channel: 'orientation_policy',
+        }
       );
     }
 

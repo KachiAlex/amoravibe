@@ -1,6 +1,6 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { Prisma } from '../../../prisma/client';
+import { Prisma, AuditActorType, AuditEntityType } from '../../../prisma/client';
 import { DeviceCluster, DeviceService } from './device.service';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { PrismaClientLike } from '../../../prisma/prisma.types';
@@ -75,7 +75,12 @@ export class DeviceCorrelationService {
         member.userId,
         message,
         ModerationSeverity.WARNING,
-        member.fingerprintId
+        member.fingerprintId,
+        {
+          actor: { type: AuditActorType.service, id: 'device_correlation_cron' },
+          entity: { type: AuditEntityType.device_fingerprint, id: member.fingerprintId },
+          channel: 'device_pipeline',
+        }
       );
     }
   }

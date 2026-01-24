@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { randomUUID } from 'crypto';
 import { DeviceService } from '../../src/modules/device/services/device.service';
 import { IngestDeviceFingerprintDto } from '../../src/modules/device/dto/ingest-device-fingerprint.dto';
@@ -19,11 +19,19 @@ describe('DeviceService', () => {
   let prisma: InMemoryPrismaService;
   let deviceService: DeviceService;
   let auditService: FakeAuditService;
+  let trustSignals: { ingestSignal: ReturnType<typeof vi.fn> };
 
   beforeEach(() => {
     prisma = new InMemoryPrismaService();
     auditService = new FakeAuditService();
-    deviceService = new DeviceService(prisma as never, auditService as never);
+    trustSignals = {
+      ingestSignal: vi.fn(),
+    };
+    deviceService = new DeviceService(
+      prisma as never,
+      auditService as never,
+      trustSignals as never
+    );
   });
 
   it('flags high device turnover for a user', async () => {
@@ -62,6 +70,13 @@ describe('DeviceService', () => {
         deviceFingerprintId: expect.any(String),
       },
     ]);
+
+    expect(trustSignals.ingestSignal).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userId,
+        type: expect.any(String),
+      })
+    );
   });
 
   it('flags fingerprints reused across multiple users as spoofing risk', async () => {

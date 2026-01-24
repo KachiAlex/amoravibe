@@ -11,6 +11,7 @@ import { VerificationService } from '../../src/modules/verification/services/ver
 import { KycAdapterService } from '../../src/modules/kyc/services/kyc-adapter.service';
 import { InMemoryPrismaService } from '../utils/in-memory-prisma.service';
 import { AuditService } from '../../src/modules/audit/services/audit.service';
+import { AppConfigService } from '../../src/config/config.service';
 import { KycProvider } from '../../src/modules/kyc/interfaces/kyc-provider.interface';
 import { PrismaClientLike } from '../../src/prisma/prisma.types';
 
@@ -41,11 +42,13 @@ describe('KycAdapterService', () => {
   let provider: KycProvider;
   let adapter: KycAdapterService;
 
+  const fakeConfig = { audit: { retentionDays: 1 } } as AppConfigService;
+
   beforeEach(() => {
     prisma = new InMemoryPrismaService();
     prismaClient = prisma as unknown as PrismaClientLike;
     userService = new UserService(prismaClient);
-    auditService = new AuditService(prismaClient);
+    auditService = new AuditService(prismaClient, fakeConfig);
     verificationService = new VerificationService(prismaClient, userService, auditService);
     provider = {
       createVerification: vi.fn(),

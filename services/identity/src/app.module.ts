@@ -9,6 +9,8 @@ import { DeviceModule } from './modules/device/device.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { HomeModule } from './modules/home/home.module';
 import { AuditModule } from './modules/audit/audit.module';
+import { TrustModule } from './modules/trust/trust.module';
+import { AnalyticsModule } from './modules/analytics/analytics.module';
 
 @Module({
   imports: [
@@ -22,6 +24,8 @@ import { AuditModule } from './modules/audit/audit.module';
     KycModule,
     DeviceModule,
     HomeModule,
+    TrustModule,
+    AnalyticsModule,
   ],
 })
 export class AppModule {}

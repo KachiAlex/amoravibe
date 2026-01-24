@@ -5,6 +5,9 @@ import {
   defaultConfig,
   isOrientationSupported,
   KycConfig,
+  ModerationConfig,
+  AuditConfig,
+  AnalyticsConfig,
 } from './lovedate-config';
 
 @Injectable()
@@ -25,6 +28,18 @@ export class AppConfigService {
 
   get kyc(): KycConfig {
     return this.config.kyc;
+  }
+
+  get moderation(): ModerationConfig {
+    return this.config.moderation;
+  }
+
+  get audit(): AuditConfig {
+    return this.config.audit;
+  }
+
+  get analytics(): AnalyticsConfig {
+    return this.config.analytics;
   }
 
   getKycWebhookToleranceMs(): number {
