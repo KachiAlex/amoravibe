@@ -174,4 +174,102 @@ describe('AnalyticsDashboardService', () => {
     expect(response.trustSignals.trend).toEqual([{ date: '2024-01-03', total: 1, critical: 1 }]);
     expect(response.moderation.trend).toEqual([{ date: '2024-01-05', total: 1 }]);
   });
+
+  it('maps aggregate dashboard response into leadership report percentages', async () => {
+    const start = buildDate('2024-02-01T00:00:00Z');
+    const end = buildDate('2024-02-02T00:00:00Z');
+
+    await prisma.analyticsUserSnapshot.upsert({
+      where: { userId_snapshotDate: { userId: 'user-a', snapshotDate: start } },
+      update: {},
+      create: {
+        userId: 'user-a',
+        snapshotDate: start,
+        hashedEmail: 'hash-a',
+        hashedPhone: null,
+        orientation: Orientation.bisexual,
+        discoverySpace: DiscoverySpace.both,
+        trustScore: 70,
+        isVerified: true,
+        piiTier: AnalyticsPiiTier.aggregate,
+        metadata: null,
+        createdAt: start,
+      },
+    });
+
+    await prisma.analyticsTrustSignalFact.upsert({
+      where: { signalId: 'signal-1' },
+      update: {},
+      create: {
+        signalId: 'signal-1',
+        userId: null,
+        hashedUserId: null,
+        signalType: RiskSignalType.manual_review,
+        channel: RiskSignalChannel.user_report,
+        severity: RiskSignalSeverity.high,
+        score: null,
+        piiTier: AnalyticsPiiTier.aggregate,
+        occurredAt: buildDate('2024-02-01T05:00:00Z'),
+        createdAt: buildDate('2024-02-01T05:00:00Z'),
+      },
+    });
+
+    await prisma.analyticsTrustSignalFact.upsert({
+      where: { signalId: 'signal-2' },
+      update: {},
+      create: {
+        signalId: 'signal-2',
+        userId: null,
+        hashedUserId: null,
+        signalType: RiskSignalType.behavior_anomaly,
+        channel: RiskSignalChannel.device,
+        severity: RiskSignalSeverity.low,
+        score: null,
+        piiTier: AnalyticsPiiTier.aggregate,
+        occurredAt: buildDate('2024-02-01T07:00:00Z'),
+        createdAt: buildDate('2024-02-01T07:00:00Z'),
+      },
+    });
+
+    await prisma.analyticsModerationFact.upsert({
+      where: { moderationEventId: 'mod-1' },
+      update: {},
+      create: {
+        moderationEventId: 'mod-1',
+        userId: null,
+        hashedUserId: null,
+        severity: ModerationSeverity.critical,
+        message: 'critical event',
+        piiTier: AnalyticsPiiTier.aggregate,
+        occurredAt: buildDate('2024-02-01T09:00:00Z'),
+        createdAt: buildDate('2024-02-01T09:00:00Z'),
+      },
+    });
+
+    await prisma.analyticsModerationFact.upsert({
+      where: { moderationEventId: 'mod-2' },
+      update: {},
+      create: {
+        moderationEventId: 'mod-2',
+        userId: null,
+        hashedUserId: null,
+        severity: ModerationSeverity.warning,
+        message: 'warning event',
+        piiTier: AnalyticsPiiTier.aggregate,
+        occurredAt: buildDate('2024-02-01T10:00:00Z'),
+        createdAt: buildDate('2024-02-01T10:00:00Z'),
+      },
+    });
+
+    const dashboard = await service.getDashboard({
+      startDate: start.toISOString(),
+      endDate: end.toISOString(),
+      maxPiiTier: AnalyticsPiiTier.aggregate,
+    });
+
+    const report = service.mapToLeadershipReport(dashboard);
+    expect(report.trustHealth.snapshotCount).toBe(1);
+    expect(report.trustSignals.highSeverityPercentage).toBe(50);
+    expect(report.moderation.criticalPercentage).toBe(50);
+  });
 });

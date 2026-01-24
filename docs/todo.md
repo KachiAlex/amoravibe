@@ -35,7 +35,7 @@
 - [x] ML safety models (Torch/TF placeholder via heuristic engine) for behavior anomaly detection and impersonation signals.
 - [x] Centralized audit/event log with retention policy + privacy tooling (export/delete requests).
 - [x] Analytics warehouse ingestion + schema (PII segmentation ready for warehouse exports).
-- [ ] Analytics dashboards + privacy-reviewed reporting surfaces.
+- [x] Analytics dashboards + privacy-reviewed reporting surfaces (tier guard, audit logging, leadership report endpoint).
 
 ## Phase 5 — Client Applications
 
@@ -51,4 +51,4 @@
 
 ---
 
-**In Progress:** Phase 4 — Analytics dashboards & privacy-reviewed reporting surfaces.
+**In Progress:** Phase 5 — Client applications + trust center UI.

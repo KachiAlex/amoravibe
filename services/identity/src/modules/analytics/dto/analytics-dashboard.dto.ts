@@ -66,3 +66,20 @@ export interface AnalyticsDashboardResponse {
   trustSignals: TrustSignalBreakdown;
   moderation: ModerationBreakdown;
 }
+
+export interface AnalyticsLeadershipReport {
+  window: { startDate: string; endDate: string };
+  trustHealth: {
+    snapshotCount: number;
+    verifiedRate: number;
+    averageTrustScore: number;
+  };
+  trustSignals: {
+    total: number;
+    highSeverityPercentage: number;
+  };
+  moderation: {
+    total: number;
+    criticalPercentage: number;
+  };
+}

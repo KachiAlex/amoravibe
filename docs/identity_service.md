@@ -115,6 +115,20 @@ Response (`AnalyticsDashboardResponse`):
 
 The controller validates requests with `AnalyticsDashboardQueryDto`, which enforces ISO-8601 window bounds, optional orientation filtering, and tier gating via `AnalyticsPiiTier`. The service returns only the allowed tiers (aggregate → hashed → direct) to ensure privacy-aware dashboards.
 
+#### Access Control & Audit
+
+- Both `/analytics/dashboard` and `/analytics/leadership-report` require:
+  - `x-analytics-tier`: one of `aggregate`, `hashed`, `direct`; governs the maximum PII tier returned.
+  - `x-analytics-actor-id`: unique identifier for the analyst/role; used for audit logging.
+- `AnalyticsTierGuard` enforces headers, prevents tier escalation (query tier cannot exceed header tier), and injects context.
+- `AnalyticsController` logs each access via `AuditService` using `AuditAction.ANALYTICS_DASHBOARD_ACCESSED` with request metadata (window, orientation, report type).
+
+`GET /analytics/leadership-report`
+
+- Returns aggregate-only metrics suitable for leadership/legal briefs.
+- Always forces `maxPiiTier=aggregate` regardless of caller tier.
+- Response matches `AnalyticsLeadershipReport` (counts + severity percentages, no hashed identifiers).
+
 ## Testing Coverage
 
 Phase 2 adds dedicated regression suites (Vitest):

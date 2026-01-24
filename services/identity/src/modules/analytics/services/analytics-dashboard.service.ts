@@ -13,6 +13,7 @@ import {
 import {
   AnalyticsDashboardQueryDto,
   AnalyticsDashboardResponse,
+  AnalyticsLeadershipReport,
   DashboardTimeseriesPoint,
   TrustHealthSummary,
   TrustSignalBreakdown,
@@ -74,6 +75,38 @@ export class AnalyticsDashboardService {
       trustHealth,
       trustSignals: signals,
       moderation,
+    };
+  }
+
+  mapToLeadershipReport(response: AnalyticsDashboardResponse): AnalyticsLeadershipReport {
+    const highSeverityCount = response.trustSignals.bySeverity.find(
+      (entry) => entry.severity === RiskSignalSeverity.high
+    )?.count;
+    const criticalModerationCount = response.moderation.bySeverity.find(
+      (entry) => entry.severity === ModerationSeverity.critical
+    )?.count;
+    return {
+      window: {
+        startDate: response.window.startDate,
+        endDate: response.window.endDate,
+      },
+      trustHealth: {
+        snapshotCount: response.trustHealth.snapshotCount,
+        verifiedRate: response.trustHealth.verifiedRate,
+        averageTrustScore: response.trustHealth.averageTrustScore,
+      },
+      trustSignals: {
+        total: response.trustSignals.total,
+        highSeverityPercentage: response.trustSignals.total
+          ? Number((((highSeverityCount ?? 0) / response.trustSignals.total) * 100).toFixed(2))
+          : 0,
+      },
+      moderation: {
+        total: response.moderation.total,
+        criticalPercentage: response.moderation.total
+          ? Number((((criticalModerationCount ?? 0) / response.moderation.total) * 100).toFixed(2))
+          : 0,
+      },
     };
   }
 
