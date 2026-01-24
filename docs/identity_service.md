@@ -59,9 +59,9 @@ modules/
 
 `AppConfigService` exposes `kyc` and `getKycWebhookToleranceMs()` helpers for module injection.
 
-### Analytics Warehouse & Ingestion (Phase 4)
+### Analytics Warehouse & Dashboards (Phase 4)
 
-Phase 4 introduces an analytics warehouse pipeline to power trust reporting while respecting PII segmentation:
+Phase 4 introduces an analytics warehouse pipeline and dashboard APIs to power trust reporting while respecting PII segmentation:
 
 1. **`AnalyticsIngestionService`** runs on a schedule (via cron/queue) and orchestrates three pipelines:
    - `snapshotUsers` captures user attributes updated within the configured window, hashing email/phone via `sha256(salt + value)` and storing preference metadata under the `hashed` tier.
@@ -75,6 +75,45 @@ Phase 4 introduces an analytics warehouse pipeline to power trust reporting whil
 4. **Configuration** leverages the new env vars above and is surfaced through `AppConfigService.analytics` for modules/tests.
 
 Vitest coverage (`tests/analytics/analytics-ingestion.service.spec.ts`) exercises all three pipelines against the in-memory Prisma mock to guarantee hashing, tier assignment, and checkpoint behavior.
+
+#### Dashboard API Contract
+
+`GET /analytics/dashboard`
+
+| Query Param             | Required | Description                                                                  |
+| ----------------------- | -------- | ---------------------------------------------------------------------------- |
+| `startDate` (ISO-8601)  | ✅       | Inclusive range start used for snapshots, signals, and moderation facts.     |
+| `endDate` (ISO-8601)    | ✅       | Inclusive range end (must be >= `startDate`).                                |
+| `maxPiiTier`            | ❌       | Limits returned data to tiers `<=` the supplied value (default `aggregate`). |
+| `orientation`           | ❌       | Filters `AnalyticsUserSnapshot` rows before computing trust health metrics.  |
+| `timezoneOffsetMinutes` | ❌       | Shifts day-bucket aggregation when building daily time-series (default `0`). |
+
+Response (`AnalyticsDashboardResponse`):
+
+```jsonc
+{
+  "window": { "startDate": "2024-01-01", "endDate": "2024-01-07", "maxPiiTier": "hashed" },
+  "trustHealth": {
+    "snapshotCount": 1024,
+    "verifiedRate": 67.2,
+    "averageTrustScore": 74,
+    "orientationBreakdown": [{ "orientation": "heterosexual", "percentage": 58.1 }],
+  },
+  "trustSignals": {
+    "total": 342,
+    "bySeverity": [{ "severity": "high", "count": 12 }],
+    "byChannel": [{ "channel": "device", "count": 44 }],
+    "trend": [{ "date": "2024-01-03", "total": 19, "critical": 2 }],
+  },
+  "moderation": {
+    "total": 91,
+    "bySeverity": [{ "severity": "critical", "count": 7 }],
+    "trend": [{ "date": "2024-01-05", "total": 11, "critical": 3 }],
+  },
+}
+```
+
+The controller validates requests with `AnalyticsDashboardQueryDto`, which enforces ISO-8601 window bounds, optional orientation filtering, and tier gating via `AnalyticsPiiTier`. The service returns only the allowed tiers (aggregate → hashed → direct) to ensure privacy-aware dashboards.
 
 ## Testing Coverage
 

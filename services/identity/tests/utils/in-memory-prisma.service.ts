@@ -288,8 +288,31 @@ export class InMemoryPrismaService {
       this.analyticsUserSnapshots.set(key, record);
       return { ...record };
     },
-    findMany: async () =>
-      Array.from(this.analyticsUserSnapshots.values()).map((entry) => ({ ...entry })),
+    findMany: async ({
+      where,
+    }: {
+      where?: {
+        snapshotDate?: { gte?: Date; lte?: Date };
+        piiTier?: { in?: AnalyticsPiiTier[] };
+        orientation?: Orientation;
+      };
+    } = {}) => {
+      let results = Array.from(this.analyticsUserSnapshots.values());
+      if (where?.snapshotDate?.gte) {
+        results = results.filter((entry) => entry.snapshotDate >= where.snapshotDate!.gte!);
+      }
+      if (where?.snapshotDate?.lte) {
+        results = results.filter((entry) => entry.snapshotDate <= where.snapshotDate!.lte!);
+      }
+      if (where?.piiTier?.in) {
+        const tiers = new Set(where.piiTier.in);
+        results = results.filter((entry) => tiers.has(entry.piiTier));
+      }
+      if (where?.orientation) {
+        results = results.filter((entry) => entry.orientation === where.orientation);
+      }
+      return results.map((entry) => ({ ...entry }));
+    },
   };
 
   analyticsTrustSignalFact = {
@@ -316,8 +339,27 @@ export class InMemoryPrismaService {
       this.analyticsTrustSignals.set(id, record);
       return { ...record };
     },
-    findMany: async () =>
-      Array.from(this.analyticsTrustSignals.values()).map((entry) => ({ ...entry })),
+    findMany: async ({
+      where,
+    }: {
+      where?: {
+        occurredAt?: { gte?: Date; lte?: Date };
+        piiTier?: { in?: AnalyticsPiiTier[] };
+      };
+    } = {}) => {
+      let results = Array.from(this.analyticsTrustSignals.values());
+      if (where?.occurredAt?.gte) {
+        results = results.filter((entry) => entry.occurredAt >= where.occurredAt!.gte!);
+      }
+      if (where?.occurredAt?.lte) {
+        results = results.filter((entry) => entry.occurredAt <= where.occurredAt!.lte!);
+      }
+      if (where?.piiTier?.in) {
+        const tiers = new Set(where.piiTier.in);
+        results = results.filter((entry) => tiers.has(entry.piiTier));
+      }
+      return results.map((entry) => ({ ...entry }));
+    },
   };
 
   analyticsModerationFact = {
@@ -344,8 +386,27 @@ export class InMemoryPrismaService {
       this.analyticsModerationFacts.set(id, record);
       return { ...record };
     },
-    findMany: async () =>
-      Array.from(this.analyticsModerationFacts.values()).map((entry) => ({ ...entry })),
+    findMany: async ({
+      where,
+    }: {
+      where?: {
+        occurredAt?: { gte?: Date; lte?: Date };
+        piiTier?: { in?: AnalyticsPiiTier[] };
+      };
+    } = {}) => {
+      let results = Array.from(this.analyticsModerationFacts.values());
+      if (where?.occurredAt?.gte) {
+        results = results.filter((entry) => entry.occurredAt >= where.occurredAt!.gte!);
+      }
+      if (where?.occurredAt?.lte) {
+        results = results.filter((entry) => entry.occurredAt <= where.occurredAt!.lte!);
+      }
+      if (where?.piiTier?.in) {
+        const tiers = new Set(where.piiTier.in);
+        results = results.filter((entry) => tiers.has(entry.piiTier));
+      }
+      return results.map((entry) => ({ ...entry }));
+    },
   };
 
   analyticsIngestionRun = {
