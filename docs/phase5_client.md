@@ -69,6 +69,7 @@
 - Shared API client now exposes `fetchOnboardingStatus` with typed `OnboardingStatusResponse`/`OnboardingStep` DTOs.
 - Mobile onboarding screen consumes that endpoint through the shared client, including loading/error states and tagged step badges that mirror Lovedate tokens.
 - Added path aliases in the Expo tsconfig so `@lovedate/api` and `@lovedate/ui` resolve without local build output, ensuring type safety during development.
+- Next.js trust center route (`/trust-center`) now ships with server-rendered data from the Lovedate API plus dedicated loading/error boundaries so the surface gracefully transitions while the snapshot loads.
 
 ## Privacy & Security Considerations
 
