@@ -11,6 +11,7 @@ import { HomeModule } from './modules/home/home.module';
 import { AuditModule } from './modules/audit/audit.module';
 import { TrustModule } from './modules/trust/trust.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
+import { OnboardingModule } from './modules/onboarding/onboarding.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { AnalyticsModule } from './modules/analytics/analytics.module';
     HomeModule,
     TrustModule,
     AnalyticsModule,
+    OnboardingModule,
   ],
 })
 export class AppModule {}
