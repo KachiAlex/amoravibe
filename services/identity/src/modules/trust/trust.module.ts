@@ -9,6 +9,7 @@ import { RiskProfileService } from './services/risk-profile.service';
 import { TrustFeatureService } from './services/trust-feature.service';
 import { TrustCronService } from './services/trust-cron.service';
 import { ModerationAutomationService } from './services/moderation-automation.service';
+import { TrustCenterService } from './services/trust-center.service';
 
 @Module({
   imports: [PrismaModule, ConfigModule],
@@ -21,7 +22,8 @@ import { ModerationAutomationService } from './services/moderation-automation.se
     TrustFeatureService,
     TrustCronService,
     ModerationAutomationService,
+    TrustCenterService,
   ],
-  exports: [TrustSignalsService, RiskProfileService],
+  exports: [TrustSignalsService, RiskProfileService, TrustCenterService],
 })
 export class TrustModule {}

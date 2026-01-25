@@ -70,6 +70,8 @@
 - Mobile onboarding screen consumes that endpoint through the shared client, including loading/error states and tagged step badges that mirror Lovedate tokens.
 - Added path aliases in the Expo tsconfig so `@lovedate/api` and `@lovedate/ui` resolve without local build output, ensuring type safety during development.
 - Next.js trust center route (`/trust-center`) now ships with server-rendered data from the Lovedate API plus dedicated loading/error boundaries so the surface gracefully transitions while the snapshot loads.
+- Identity service now exposes `/audit/privacy/exports` + `/purges` endpoints guarded by an audit API key with DTO validation and audit logging for export/deletion actions.
+- Shared API client + Next.js server actions gained `requestAuditExport`/`requestAuditPurge` helpers, and the web trust center UI now renders a `PrivacyActionsPanel` that submits those actions with optimistic feedback and user-friendly messaging.
 
 ## Privacy & Security Considerations
 

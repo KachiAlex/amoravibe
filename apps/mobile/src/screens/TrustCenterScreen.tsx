@@ -9,6 +9,7 @@ import {
   View,
   ActivityIndicator,
   Pressable,
+  Alert,
 } from 'react-native';
 import type { TrustPreviewResponse } from '@lovedate/api';
 import { lovedateApi } from '../config/api';
@@ -19,26 +20,30 @@ const fallbackPreview: TrustPreviewResponse = {
   snapshotLabel: 'Lovedate · Phase 5',
   stats: {
     verificationPassRate: 92,
-    riskHealth: 'Stable',
+    riskHealth: 'stable',
     exportSlaHours: 48,
   },
   journey: [
     {
+      id: 'orientation',
       title: 'Orientation',
       description: 'Preference mapping, discovery space selection, disclosures.',
       tag: 'Profile',
     },
     {
+      id: 'verification',
       title: 'Verification',
       description: 'Government ID + selfie match in 2 minutes.',
       tag: 'Required',
     },
     {
+      id: 'device_trust',
       title: 'Device trust',
       description: 'Register trusted devices + biometrics.',
       tag: 'Security',
     },
     {
+      id: 'transparency',
       title: 'Transparency',
       description: 'Review moderation actions + analytics signals.',
       tag: 'Trust',
@@ -67,6 +72,18 @@ export function TrustCenterScreen() {
   const [preview, setPreview] = React.useState<TrustPreviewResponse>(fallbackPreview);
   const [isLoading, setIsLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
+  const [privacyState, setPrivacyState] = React.useState({
+    export: {
+      status: 'idle' as 'idle' | 'pending' | 'success' | 'error',
+      message: null as string | null,
+    },
+    purge: {
+      status: 'idle' as 'idle' | 'pending' | 'success' | 'error',
+      message: null as string | null,
+    },
+  });
+
+  const demoUserId = process.env.EXPO_PUBLIC_DEMO_USER_ID ?? 'demo-user';
 
   React.useEffect(() => {
     let mounted = true;
@@ -107,6 +124,51 @@ export function TrustCenterScreen() {
       body: 'Guaranteed data export window',
     },
   ];
+
+  const isPending = (type: 'export' | 'purge') => privacyState[type].status === 'pending';
+
+  const requestPrivacyAction = async (type: 'export' | 'purge') => {
+    setPrivacyState((prev) => ({
+      ...prev,
+      [type]: { status: 'pending', message: 'Submitting request…' },
+    }));
+
+    try {
+      if (type === 'export') {
+        await lovedateApi.requestAuditExport({
+          userId: demoUserId,
+          payload: { extra: { channel: 'mobile_trust_center' } },
+        });
+        setPrivacyState((prev) => ({
+          ...prev,
+          export: {
+            status: 'success',
+            message: 'Export request received. Expect a secure download link shortly.',
+          },
+        }));
+      } else {
+        await lovedateApi.requestAuditPurge({
+          userId: demoUserId,
+          reason: 'self_service_mobile_request',
+        });
+        setPrivacyState((prev) => ({
+          ...prev,
+          purge: {
+            status: 'success',
+            message: 'Deletion review queued. Trust ops will confirm once processed.',
+          },
+        }));
+      }
+    } catch (requestError) {
+      const message =
+        requestError instanceof Error ? requestError.message : 'Unable to submit privacy request.';
+      setPrivacyState((prev) => ({
+        ...prev,
+        [type]: { status: 'error', message },
+      }));
+      Alert.alert('Request failed', message);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -158,19 +220,63 @@ export function TrustCenterScreen() {
               <Text style={styles.requestLabel}>Data export</Text>
               <Text style={styles.requestBody}>Download your activity log within 48h</Text>
             </View>
-            <Pressable style={({ pressed }) => [styles.requestCta, pressed && { opacity: 0.7 }]}>
-              <Text style={styles.requestCtaText}>Request</Text>
+            <Pressable
+              accessibilityRole="button"
+              disabled={isPending('export')}
+              onPress={() => requestPrivacyAction('export')}
+              style={({ pressed }) => [
+                styles.requestCta,
+                isPending('export') && styles.requestCtaDisabled,
+                pressed && { opacity: 0.7 },
+              ]}
+            >
+              <Text style={styles.requestCtaText}>
+                {isPending('export') ? 'Submitting…' : 'Request'}
+              </Text>
             </Pressable>
           </View>
+          {privacyState.export.message && (
+            <Text
+              style={[
+                styles.requestHelper,
+                privacyState.export.status === 'error' && styles.requestHelperError,
+                privacyState.export.status === 'success' && styles.requestHelperSuccess,
+              ]}
+            >
+              {privacyState.export.message}
+            </Text>
+          )}
           <View style={styles.requestRow}>
             <View>
               <Text style={styles.requestLabel}>Delete account</Text>
               <Text style={styles.requestBody}>Submit a deletion request with audit trail</Text>
             </View>
-            <Pressable style={({ pressed }) => [styles.requestCta, pressed && { opacity: 0.7 }]}>
-              <Text style={styles.requestCtaText}>Request</Text>
+            <Pressable
+              accessibilityRole="button"
+              disabled={isPending('purge')}
+              onPress={() => requestPrivacyAction('purge')}
+              style={({ pressed }) => [
+                styles.requestCta,
+                isPending('purge') && styles.requestCtaDisabled,
+                pressed && { opacity: 0.7 },
+              ]}
+            >
+              <Text style={styles.requestCtaText}>
+                {isPending('purge') ? 'Submitting…' : 'Request'}
+              </Text>
             </Pressable>
           </View>
+          {privacyState.purge.message && (
+            <Text
+              style={[
+                styles.requestHelper,
+                privacyState.purge.status === 'error' && styles.requestHelperError,
+                privacyState.purge.status === 'success' && styles.requestHelperSuccess,
+              ]}
+            >
+              {privacyState.purge.message}
+            </Text>
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -319,9 +425,25 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: palette.rose500,
   },
+  requestCtaDisabled: {
+    opacity: 0.5,
+  },
   requestCtaText: {
     color: palette.rose500,
     fontSize: 14,
+    fontWeight: '600',
+  },
+  requestHelper: {
+    marginTop: 8,
+    fontSize: 13,
+    color: palette.ink700,
+  },
+  requestHelperError: {
+    color: palette.rose500,
+    fontWeight: '600',
+  },
+  requestHelperSuccess: {
+    color: '#0f9d58',
     fontWeight: '600',
   },
 });

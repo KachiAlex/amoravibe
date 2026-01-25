@@ -17,6 +17,7 @@ export interface ModerationConfig {
 export interface AuditConfig {
   exportBucket: string;
   retentionDays: number;
+  apiKey: string;
 }
 
 export interface AnalyticsConfig {
@@ -61,6 +62,7 @@ export const defaultConfig: LovedateConfig = {
   audit: {
     exportBucket: env.AUDIT_EXPORT_BUCKET ?? 'lovedate-audit-exports',
     retentionDays: numberFromEnv(env.AUDIT_RETENTION_DAYS, 365),
+    apiKey: env.AUDIT_API_KEY ?? 'local-dev-audit-key',
   },
   analytics: {
     warehouseUrl:
