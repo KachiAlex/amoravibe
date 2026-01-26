@@ -8,7 +8,7 @@ import { KycAdapterService } from '../../kyc/services/kyc-adapter.service';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { PrismaClientLike } from '../../../prisma/prisma.types';
 import { OnboardingStatusDto, OnboardingStepDto } from '../dto/onboarding-status.dto';
-import { Prisma } from '../../../prisma/client';
+import type { Prisma, User, Verification } from '../../../prisma/client';
 
 interface StepDefinition extends Pick<OnboardingStepDto, 'id' | 'title' | 'description'> {}
 
@@ -103,7 +103,7 @@ export class OnboardingService {
     };
   }
 
-  private isIdentityComplete(user: Prisma.User, verification: Prisma.Verification | null): boolean {
+  private isIdentityComplete(user: User, verification: Verification | null): boolean {
     if (user.isVerified) {
       return true;
     }
@@ -111,7 +111,7 @@ export class OnboardingService {
     return verification?.status === VerificationStatus.VERIFIED;
   }
 
-  private isProfileComplete(user: Prisma.User): boolean {
+  private isProfileComplete(user: User): boolean {
     const photos = this.extractPhotos(user.photos);
     const hasCity = Boolean(user.city);
     const hasBio = typeof user.bio === 'string' && user.bio.trim().length >= 20;

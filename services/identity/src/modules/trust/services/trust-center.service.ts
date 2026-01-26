@@ -1,6 +1,18 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
-import { TrustCenterSnapshotDto } from '../dto/trust-center-snapshot.dto';
+import {
+  TrustCenterSnapshotDto,
+  TrustCenterVerificationDto,
+  TrustCenterRiskSignalDto,
+  TrustCenterModerationEventDto,
+} from '../dto/trust-center-snapshot.dto';
+import { VerificationStatus } from '../../../common/enums/verification-status.enum';
+import {
+  RiskSignalChannel,
+  RiskSignalSeverity,
+  RiskSignalType,
+} from '../../../common/enums/risk.enums';
+import { ModerationSeverity } from '../../../common/enums/moderation-severity.enum';
 
 const DEVICE_LIMIT = 5;
 const SIGNAL_LIMIT = 5;
@@ -52,6 +64,31 @@ export class TrustCenterService {
       }),
     ]);
 
+    const verificationDto: TrustCenterVerificationDto | null = verification
+      ? {
+          id: verification.id,
+          provider: verification.provider,
+          status: verification.status as VerificationStatus,
+          updatedAt: verification.updatedAt,
+        }
+      : null;
+
+    const riskSignalDtos: TrustCenterRiskSignalDto[] = riskSignals.map((signal) => ({
+      id: signal.id,
+      type: signal.type as RiskSignalType,
+      channel: signal.channel as RiskSignalChannel,
+      severity: signal.severity as RiskSignalSeverity,
+      score: signal.score ?? null,
+      createdAt: signal.createdAt,
+    }));
+
+    const moderationDtos: TrustCenterModerationEventDto[] = moderationEvents.map((event) => ({
+      id: event.id,
+      severity: event.severity as ModerationSeverity,
+      message: event.message,
+      createdAt: event.createdAt,
+    }));
+
     return {
       user: {
         id: user.id,
@@ -60,14 +97,7 @@ export class TrustCenterService {
         trustScore: user.trustScore,
         createdAt: user.createdAt,
       },
-      verification: verification
-        ? {
-            id: verification.id,
-            provider: verification.provider,
-            status: verification.status,
-            updatedAt: verification.updatedAt,
-          }
-        : null,
+      verification: verificationDto,
       riskProfile: riskProfile
         ? {
             trustScore: riskProfile.trustScore,
@@ -82,20 +112,8 @@ export class TrustCenterService {
         riskLabel: device.riskLabel,
         userAgent: device.userAgent ?? null,
       })),
-      riskSignals: riskSignals.map((signal) => ({
-        id: signal.id,
-        type: signal.type,
-        channel: signal.channel,
-        severity: signal.severity,
-        score: signal.score ?? null,
-        createdAt: signal.createdAt,
-      })),
-      moderationEvents: moderationEvents.map((event) => ({
-        id: event.id,
-        severity: event.severity,
-        message: event.message,
-        createdAt: event.createdAt,
-      })),
+      riskSignals: riskSignalDtos,
+      moderationEvents: moderationDtos,
       auditSummary: {
         totalEvents: auditCount,
         lastEventAt: latestAudit?.createdAt ?? null,
