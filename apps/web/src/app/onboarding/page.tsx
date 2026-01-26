@@ -4,6 +4,9 @@ import { Badge, Card } from '@lovedate/ui';
 import { lovedateApi } from '@/lib/api';
 import OnboardingWizard from './onboarding-wizard';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export const metadata: Metadata = {
   title: 'Lovedate · Onboarding wizard',
   description:

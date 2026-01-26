@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Card, PillButton } from '@lovedate/ui';
 
 export default function TrustCenterError({
@@ -10,6 +11,8 @@ export default function TrustCenterError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const router = useRouter();
+
   useEffect(() => {
     console.error('Trust center failed to load', error);
   }, [error]);
@@ -26,8 +29,8 @@ export default function TrustCenterError({
         </p>
         <div className="mt-8 flex flex-wrap justify-center gap-4">
           <PillButton onClick={reset}>Retry</PillButton>
-          <PillButton variant="outline" asChild>
-            <a href="/">Return to overview</a>
+          <PillButton variant="outline" onClick={() => router.push('/')}>
+            Return to overview
           </PillButton>
         </div>
       </Card>

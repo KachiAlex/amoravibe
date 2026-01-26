@@ -121,6 +121,60 @@ const STEP_CONFIG = [
   },
 ] as const;
 
+type StepId = (typeof STEP_CONFIG)[number]['id'];
+
+const STEP_THEMES: Record<StepId, { icon: string; accent: string; gradient: string }> = {
+  identity: {
+    icon: '🪪',
+    accent: 'text-sky-400',
+    gradient: 'from-sky-500/30 via-cyan-400/10 to-indigo-500/20',
+  },
+  profile: {
+    icon: '💫',
+    accent: 'text-rose-400',
+    gradient: 'from-rose-500/30 via-orange-400/10 to-amber-500/20',
+  },
+  trust: {
+    icon: '🔒',
+    accent: 'text-emerald-400',
+    gradient: 'from-emerald-500/30 via-teal-400/10 to-lime-500/20',
+  },
+};
+
+const SUCCESS_REDIRECT = '/trust-center';
+
+const STEP_GUIDANCE: Record<StepId, { title: string; description: string; prompts: string[] }> = {
+  identity: {
+    title: 'Signal credibility early',
+    description:
+      'Matched partners respond faster when they see authentic legal info and secure contact paths.',
+    prompts: [
+      'Use the legal name that matches your ID for instant verification.',
+      'Pair either email or phone with a memorable password (8+ chars, symbol recommended).',
+      'Birthdate anchors event invites and compatibility results—double-check day + month.',
+    ],
+  },
+  profile: {
+    title: 'Fine-tune your discovery lens',
+    description:
+      'Orientation preferences and match intents power the smart routing inside Lovedate.',
+    prompts: [
+      'Blend at least two orientations for richer matches in dual discovery mode.',
+      '“Everyone” match intent overrides others—toggle intentionally for a broader pool.',
+      'Tap a tile twice to deselect if your vibe changes mid-flow.',
+    ],
+  },
+  trust: {
+    title: 'Anchor trust signals',
+    description: 'City context, storytelling bios, and album proofs boost verification speed.',
+    prompts: [
+      'Aim for 2+ photos with different contexts (close-up + full body).',
+      'Share a 20+ word bio that spotlights values, not just hobbies.',
+      'Select “Verify now” if you want Day 1 messaging unlocked.',
+    ],
+  },
+};
+
 const INITIAL_DRAFT: DraftState = {
   legalName: 'Ifeoluwa',
   legalLastName: 'Adeyemi',
@@ -181,13 +235,14 @@ export default function OnboardingWizard({ status, demoUserId }: OnboardingWizar
   }, [formState.status]);
 
   useEffect(() => {
-    if (formState.status !== 'success' || !formState.nextRoute) {
+    if (formState.status !== 'success') {
       return;
     }
 
+    const destination = formState.nextRoute ?? SUCCESS_REDIRECT;
     const timeout = window.setTimeout(() => {
-      router.push(formState.nextRoute!);
-    }, 1200);
+      router.push(destination);
+    }, 900);
 
     return () => window.clearTimeout(timeout);
   }, [formState.status, formState.nextRoute, router]);
@@ -255,104 +310,187 @@ export default function OnboardingWizard({ status, demoUserId }: OnboardingWizar
     });
   };
 
+  const activeStep = STEP_CONFIG[stepIndex];
+
   return (
-    <div className="grid gap-8 lg:grid-cols-[0.95fr,1.1fr]">
-      <Card className="space-y-6 border-ink-900/10 bg-white/80 p-6">
-        <header>
-          <p className="text-xs uppercase tracking-[0.3em] text-ink-700/70">
-            Identity service status
-          </p>
-          <h3 className="mt-2 text-2xl font-semibold text-ink-900">Live onboarding timeline</h3>
-          <p className="mt-1 text-sm text-ink-700">
-            Demo user <span className="font-mono text-xs text-ink-900">{demoUserId}</span> syncs
-            directly with the identity service status endpoint.
-          </p>
-        </header>
-        <div className="space-y-4">
-          {status.steps.map((step) => (
-            <div key={step.id} className="rounded-2xl border border-ink-900/10 p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.2em] text-ink-700/70">{step.id}</p>
-                  <p className="text-lg font-semibold text-ink-900">{step.title}</p>
-                </div>
-                <Badge tone={badgeTone(step.status)}>{step.status}</Badge>
-              </div>
-              <p className="mt-2 text-sm text-ink-700">{step.description}</p>
-            </div>
-          ))}
+    <div className="space-y-8">
+      <section className="relative isolate overflow-hidden rounded-[32px] border border-ink-900/20 bg-ink-950 text-white shadow-[0_50px_140px_rgba(3,2,12,0.65)]">
+        <StepBackdrop stepId={activeStep.id} />
+        <div className="relative grid min-h-[78vh] gap-10 p-6 sm:p-10 lg:grid-cols-[0.9fr,1.1fr]">
+          <StepNarrative step={activeStep} status={status} demoUserId={demoUserId} />
+
+          <Card className="relative z-10 rounded-3xl border-white/20 bg-white/95 p-6 text-ink-900 shadow-[0_35px_80px_rgba(8,5,20,0.18)]">
+            <form action={formAction} className="flex h-full flex-col gap-6">
+              <ProgressHeader currentStep={stepIndex} stepId={activeStep.id} />
+
+              {STEP_CONFIG.map((config, index) => (
+                <section
+                  key={config.id}
+                  aria-hidden={stepIndex !== index}
+                  className={stepIndex === index ? 'space-y-4' : 'hidden'}
+                >
+                  {index === 0 && <IdentityFields draft={draft} setDraft={setDraft} />}
+                  {index === 1 && (
+                    <ProfileFields
+                      draft={draft}
+                      setDraft={setDraft}
+                      onToggleOrientation={toggleOrientationPreference}
+                      onToggleMatch={toggleMatchPreference}
+                    />
+                  )}
+                  {index === 2 && (
+                    <TrustFields
+                      draft={draft}
+                      setDraft={setDraft}
+                      onPhotoChange={updatePhoto}
+                      onAddPhoto={addPhoto}
+                      onRemovePhoto={removePhoto}
+                    />
+                  )}
+                </section>
+              ))}
+
+              <HiddenInputs draft={draft} />
+
+              <FormStatus state={formState} />
+
+              <WizardControls
+                isFirstStep={stepIndex === 0}
+                isFinalStep={stepIndex === STEP_CONFIG.length - 1}
+                onBack={goBack}
+                onContinue={handleContinue}
+                stepValid={stepValid}
+              />
+            </form>
+          </Card>
         </div>
-      </Card>
 
-      <Card className="border-rose-500/25 bg-white/95 p-6 shadow-[0_22px_55px_rgba(13,15,26,0.08)]">
-        <form action={formAction} className="space-y-6">
-          <ProgressHeader currentStep={stepIndex} />
-
-          {STEP_CONFIG.map((config, index) => (
-            <section key={config.id} className={stepIndex === index ? 'space-y-4' : 'hidden'}>
-              <header>
-                <p className="text-xs uppercase tracking-[0.2em] text-rose-500">{`0${index + 1}`}</p>
-                <h3 className="mt-1 text-xl font-semibold text-ink-900">{config.title}</h3>
-                <p className="text-sm text-ink-700">{config.description}</p>
-              </header>
-              {index === 0 && <IdentityFields draft={draft} setDraft={setDraft} />}
-              {index === 1 && (
-                <ProfileFields
-                  draft={draft}
-                  setDraft={setDraft}
-                  onToggleOrientation={toggleOrientationPreference}
-                  onToggleMatch={toggleMatchPreference}
-                />
-              )}
-              {index === 2 && (
-                <TrustFields
-                  draft={draft}
-                  setDraft={setDraft}
-                  onPhotoChange={updatePhoto}
-                  onAddPhoto={addPhoto}
-                  onRemovePhoto={removePhoto}
-                />
-              )}
-            </section>
-          ))}
-
-          <HiddenInputs draft={draft} />
-
-          <FormStatus state={formState} />
-
-          <WizardControls
-            isFirstStep={stepIndex === 0}
-            isFinalStep={stepIndex === STEP_CONFIG.length - 1}
-            onBack={goBack}
-            onContinue={handleContinue}
-            stepValid={stepValid}
-          />
-        </form>
-      </Card>
+        <StepProgress steps={status.steps} currentStep={stepIndex} />
+      </section>
     </div>
   );
 }
 
-function badgeTone(status: 'pending' | 'active' | 'complete'): 'primary' | 'secondary' | 'success' {
-  if (status === 'complete') return 'success';
-  if (status === 'active') return 'primary';
-  return 'secondary';
+function badgeTone(status: 'pending' | 'active' | 'complete'): 'primary' | 'neutral' {
+  if (status === 'active') {
+    return 'primary';
+  }
+  if (status === 'complete') {
+    return 'primary';
+  }
+  return 'neutral';
 }
 
-const ProgressHeader = ({ currentStep }: { currentStep: number }) => (
-  <div className="space-y-2">
-    <p className="text-xs uppercase tracking-[0.2em] text-ink-700/70">Wizard progress</p>
-    <div className="h-2 w-full rounded-full bg-ink-900/10">
-      <div
-        className="h-full rounded-full bg-rose-500 transition-all"
-        style={{ width: `${((currentStep + 1) / STEP_CONFIG.length) * 100}%` }}
-      />
+const ProgressHeader = ({ currentStep, stepId }: { currentStep: number; stepId: StepId }) => {
+  const theme = STEP_THEMES[stepId];
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center gap-3">
+        <span className="text-3xl" aria-hidden>
+          {theme.icon}
+        </span>
+        <div>
+          <p className={`text-xs font-semibold uppercase tracking-[0.3em] ${theme.accent}`}>
+            Step {`0${currentStep + 1}`}
+          </p>
+          <p className="text-lg font-semibold text-ink-900">{STEP_CONFIG[currentStep].title}</p>
+        </div>
+      </div>
+      <div className="h-2 w-full rounded-full bg-ink-900/10">
+        <div
+          className="h-full rounded-full bg-rose-500 transition-all"
+          style={{ width: `${((currentStep + 1) / STEP_CONFIG.length) * 100}%` }}
+        />
+      </div>
+      <p className="text-sm text-ink-700">{STEP_CONFIG[currentStep].description}</p>
     </div>
-    <p className="text-sm text-ink-700">
-      Step {currentStep + 1} of {STEP_CONFIG.length}
-    </p>
-  </div>
-);
+  );
+};
+
+function StepBackdrop({ stepId }: { stepId: StepId }) {
+  const theme = STEP_THEMES[stepId];
+  return (
+    <div aria-hidden className={`absolute inset-0 bg-gradient-to-bl ${theme.gradient} opacity-80`}>
+      <div className="absolute -top-16 -right-16 h-72 w-72 rounded-full bg-white/15 blur-3xl" />
+      <div className="absolute -bottom-24 -left-10 h-96 w-96 rounded-full bg-white/10 blur-2xl" />
+    </div>
+  );
+}
+
+function StepNarrative({
+  step,
+  status,
+  demoUserId,
+}: {
+  step: (typeof STEP_CONFIG)[number];
+  status: OnboardingStatusResponse;
+  demoUserId: string;
+}) {
+  const guidance = STEP_GUIDANCE[step.id];
+  return (
+    <div className="relative z-10 flex flex-col justify-between">
+      <div className="space-y-4">
+        <p className="text-xs uppercase tracking-[0.4em] text-white/70">Progressive flow</p>
+        <h1 className="font-display text-4xl leading-tight">
+          {step.title}: {guidance.title}
+        </h1>
+        <p className="text-base text-white/80">{guidance.description}</p>
+        <ul className="space-y-2 text-sm text-white/85">
+          {guidance.prompts.map((prompt) => (
+            <li key={prompt} className="flex items-start gap-2">
+              <span aria-hidden className="mt-1 text-lg">
+                •
+              </span>
+              <span>{prompt}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div className="mt-8 grid gap-4 rounded-3xl border border-white/25 bg-white/10 p-4 text-sm">
+        <div className="flex items-center justify-between">
+          <span className="uppercase tracking-[0.3em] text-white/60">Progress</span>
+          <span className="text-2xl font-semibold">{status.progressPercent}%</span>
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="uppercase tracking-[0.3em] text-white/60">Demo user</span>
+          <span className="font-mono text-base">{demoUserId}</span>
+        </div>
+        <div>
+          <span className="uppercase tracking-[0.3em] text-white/60">Active lane</span>
+          <div className="mt-2 flex gap-2">
+            {status.steps.map((timelineStep) => (
+              <Badge key={timelineStep.id} tone={badgeTone(timelineStep.status)}>
+                {timelineStep.title}
+              </Badge>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function StepProgress({
+  steps,
+  currentStep,
+}: {
+  steps: OnboardingStatusResponse['steps'];
+  currentStep: number;
+}) {
+  return (
+    <div className="relative z-10 flex items-center gap-4 border-t border-white/10 px-8 py-5 text-sm text-white/80">
+      {steps.map((step, index) => (
+        <div key={step.id} className="flex-1">
+          <div
+            className={`h-1 rounded-full ${index <= currentStep ? 'bg-white' : 'bg-white/30'}`}
+          />
+          <p className="mt-2 text-xs uppercase tracking-[0.3em] text-white/60">{step.title}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 interface FieldProps {
   draft: DraftState;
@@ -810,7 +948,7 @@ const WizardControls = ({
   const { pending } = useFormStatus();
   return (
     <div className="flex flex-wrap items-center gap-3">
-      <PillButton type="button" variant="ghost" disabled={isFirstStep} onClick={onBack}>
+      <PillButton type="button" variant="outline" disabled={isFirstStep} onClick={onBack}>
         Back
       </PillButton>
       {isFinalStep ? (
