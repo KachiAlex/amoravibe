@@ -11,9 +11,23 @@ declare module '@aws-sdk/client-s3' {
     [key: string]: unknown;
   }
 
+  export interface PutObjectCommandInput {
+    Bucket: string;
+    Key: string;
+    Body?: unknown;
+    ContentType?: string;
+    [key: string]: unknown;
+  }
+
+  export class PutObjectCommand {
+    constructor(input: PutObjectCommandInput);
+    readonly input: PutObjectCommandInput;
+  }
+
   export class S3Client {
     constructor(config?: S3ClientConfig);
-    config: S3ClientConfig;
+    readonly config: S3ClientConfig;
+    send<T = unknown>(command: { input: Record<string, unknown> }): Promise<T>;
   }
 }
 
