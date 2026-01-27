@@ -10,6 +10,7 @@ import type {
   VerificationIntent,
 } from '@lovedate/api';
 import { lovedateApi } from '@/lib/api';
+import { setSession } from '@/lib/session';
 
 export type OnboardingSubmissionStatus = 'idle' | 'success' | 'error';
 
@@ -76,6 +77,7 @@ export async function submitOnboardingAction(
   try {
     const payload = mapFormDataToPayload(formData);
     const response = await lovedateApi.submitOnboarding(payload);
+    setSession({ userId: response.user.id });
 
     return {
       status: 'success',

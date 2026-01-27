@@ -12,6 +12,7 @@ import { AuditModule } from './modules/audit/audit.module';
 import { TrustModule } from './modules/trust/trust.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { OnboardingModule } from './modules/onboarding/onboarding.module';
+import { MatchModule } from './modules/match/match.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { OnboardingModule } from './modules/onboarding/onboarding.module';
     TrustModule,
     AnalyticsModule,
     OnboardingModule,
+    MatchModule,
   ],
 })
 export class AppModule {}

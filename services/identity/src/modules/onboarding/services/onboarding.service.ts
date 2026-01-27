@@ -1,4 +1,4 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { OnboardingSubmissionDto } from '../dto/onboarding-submission.dto';
 import { UserService } from '../../user/services/user.service';
 import { VerificationStatus } from '../../../common/enums/verification-status.enum';
@@ -127,5 +127,37 @@ export class OnboardingService {
     }
 
     return photos.filter((photo): photo is string => typeof photo === 'string');
+  }
+
+  async reverify(userId: string) {
+    const user = await this.userService.findById(userId);
+    if (!user) {
+      throw new NotFoundException(`User ${userId} not found`);
+    }
+
+    if (!this.isProfileComplete(user)) {
+      throw new BadRequestException('Complete your profile before re-verifying.');
+    }
+
+    const latestVerification = await this.prisma.verification.findFirst({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    if (latestVerification?.status === VerificationStatus.PENDING) {
+      throw new BadRequestException('Verification already in progress.');
+    }
+
+    if (latestVerification?.status === VerificationStatus.VERIFIED) {
+      throw new BadRequestException('User already verified.');
+    }
+
+    const verification = await this.kycAdapter.initiate({
+      userId,
+      kycProvider: this.config.kyc.provider,
+      targetStatus: VerificationStatus.PENDING,
+    });
+
+    return verification;
   }
 }

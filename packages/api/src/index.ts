@@ -97,6 +97,25 @@ export type DiscoverySpace = 'straight' | 'lgbtq' | 'both';
 
 export type MatchPreference = 'men' | 'women' | 'everyone';
 
+export interface MatchCandidate {
+  id: string;
+  displayName: string;
+  city: string;
+  bio: string | null;
+  photos: string[];
+  trustScore: number;
+  orientation: Orientation;
+  matchPreferences: MatchPreference[];
+  discoverySpace: DiscoverySpace;
+  isVerified: boolean;
+  compatibilityScore: number;
+}
+
+export interface FetchMatchesParams {
+  userId: string;
+  limit?: number;
+}
+
 export type VerificationIntent = 'verify_now' | 'skip';
 
 export interface TrustPreviewJourneyStep {
@@ -173,6 +192,81 @@ export interface OnboardingSubmissionResponse {
 
 export type VerificationStatus = 'unverified' | 'pending' | 'verified' | 'flagged';
 
+export interface ReverifyResponse {
+  id: string;
+  userId: string;
+  provider: string;
+  status: VerificationStatus;
+  reference: string | null;
+  createdAt: string;
+  updatedAt: string;
+  metadata?: Record<string, unknown> | null;
+}
+
+export interface ReverifyPayload {
+  userId: string;
+}
+
+export interface TrustCenterUserDto {
+  id: string;
+  displayName: string;
+  isVerified: boolean;
+  trustScore: number;
+  createdAt: string;
+}
+
+export interface TrustCenterVerificationDto {
+  id: string;
+  provider: string;
+  status: VerificationStatus;
+  updatedAt: string | null;
+}
+
+export interface TrustCenterRiskProfileDto {
+  trustScore: number;
+  lastEvaluatedAt: string | null;
+  metrics: Record<string, unknown> | null;
+}
+
+export interface TrustCenterDeviceDto {
+  id: string;
+  hash: string;
+  observedAt: string;
+  riskLabel: string | null;
+  userAgent: string | null;
+}
+
+export interface TrustCenterRiskSignalDto {
+  id: string;
+  type: string;
+  channel: string;
+  severity: string;
+  score: number | null;
+  createdAt: string;
+}
+
+export interface TrustCenterModerationEventDto {
+  id: string;
+  severity: string;
+  message: string;
+  createdAt: string;
+}
+
+export interface TrustCenterAuditSummaryDto {
+  totalEvents: number;
+  lastEventAt: string | null;
+}
+
+export interface TrustCenterSnapshotResponse {
+  user: TrustCenterUserDto;
+  verification: TrustCenterVerificationDto | null;
+  riskProfile: TrustCenterRiskProfileDto | null;
+  devices: TrustCenterDeviceDto[];
+  riskSignals: TrustCenterRiskSignalDto[];
+  moderationEvents: TrustCenterModerationEventDto[];
+  auditSummary: TrustCenterAuditSummaryDto;
+}
+
 export interface AuditPrivacyRequestResponse {
   id: string;
   requestedAt: string;
@@ -208,6 +302,23 @@ export class LovedateApi {
 
   submitOnboarding(payload: OnboardingSubmissionPayload): Promise<OnboardingSubmissionResponse> {
     return this.client.post<OnboardingSubmissionResponse>('/onboarding', payload);
+  }
+
+  fetchTrustSnapshot(userId: string): Promise<TrustCenterSnapshotResponse> {
+    return this.client.get<TrustCenterSnapshotResponse>(`/trust/center/${userId}`);
+  }
+
+  fetchMatches(params: FetchMatchesParams): Promise<MatchCandidate[]> {
+    const query = new URLSearchParams({ userId: params.userId });
+    if (typeof params.limit === 'number') {
+      query.set('limit', params.limit.toString());
+    }
+
+    return this.client.get<MatchCandidate[]>(`/matches?${query.toString()}`);
+  }
+
+  requestReverification(payload: ReverifyPayload): Promise<ReverifyResponse> {
+    return this.client.post<ReverifyResponse>('/onboarding/reverify', payload);
   }
 
   requestAuditExport(payload: CreateAuditExportRequest): Promise<AuditPrivacyRequestResponse> {
