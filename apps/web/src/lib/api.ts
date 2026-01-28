@@ -1,6 +1,6 @@
 import { createLovedateApi } from '@lovedate/api';
 
-const baseUrl = process.env.NEXT_PUBLIC_TRUST_API_URL || 'http://localhost:3001';
+const baseUrl = process.env.NEXT_PUBLIC_TRUST_API_URL || '/api/trust';
 
 export const lovedateApi = createLovedateApi({
   baseUrl,
