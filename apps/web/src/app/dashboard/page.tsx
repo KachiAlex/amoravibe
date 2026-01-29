@@ -35,13 +35,13 @@ interface NavItem {
 function ProfileManager({
   completion,
   photos,
-  orientation,
-  discoverySpace,
+  trustScore,
+  verified,
 }: {
   completion: number;
   photos: string[];
-  orientation: string;
-  discoverySpace: string;
+  trustScore: number;
+  verified: boolean;
 }) {
   return (
     <Card className="space-y-4 border-none bg-white p-6 shadow-[0_18px_50px_rgba(15,23,42,0.1)]">
@@ -81,14 +81,16 @@ function ProfileManager({
       </div>
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="rounded-2xl border border-[#e2e8f0] p-3">
-          <p className="text-xs uppercase tracking-[0.2em] text-[#94a3b8]">Orientation</p>
-          <p className="text-sm font-semibold text-[#0f172a]">{orientation}</p>
-          <p className="text-xs text-[#94a3b8]">Matches see only what you allow.</p>
+          <p className="text-xs uppercase tracking-[0.2em] text-[#94a3b8]">Trust score</p>
+          <p className="text-sm font-semibold text-[#0f172a]">{trustScore}/100</p>
+          <p className="text-xs text-[#94a3b8]">Higher trust boosts discovery ranking.</p>
         </div>
         <div className="rounded-2xl border border-[#e2e8f0] p-3">
-          <p className="text-xs uppercase tracking-[0.2em] text-[#94a3b8]">Discovery space</p>
-          <p className="text-sm font-semibold text-[#0f172a]">{discoverySpace}</p>
-          <p className="text-xs text-[#94a3b8]">Adjust visibility in settings.</p>
+          <p className="text-xs uppercase tracking-[0.2em] text-[#94a3b8]">Verification</p>
+          <p className="text-sm font-semibold text-[#0f172a]">
+            {verified ? 'Profile verified' : 'Verification pending'}
+          </p>
+          <p className="text-xs text-[#94a3b8]">Complete ID check to unlock badges.</p>
         </div>
       </div>
     </Card>
@@ -804,7 +806,7 @@ export default async function DashboardPage(props: DashboardPageProps) {
     ? ((snapshot as any).user.photos as string[])
     : [];
 
-  const verificationTimeline = [
+  const verificationTimeline: { title: string; helper: string; status: 'done' | 'pending' }[] = [
     {
       title: 'Photo verification',
       helper: snapshot.user.isVerified ? 'Completed' : 'Pending selfie check',
@@ -1204,8 +1206,8 @@ export default async function DashboardPage(props: DashboardPageProps) {
             <ProfileManager
               completion={profileCompletion}
               photos={profilePhotos}
-              orientation={snapshot.user.orientation}
-              discoverySpace={snapshot.user.discoverySpace}
+              trustScore={snapshot.user.trustScore ?? 0}
+              verified={snapshot.user.isVerified ?? false}
             />
             <VerificationPanel timeline={verificationTimeline} verifiedLabel={verifiedLabel} />
           </section>

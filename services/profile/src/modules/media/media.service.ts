@@ -14,7 +14,7 @@ import type {
   VisibilityPool as PrismaVisibilityPool,
 } from '../../prisma/client';
 
-interface MediaUploadResponse extends PresignedPost {
+export interface MediaUploadResponse extends PresignedPost {
   mediaId: string;
   key: string;
   bucket: string;
