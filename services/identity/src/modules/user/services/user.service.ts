@@ -1,6 +1,5 @@
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { Prisma } from '../../../prisma/client';
-import { randomBytes, scryptSync } from 'node:crypto';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { PrismaClientLike } from '../../../prisma/prisma.types';
 import { UserProfile } from '../user.entity';
@@ -9,11 +8,11 @@ import { Orientation } from '../../../common/enums/orientation.enum';
 import { DiscoverySpace } from '../../../common/enums/discovery-space.enum';
 import { MatchPreference } from '../../../common/enums/match-preference.enum';
 import { VisibilityStatus } from '../../../common/enums/visibility-status.enum';
+import { hashPassword } from '../password.utils';
 
 const MIN_AGE = 18;
 const MAX_PHOTOS = 6;
 const TRUST_BASELINE = 50;
-const PASSWORD_KEYLEN = 64;
 
 @Injectable()
 export class UserService {
@@ -27,7 +26,7 @@ export class UserService {
     this.assertDiscoverySpaceEligibility(dto.orientation, dto.discoverySpace);
     this.assertMatchPreferences(dto.matchPreferences);
 
-    const passwordHash = await this.hashPassword(dto.password);
+    const passwordHash = hashPassword(dto.password);
     const dateOfBirth = new Date(dto.dateOfBirth);
 
     return this.prisma.user.create({
@@ -52,12 +51,6 @@ export class UserService {
         isVerified: false,
       },
     });
-  }
-
-  private async hashPassword(password: string): Promise<string> {
-    const salt = randomBytes(16).toString('hex');
-    const derived = scryptSync(password, salt, PASSWORD_KEYLEN).toString('hex');
-    return `${salt}:${derived}`;
   }
 
   findById(id: string): Promise<UserProfile | null> {

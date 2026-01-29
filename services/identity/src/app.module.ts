@@ -13,6 +13,7 @@ import { TrustModule } from './modules/trust/trust.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { OnboardingModule } from './modules/onboarding/onboarding.module';
 import { MatchModule } from './modules/match/match.module';
+import { AuthModule } from './modules/auth/auth.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { MatchModule } from './modules/match/match.module';
     AnalyticsModule,
     OnboardingModule,
     MatchModule,
+    AuthModule,
   ],
 })
 export class AppModule {}

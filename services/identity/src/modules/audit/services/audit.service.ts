@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Optional } from '@nestjs/common';
 import { Prisma, $Enums } from '../../../prisma/client';
 import { AuditAction } from '../../../common/enums/audit-action.enum';
 import { PrismaService } from '../../../prisma/prisma.service';
@@ -40,7 +40,7 @@ export class AuditService {
   constructor(
     @Inject(PrismaService) private readonly prisma: PrismaClientLike,
     private readonly config: AppConfigService,
-    private readonly overrideConfig?: { retentionDays: number }
+    @Optional() private readonly overrideConfig?: { retentionDays: number }
   ) {}
 
   private get auditEvents(): Prisma.AuditEventDelegate {

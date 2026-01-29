@@ -190,6 +190,21 @@ export interface OnboardingSubmissionResponse {
   nextRoute: string;
 }
 
+export interface LoginRequestPayload {
+  email?: string;
+  phone?: string;
+  password: string;
+}
+
+export interface LoginResponse {
+  user: {
+    id: string;
+    displayName: string;
+    isVerified: boolean;
+  };
+  nextRoute: string;
+}
+
 export type VerificationStatus = 'unverified' | 'pending' | 'verified' | 'flagged';
 
 export interface ReverifyResponse {
@@ -327,6 +342,10 @@ export class LovedateApi {
 
   requestAuditPurge(payload: CreateAuditPurgeRequest): Promise<AuditPrivacyRequestResponse> {
     return this.client.post<AuditPrivacyRequestResponse>('/audit/privacy/purges', payload);
+  }
+
+  login(payload: LoginRequestPayload): Promise<LoginResponse> {
+    return this.client.post<LoginResponse>('/auth/login', payload);
   }
 }
 

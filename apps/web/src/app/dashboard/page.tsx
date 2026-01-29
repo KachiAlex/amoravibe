@@ -1,5 +1,6 @@
 import { Badge, Card, PillButton } from '@lovedate/ui';
 import Link from 'next/link';
+import { Activity, ShieldCheck, Smartphone } from 'lucide-react';
 import type { TrustCenterSnapshotResponse } from '@lovedate/api';
 import { lovedateApi } from '@/lib/api';
 import { getSession } from '@/lib/session';
@@ -70,35 +71,75 @@ export default async function DashboardPage(props: DashboardPageProps) {
     );
   }
 
-  const verifiedTone = snapshot.user.isVerified ? 'text-emerald-600' : 'text-rose-500';
+  const verifiedTone = snapshot.user.isVerified ? 'text-emerald-500' : 'text-rose-400';
   const verifiedLabel = snapshot.user.isVerified ? 'Verified' : 'Pending verification';
+  const devicesTrusted = snapshot.devices.length;
+  const outstandingSignals = snapshot.riskSignals.length;
+  const moderationCount = snapshot.moderationEvents.length;
+  const actionItems: ActionItemProps[] = [
+    {
+      title: snapshot.user.isVerified ? 'Identity verified' : 'Verify your identity',
+      description: snapshot.user.isVerified
+        ? 'Your documents are confirmed—no further action needed.'
+        : 'Complete your identity review to unlock matches and safety tooling.',
+      complete: snapshot.user.isVerified,
+      icon: ShieldCheck,
+      href: snapshot.user.isVerified ? undefined : '#verification-panel',
+    },
+    {
+      title:
+        devicesTrusted > 0
+          ? `${devicesTrusted} trusted device${devicesTrusted > 1 ? 's' : ''}`
+          : 'Add your first trusted device',
+      description:
+        devicesTrusted > 0
+          ? 'We’ll keep watching for suspicious fingerprints.'
+          : 'Pair a primary device so we can monitor unusual logins.',
+      complete: devicesTrusted > 0,
+      icon: Smartphone,
+      href: '#devices-section',
+    },
+    {
+      title: outstandingSignals === 0 ? 'Risk signals stable' : 'Review recent risk signals',
+      description:
+        outstandingSignals === 0
+          ? 'All systems green—enjoy your matches.'
+          : 'We spotted new activity that could impact trust. Take a look.',
+      complete: outstandingSignals === 0,
+      icon: Activity,
+      href: outstandingSignals === 0 ? undefined : '#risk-section',
+    },
+  ];
 
   return (
-    <main className="space-y-12 px-6 pb-24 pt-12 sm:px-12 lg:px-20">
-      <section className="mx-auto flex max-w-6xl flex-col gap-8 rounded-[36px] border border-white/40 bg-white/85 p-8 shadow-[0_30px_100px_rgba(13,15,26,0.12)] backdrop-blur">
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-          <div className="flex-1">
-            <Badge tone="primary" className="mb-4 bg-rose-500/10 text-rose-500">
+    <main className="space-y-12 px-6 pb-24 pt-12 sm:px-10 lg:px-20">
+      <section className="mx-auto max-w-6xl overflow-hidden rounded-[40px] border border-white/20 bg-[radial-gradient(circle_at_top,_#1e1b4b,_#111327_60%)] text-white shadow-[0_35px_120px_rgba(13,15,26,0.45)]">
+        <div className="relative grid gap-10 p-10 lg:grid-cols-[1.7fr,1fr]">
+          <div>
+            <Badge tone="primary" className="mb-5 border border-white/30 bg-white/10 text-white">
               Trust dashboard
             </Badge>
-            <h1 className="font-display text-4xl text-ink-900">Hi, {snapshot.user.displayName}</h1>
-            <p className="mt-2 text-lg text-ink-700">
-              Here’s a live readout of your verification, device trust, and moderation history. Keep
-              your signals green to stay in the Lovedate orbit.
+            <h1 className="font-display text-4xl sm:text-5xl">
+              Hi {snapshot.user.displayName}, welcome to your orbit
+            </h1>
+            <p className="mt-4 max-w-2xl text-lg text-white/80">
+              Monitor verification, device trust, and moderation health in one command center. Keep
+              these signals green to glide through onboarding review and matchmaking.
             </p>
-            <div className="mt-6 flex flex-wrap gap-4 text-sm">
-              <span className={`rounded-full bg-white/80 px-4 py-2 font-semibold ${verifiedTone}`}>
-                {verifiedLabel}
-              </span>
-              <span className="rounded-full bg-white/70 px-4 py-2 text-ink-700">
-                Member since {new Date(snapshot.user.createdAt).toLocaleDateString()}
-              </span>
-              <span className="rounded-full bg-white/70 px-4 py-2 text-ink-700">
-                Trust score {snapshot.user.trustScore ?? '—'}
-              </span>
+
+            <div className="mt-8 flex flex-wrap gap-3 text-sm">
+              <MetricPill label="Status" value={verifiedLabel} className={verifiedTone} />
+              <MetricPill
+                label="Member since"
+                value={new Date(snapshot.user.createdAt).toLocaleDateString()}
+              />
+              <MetricPill label="Trust score" value={snapshot.user.trustScore?.toString() ?? '—'} />
             </div>
+
+            <ActionList items={actionItems} className="mt-10" />
           </div>
-          <Card className="w-full max-w-sm bg-ink-900 text-white">
+
+          <Card id="verification-panel" className="w-full border-white/30 bg-white/5 text-white">
             <ReverifyPanel
               userId={snapshot.user.id}
               verificationStatus={snapshot.verification?.status ?? null}
@@ -109,8 +150,45 @@ export default async function DashboardPage(props: DashboardPageProps) {
         </div>
       </section>
 
-      <section className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-2">
-        <Card className="space-y-4">
+      <section className="mx-auto grid max-w-6xl gap-6 md:grid-cols-3">
+        <InsightCard
+          title="Verification"
+          icon={ShieldCheck}
+          accent="from-emerald-500/30 to-emerald-600/40"
+          description={snapshot.user.isVerified ? 'Fully unlocked' : 'Review still required'}
+        >
+          <p className="text-3xl font-semibold">{verifiedLabel}</p>
+          <p className="text-sm text-ink-600">Provider: {snapshot.verification?.provider ?? '—'}</p>
+        </InsightCard>
+        <InsightCard
+          title="Devices"
+          icon={Smartphone}
+          accent="from-sky-500/30 to-indigo-500/40"
+          description="Trusted fingerprints"
+        >
+          <p className="text-3xl font-semibold">{devicesTrusted}</p>
+          <p className="text-sm text-ink-600">
+            Last seen{' '}
+            {devicesTrusted > 0
+              ? new Date(snapshot.devices[0].observedAt).toLocaleDateString()
+              : '—'}
+          </p>
+        </InsightCard>
+        <InsightCard
+          title="Safety"
+          icon={Activity}
+          accent="from-rose-500/30 to-orange-500/40"
+          description="Moderation log"
+        >
+          <p className="text-3xl font-semibold">{moderationCount}</p>
+          <p className="text-sm text-ink-600">
+            {moderationCount === 0 ? 'Clean record' : 'Review the latest events below'}
+          </p>
+        </InsightCard>
+      </section>
+
+      <section id="risk-section" className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-2">
+        <Card className="space-y-5">
           <header>
             <p className="text-xs uppercase tracking-[0.35em] text-ink-700/70">Risk profile</p>
             <h3 className="mt-2 text-2xl font-semibold text-ink-900">Signals we monitor</h3>
@@ -132,31 +210,30 @@ export default async function DashboardPage(props: DashboardPageProps) {
               <p className="text-ink-700">We haven’t computed your trust score yet.</p>
             )}
           </div>
-          {snapshot.riskSignals.length > 0 && (
-            <div className="space-y-3">
+          {snapshot.riskSignals.length > 0 ? (
+            <div className="space-y-4">
               <p className="text-xs uppercase tracking-[0.3em] text-ink-700/70">Recent signals</p>
               <div className="space-y-3">
                 {snapshot.riskSignals.map((signal) => (
-                  <div
+                  <TimelineEvent
                     key={signal.id}
-                    className="rounded-2xl border border-ink-900/10 bg-sand-100/60 p-4"
-                  >
-                    <p className="text-sm font-semibold text-ink-900">{signal.type}</p>
-                    <p className="text-xs text-ink-700">
-                      {signal.channel} • {signal.severity}{' '}
-                      {signal.score !== null ? `• score ${signal.score}` : ''}
-                    </p>
-                    <p className="text-xs text-ink-600">
-                      {new Date(signal.createdAt).toLocaleString()}
-                    </p>
-                  </div>
+                    title={signal.type}
+                    subtitle={`${signal.channel} • ${signal.severity}${
+                      signal.score !== null ? ` • score ${signal.score}` : ''
+                    }`}
+                    timestamp={signal.createdAt}
+                  />
                 ))}
               </div>
             </div>
+          ) : (
+            <p className="text-ink-700">
+              No risk signals at the moment. We’ll notify you if that changes.
+            </p>
           )}
         </Card>
 
-        <Card className="space-y-4">
+        <Card id="devices-section" className="space-y-4">
           <header>
             <p className="text-xs uppercase tracking-[0.35em] text-ink-700/70">Devices</p>
             <h3 className="mt-2 text-2xl font-semibold text-ink-900">Trusted fingerprints</h3>
@@ -184,7 +261,7 @@ export default async function DashboardPage(props: DashboardPageProps) {
         <Card className="space-y-4">
           <header>
             <p className="text-xs uppercase tracking-[0.35em] text-ink-700/70">Moderation events</p>
-            <h3 className="mt-2 text-2xl font-semibold text-ink-900">Your safety log</h3>
+            <h3 className="mt-2 text-2xl font-semibold text-ink-900">Safety log</h3>
           </header>
           {snapshot.moderationEvents.length ? (
             <ul className="space-y-3">
@@ -229,6 +306,115 @@ function StatTile({ label, value }: { label: string; value: string }) {
     <div className="rounded-2xl border border-ink-900/10 bg-white p-4">
       <p className="text-xs uppercase tracking-[0.35em] text-ink-700/70">{label}</p>
       <p className="mt-2 text-2xl font-semibold text-ink-900">{value}</p>
+    </div>
+  );
+}
+
+interface ActionItemProps {
+  title: string;
+  description: string;
+  complete: boolean;
+  icon: React.ComponentType<{ className?: string }>;
+  href?: string;
+}
+
+function ActionList({ items, className = '' }: { items: ActionItemProps[]; className?: string }) {
+  if (!items.length) return null;
+  return (
+    <div className={`grid gap-4 lg:grid-cols-3 ${className}`}>
+      {items.map((item) => (
+        <ActionItem key={item.title} {...item} />
+      ))}
+    </div>
+  );
+}
+
+function ActionItem({ title, description, complete, icon: Icon, href }: ActionItemProps) {
+  const content = (
+    <div className="group flex h-full flex-col rounded-2xl border border-white/20 bg-white/5 p-4 text-white/90 transition hover:border-white/60">
+      <div
+        className={`mb-3 inline-flex size-10 items-center justify-center rounded-full ${complete ? 'bg-emerald-500/20 text-emerald-300' : 'bg-amber-400/20 text-amber-200'}`}
+      >
+        <Icon className="size-5" />
+      </div>
+      <p className="font-semibold text-white">{title}</p>
+      <p className="mt-1 text-sm text-white/70">{description}</p>
+      <div className="mt-auto pt-4 text-xs uppercase tracking-[0.35em] text-white/60">
+        {complete ? 'Complete' : 'Action needed'}
+      </div>
+    </div>
+  );
+
+  if (href) {
+    return (
+      <Link href={href} className="block">
+        {content}
+      </Link>
+    );
+  }
+
+  return content;
+}
+
+function MetricPill({
+  label,
+  value,
+  className = '',
+}: {
+  label: string;
+  value: string;
+  className?: string;
+}) {
+  return (
+    <span
+      className={`rounded-full border border-white/30 bg-white/10 px-4 py-2 font-semibold text-white/90 ${className}`}
+    >
+      <span className="mr-2 text-white/60">{label}</span>
+      {value}
+    </span>
+  );
+}
+
+interface InsightCardProps {
+  title: string;
+  description: string;
+  icon: React.ComponentType<{ className?: string }>;
+  accent: string;
+  children: React.ReactNode;
+}
+
+function InsightCard({ title, description, icon: Icon, accent, children }: InsightCardProps) {
+  return (
+    <Card
+      className={`relative overflow-hidden border border-ink-900/5 bg-gradient-to-br ${accent}`}
+    >
+      <div className="relative z-10 space-y-1 p-6">
+        <div className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.35em] text-ink-900/70">
+          <Icon className="size-4" />
+          {title}
+        </div>
+        <p className="text-sm text-ink-900/80">{description}</p>
+        <div className="pt-4">{children}</div>
+      </div>
+      <div className="absolute inset-0 opacity-40" aria-hidden />
+    </Card>
+  );
+}
+
+function TimelineEvent({
+  title,
+  subtitle,
+  timestamp,
+}: {
+  title: string;
+  subtitle: string;
+  timestamp: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-ink-900/10 bg-sand-100/70 p-4">
+      <p className="text-sm font-semibold text-ink-900">{title}</p>
+      <p className="text-xs text-ink-700">{subtitle}</p>
+      <p className="text-xs text-ink-600">{new Date(timestamp).toLocaleString()}</p>
     </div>
   );
 }

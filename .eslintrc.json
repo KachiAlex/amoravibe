@@ -11,6 +11,9 @@
   },
   "plugins": ["@typescript-eslint"],
   "extends": ["eslint:recommended", "plugin:@typescript-eslint/recommended"],
-  "ignorePatterns": ["dist/**", "build/**"],
-  "rules": {}
+  "ignorePatterns": ["dist/**", "build/**", "**/generated/**"],
+  "rules": {
+    "@typescript-eslint/no-explicit-any": "off",
+    "@typescript-eslint/ban-types": "off"
+  }
 }

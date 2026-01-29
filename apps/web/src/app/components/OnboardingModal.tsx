@@ -1,6 +1,7 @@
 'use client';
 
 import { FormEvent, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useRouter } from 'next/navigation';
 import { AnimatePresence, motion } from 'motion/react';
 import {
   ArrowLeft,
@@ -150,6 +151,7 @@ export function OnboardingModal({ isOpen, onClose }: OnboardingModalProps) {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     if (!isOpen) {
@@ -303,10 +305,24 @@ export function OnboardingModal({ isOpen, onClose }: OnboardingModalProps) {
         verificationIntent: formData.verificationIntent,
       };
       const response = await lovedateApi.submitOnboarding(payload);
+      const nextRoute =
+        response.nextRoute || `/dashboard?userId=${encodeURIComponent(response.user.id)}`;
+
+      try {
+        await fetch('/api/session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: response.user.id }),
+        });
+      } catch (sessionError) {
+        console.error('Failed to persist Lovedate session', sessionError);
+      }
+
       setSuccess(`Welcome aboard, ${response.user.displayName}! Redirecting…`);
       setTimeout(() => {
         setSuccess(null);
         onClose();
+        router.push(nextRoute);
       }, 1600);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');

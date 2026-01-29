@@ -1,24 +1,74 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { MatchCandidateDto } from './dto/match.dto';
-import { Prisma, User } from '../../../prisma/client';
+import { Prisma, User, $Enums } from '../../prisma/client';
 import { Gender } from '../../common/enums/gender.enum';
 import { MatchPreference } from '../../common/enums/match-preference.enum';
 import { VisibilityStatus } from '../../common/enums/visibility-status.enum';
 import { DiscoverySpace } from '../../common/enums/discovery-space.enum';
+import { Orientation } from '../../common/enums/orientation.enum';
 
 const DEFAULT_MATCH_LIMIT = 12;
 const MAX_MATCH_LIMIT = 50;
+
+type NormalizedUser = Omit<
+  User,
+  'gender' | 'discoverySpace' | 'matchPreferences' | 'orientation' | 'orientationPreferences'
+> & {
+  gender: Gender;
+  discoverySpace: DiscoverySpace;
+  matchPreferences: MatchPreference[];
+  orientation: Orientation;
+  orientationPreferences: Orientation[];
+};
+
+type CandidateRecord = {
+  id: string;
+  displayName: string;
+  city: string;
+  bio: string | null;
+  photos: Prisma.JsonValue;
+  trustScore: number;
+  orientation: $Enums.Orientation;
+  matchPreferences: $Enums.MatchPreference[];
+  discoverySpace: $Enums.DiscoverySpace;
+  isVerified: boolean;
+  gender: $Enums.Gender;
+  orientationPreferences: $Enums.Orientation[];
+};
+
+type NormalizedCandidate = Omit<
+  CandidateRecord,
+  'gender' | 'discoverySpace' | 'matchPreferences' | 'orientation' | 'orientationPreferences'
+> & {
+  gender: Gender;
+  discoverySpace: DiscoverySpace;
+  matchPreferences: MatchPreference[];
+  orientation: Orientation;
+  orientationPreferences: Orientation[];
+};
+
+type ComparableProfile = Pick<
+  NormalizedUser,
+  | 'orientation'
+  | 'orientationPreferences'
+  | 'matchPreferences'
+  | 'gender'
+  | 'discoverySpace'
+  | 'trustScore'
+>;
 
 @Injectable()
 export class MatchService {
   constructor(private readonly prisma: PrismaService) {}
 
   async findMatches(userId: string, limit = DEFAULT_MATCH_LIMIT): Promise<MatchCandidateDto[]> {
-    const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    if (!user) {
+    const userRecord = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!userRecord) {
       throw new NotFoundException(`User ${userId} not found`);
     }
+
+    const user = this.normalizeUserEnums(userRecord);
 
     const normalizedLimit = Math.min(Math.max(limit, 1), MAX_MATCH_LIMIT);
     const genderPreferences = this.mapMatchPreferencesToGenders(user.matchPreferences);
@@ -62,9 +112,10 @@ export class MatchService {
     });
 
     const enriched = candidates
+      .map((candidate) => this.normalizeCandidateEnums(candidate as CandidateRecord))
       .map((candidate) => ({
         candidate,
-        compatibility: this.computeCompatibility(user, candidate as User),
+        compatibility: this.computeCompatibility(user, candidate),
       }))
       .sort((a, b) => b.compatibility - a.compatibility)
       .slice(0, normalizedLimit)
@@ -76,7 +127,7 @@ export class MatchService {
         photos: this.extractPhotos(candidate.photos),
         trustScore: candidate.trustScore,
         orientation: candidate.orientation,
-        matchPreferences: candidate.matchPreferences as MatchPreference[],
+        matchPreferences: candidate.matchPreferences,
         discoverySpace: candidate.discoverySpace,
         isVerified: candidate.isVerified,
         compatibilityScore: compatibility,
@@ -156,7 +207,7 @@ export class MatchService {
     }
   }
 
-  private computeCompatibility(user: User, candidate: User): number {
+  private computeCompatibility(user: ComparableProfile, candidate: ComparableProfile): number {
     let score = 40;
 
     if (candidate.orientationPreferences?.includes(user.orientation)) {
@@ -196,5 +247,27 @@ export class MatchService {
     }
 
     return Math.min(100, Math.max(0, Math.round(score)));
+  }
+
+  private normalizeUserEnums(user: User): NormalizedUser {
+    return {
+      ...user,
+      gender: user.gender as Gender,
+      discoverySpace: user.discoverySpace as DiscoverySpace,
+      matchPreferences: (user.matchPreferences ?? []) as MatchPreference[],
+      orientation: user.orientation as Orientation,
+      orientationPreferences: (user.orientationPreferences ?? []) as Orientation[],
+    };
+  }
+
+  private normalizeCandidateEnums(candidate: CandidateRecord): NormalizedCandidate {
+    return {
+      ...candidate,
+      gender: candidate.gender as Gender,
+      discoverySpace: candidate.discoverySpace as DiscoverySpace,
+      matchPreferences: (candidate.matchPreferences ?? []) as MatchPreference[],
+      orientation: candidate.orientation as Orientation,
+      orientationPreferences: (candidate.orientationPreferences ?? []) as Orientation[],
+    };
   }
 }

@@ -5,9 +5,10 @@ import { PrismaModule } from '../../prisma/prisma.module';
 import { ConfigModule } from '../../config/config.module';
 import { AnalyticsController } from './analytics.controller';
 import { AnalyticsTierGuard } from './guards/analytics-tier.guard';
+import { AuditModule } from '../audit/audit.module';
 
 @Module({
-  imports: [PrismaModule, ConfigModule],
+  imports: [PrismaModule, ConfigModule, AuditModule],
   controllers: [AnalyticsController],
   providers: [AnalyticsIngestionService, AnalyticsDashboardService, AnalyticsTierGuard],
   exports: [AnalyticsIngestionService, AnalyticsDashboardService],
