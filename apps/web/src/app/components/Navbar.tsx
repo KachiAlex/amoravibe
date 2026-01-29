@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { Menu, X } from 'lucide-react';
 import { useOnboardingModal } from '@/app/providers/OnboardingModalProvider';
+import { useSignInModal } from '@/app/providers/SignInModalProvider';
 
 const navLinks = [
   { label: 'Features', href: '#features' },
@@ -16,6 +17,7 @@ const navLinks = [
 export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { openModal } = useOnboardingModal();
+  const { openModal: openSignInModal } = useSignInModal();
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-lg border-b border-gray-200">
@@ -51,12 +53,13 @@ export function Navbar() {
 
           {/* Desktop CTA Buttons */}
           <div className="hidden md:flex items-center gap-4">
-            <Link
-              href="/onboarding"
+            <button
+              type="button"
+              onClick={openSignInModal}
               className="text-gray-700 hover:text-purple-600 transition-colors"
             >
               Sign In
-            </Link>
+            </button>
             <button
               type="button"
               onClick={openModal}
@@ -95,12 +98,16 @@ export function Navbar() {
               </a>
             ))}
             <div className="pt-2 space-y-2">
-              <Link
-                href="/onboarding"
-                className="block py-2 text-gray-700 hover:text-purple-600 transition-colors"
+              <button
+                type="button"
+                onClick={() => {
+                  openSignInModal();
+                  setMobileMenuOpen(false);
+                }}
+                className="block w-full py-2 text-left text-gray-700 hover:text-purple-600 transition-colors"
               >
                 Sign In
-              </Link>
+              </button>
               <button
                 type="button"
                 onClick={() => {

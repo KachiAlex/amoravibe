@@ -1,6 +1,17 @@
 import { NextResponse } from 'next/server';
-import { lovedateApi } from '@/lib/api';
+import { createLovedateApi } from '@lovedate/api';
 import { setSession } from '@/lib/session';
+
+const upstreamBase = (
+  process.env.TRUST_API_PROXY_TARGET ||
+  process.env.NEXT_PUBLIC_TRUST_API_URL ||
+  'http://localhost:4001/api/v1'
+).replace(/\/$/, '');
+
+const serverLovedateApi = createLovedateApi({
+  baseUrl: upstreamBase,
+  apiKey: process.env.TRUST_API_KEY,
+});
 
 function normalizeCredentials(payload: { email?: unknown; phone?: unknown; password?: unknown }) {
   const email =
@@ -27,7 +38,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const login = await lovedateApi.login({ email, phone, password });
+    const login = await serverLovedateApi.login({ email, phone, password });
     setSession({ userId: login.user.id });
     return NextResponse.json(login);
   } catch (error) {

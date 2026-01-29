@@ -43,6 +43,17 @@
 - [ ] React Native (Expo) mobile apps mirroring flows with biometric prompts.
 - [ ] Design system (tokens, components) shared across web/mobile.
 
+### Trust Dashboard & Communities Workstream
+
+- [ ] Wire up dashboard data fetching to identity snapshot API (server-side) to avoid placeholder states.
+- [ ] Polish hero section (trust score badge, verification chip, ambient motion) matching existing gradient theme.
+- [ ] Build action progress rail (verification, devices, risk) with deep links into sections.
+- [ ] Upgrade metric cards with trend sparklines + consistent timestamps.
+- [ ] Expand risk + devices panels (filters, device badges, "Pair device" CTA).
+- [ ] Group moderation log + audit summary with accordions and quick actions.
+- [ ] Introduce Communities section (trust tier cards, eligibility checklist, invite carousel).
+- [ ] Add support footer + contact CTA aligned with AmoraVibe style.
+
 ## Phase 6 — Launch Readiness
 
 - [ ] Penetration testing & security audit.

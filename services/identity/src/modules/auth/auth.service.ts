@@ -25,18 +25,24 @@ export class AuthService {
     };
   }
 
-  private resolveIdentifier(dto: LoginRequestDto) {
-    if (dto.email) {
-      return { email: dto.email.toLowerCase() };
-    }
-    if (dto.phone) {
-      return { phone: dto.phone };
-    }
-    throw new BadRequestException('Provide an email or phone number.');
-  }
-
   private async resolveUser(dto: LoginRequestDto) {
-    const identifier = this.resolveIdentifier(dto);
-    return this.prisma.user.findUnique({ where: identifier });
+    const email = dto.email?.trim().toLowerCase();
+    if (email) {
+      return this.prisma.user.findFirst({
+        where: {
+          email: {
+            equals: email,
+            mode: 'insensitive',
+          },
+        },
+      });
+    }
+
+    const phone = dto.phone?.trim();
+    if (phone) {
+      return this.prisma.user.findFirst({ where: { phone } });
+    }
+
+    throw new BadRequestException('Provide an email or phone number.');
   }
 }

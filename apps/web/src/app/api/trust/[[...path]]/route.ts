@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-const DEFAULT_UPSTREAM = 'http://localhost:3001';
+const DEFAULT_UPSTREAM = 'http://localhost:4001/api/v1';
 const upstreamBase = (process.env.TRUST_API_PROXY_TARGET || DEFAULT_UPSTREAM).replace(/\/$/, '');
 
 async function proxy(request: Request, params: { path?: string[] }) {

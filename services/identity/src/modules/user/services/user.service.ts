@@ -29,28 +29,39 @@ export class UserService {
     const passwordHash = hashPassword(dto.password);
     const dateOfBirth = new Date(dto.dateOfBirth);
 
-    return this.prisma.user.create({
-      data: {
-        legalName: dto.legalName,
-        displayName: dto.displayName,
-        dateOfBirth,
-        email: dto.email ?? null,
-        phone: dto.phone ?? null,
-        passwordHash,
-        gender: dto.gender,
-        orientation: dto.orientation,
-        orientationPreferences: dto.orientationPreferences,
-        discoverySpace: dto.discoverySpace,
-        matchPreferences: dto.matchPreferences,
-        city: dto.city,
-        bio: dto.bio,
-        photos: dto.photos as Prisma.JsonArray,
-        verificationIntent: dto.verificationIntent,
-        trustScore: TRUST_BASELINE,
-        visibility: VisibilityStatus.LIMITED,
-        isVerified: false,
-      },
-    });
+    try {
+      return await this.prisma.user.create({
+        data: {
+          legalName: dto.legalName,
+          displayName: dto.displayName,
+          dateOfBirth,
+          email: dto.email ?? null,
+          phone: dto.phone ?? null,
+          passwordHash,
+          gender: dto.gender,
+          orientation: dto.orientation,
+          orientationPreferences: dto.orientationPreferences,
+          discoverySpace: dto.discoverySpace,
+          matchPreferences: dto.matchPreferences,
+          city: dto.city,
+          bio: dto.bio,
+          photos: dto.photos as Prisma.JsonArray,
+          verificationIntent: dto.verificationIntent,
+          trustScore: TRUST_BASELINE,
+          visibility: VisibilityStatus.LIMITED,
+          isVerified: false,
+        },
+      });
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+        const target = Array.isArray(error.meta?.target) ? (error.meta?.target as string[]) : [];
+        const field = target.includes('phone') ? 'phone number' : 'email address';
+        throw new BadRequestException(
+          `An account already exists for this ${field}. Please sign in.`
+        );
+      }
+      throw error;
+    }
   }
 
   findById(id: string): Promise<UserProfile | null> {
