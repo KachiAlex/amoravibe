@@ -1115,10 +1115,10 @@ export default async function DashboardPage(props: DashboardPageProps) {
               </div>
               <div className="flex gap-2 text-xs">
                 <span className="rounded-full bg-white/80 px-3 py-1 text-[#475569]">
-                  {snapshot.user.orientation} space
+                  Verified orbit
                 </span>
                 <span className="rounded-full bg-white/80 px-3 py-1 text-[#475569]">
-                  {snapshot.user.discoverySpace} visibility
+                  Trust score {snapshot.user.trustScore}
                 </span>
               </div>
             </div>
