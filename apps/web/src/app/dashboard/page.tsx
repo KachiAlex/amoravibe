@@ -5,6 +5,7 @@ import { Space_Grotesk } from 'next/font/google';
 import {
   Compass,
   Heart,
+  Lock,
   MessageCircle,
   Settings,
   ShieldCheck,
@@ -13,7 +14,7 @@ import {
   Users,
 } from 'lucide-react';
 import type { ComponentType } from 'react';
-import type { TrustCenterSnapshotResponse } from '@lovedate/api';
+import type { MatchCandidate, TrustCenterSnapshotResponse } from '@lovedate/api';
 import { lovedateApi } from '@/lib/api';
 import { getSession } from '@/lib/session';
 
@@ -21,19 +22,554 @@ const sidebarFont = Space_Grotesk({ subsets: ['latin'], weight: ['400', '500', '
 
 type IconType = ComponentType<{ className?: string }>;
 
+type DashboardSection = 'home' | 'discover' | 'messages';
+
 interface NavItem {
   label: string;
   icon: IconType;
+  href: string;
   badge?: string;
-  active?: boolean;
+  section?: DashboardSection;
+}
+
+function ProfileManager({
+  completion,
+  photos,
+  orientation,
+  discoverySpace,
+}: {
+  completion: number;
+  photos: string[];
+  orientation: string;
+  discoverySpace: string;
+}) {
+  return (
+    <Card className="space-y-4 border-none bg-white p-6 shadow-[0_18px_50px_rgba(15,23,42,0.1)]">
+      <header className="flex items-center justify-between">
+        <div>
+          <p className="text-sm font-medium text-[#6b7280]">Profile</p>
+          <h3 className="text-xl font-semibold text-[#0f172a]">Tell your story</h3>
+        </div>
+        <span className="rounded-full bg-[#eef2ff] px-3 py-1 text-sm font-semibold text-[#4338ca]">
+          {completion}% complete
+        </span>
+      </header>
+      <div className="rounded-2xl border border-dashed border-[#e2e8f0] p-4">
+        <p className="text-xs uppercase tracking-[0.25em] text-[#94a3b8]">Photos</p>
+        <div className="mt-3 grid grid-cols-3 gap-2">
+          {photos.length ? (
+            photos.map((photo) => (
+              <div key={photo} className="relative h-24 overflow-hidden rounded-xl border">
+                <Image src={photo} alt="Profile photo" fill className="object-cover" sizes="33vw" />
+              </div>
+            ))
+          ) : (
+            <p className="col-span-3 text-sm text-[#94a3b8]">Add photos to increase trust.</p>
+          )}
+        </div>
+        <div className="mt-3 flex gap-2">
+          <Link
+            href="/settings/profile"
+            className="rounded-full bg-[#4338ca] px-4 py-2 text-sm font-semibold text-white"
+          >
+            Manage photos
+          </Link>
+          <button className="rounded-full border border-[#e2e8f0] px-4 py-2 text-sm font-semibold text-[#0f172a]">
+            Edit prompts
+          </button>
+        </div>
+      </div>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div className="rounded-2xl border border-[#e2e8f0] p-3">
+          <p className="text-xs uppercase tracking-[0.2em] text-[#94a3b8]">Orientation</p>
+          <p className="text-sm font-semibold text-[#0f172a]">{orientation}</p>
+          <p className="text-xs text-[#94a3b8]">Matches see only what you allow.</p>
+        </div>
+        <div className="rounded-2xl border border-[#e2e8f0] p-3">
+          <p className="text-xs uppercase tracking-[0.2em] text-[#94a3b8]">Discovery space</p>
+          <p className="text-sm font-semibold text-[#0f172a]">{discoverySpace}</p>
+          <p className="text-xs text-[#94a3b8]">Adjust visibility in settings.</p>
+        </div>
+      </div>
+    </Card>
+  );
+}
+
+function VerificationPanel({
+  timeline,
+  verifiedLabel,
+}: {
+  timeline: { title: string; helper: string; status: 'done' | 'pending' }[];
+  verifiedLabel: string;
+}) {
+  return (
+    <Card className="space-y-4 border-none bg-[#0f172a] p-6 text-white shadow-[0_18px_50px_rgba(15,23,42,0.3)]">
+      <header className="flex items-center justify-between">
+        <div>
+          <p className="text-sm font-medium uppercase tracking-[0.3em] text-white/70">
+            Verification
+          </p>
+          <h3 className="text-2xl font-semibold">Your trust tier</h3>
+        </div>
+        <span className="rounded-full bg-white/20 px-3 py-1 text-sm font-semibold">
+          {verifiedLabel}
+        </span>
+      </header>
+      <div className="space-y-3">
+        {timeline.map((step) => (
+          <div
+            key={step.title}
+            className={`rounded-2xl border px-4 py-3 text-sm transition ${
+              step.status === 'done'
+                ? 'border-white/40 bg-white/10'
+                : 'border-white/20 bg-white/5 hover:border-white/40'
+            }`}
+          >
+            <p className="font-semibold">{step.title}</p>
+            <p className="text-white/70">{step.helper}</p>
+          </div>
+        ))}
+      </div>
+      <div className="rounded-2xl bg-white/10 p-4 text-sm">
+        Add ID verification to boost visibility.{' '}
+        <Link href="/trust-center" className="font-semibold underline">
+          Start verification
+        </Link>
+      </div>
+    </Card>
+  );
+}
+
+function LikesSplitPanel({ received, sent }: { received: LikePerson[]; sent: LikePerson[] }) {
+  return (
+    <Card className="space-y-4 border-none bg-white p-6 shadow-[0_18px_50px_rgba(15,23,42,0.1)]">
+      <header className="flex items-center justify-between">
+        <div>
+          <p className="text-sm font-medium text-[#6b7280]">Likes</p>
+          <h3 className="text-xl font-semibold text-[#0f172a]">Signals and admirers</h3>
+        </div>
+        <Link href="/matches?view=likes" className="text-sm font-semibold text-[#4338ca]">
+          Manage likes
+        </Link>
+      </header>
+      <div className="grid gap-4 md:grid-cols-2">
+        <div className="rounded-2xl border border-[#e2e8f0] p-4">
+          <p className="text-sm font-semibold text-[#0f172a]">People who liked you</p>
+          <p className="text-xs text-[#94a3b8]">Upgrade to reveal instantly.</p>
+          <div className="mt-3 space-y-3">
+            {received.map((like) => (
+              <div key={like.id} className="flex items-center gap-3">
+                <Image
+                  src={like.image}
+                  alt={like.name}
+                  width={44}
+                  height={44}
+                  className="h-11 w-11 rounded-2xl object-cover"
+                />
+                <div>
+                  <p className="text-sm font-semibold text-[#0f172a]">{like.name}</p>
+                  <p className="text-xs text-[#94a3b8]">Blurred for privacy</p>
+                </div>
+              </div>
+            ))}
+          </div>
+          <Link href="/premium" className="mt-3 inline-flex text-sm font-semibold text-[#7c3aed]">
+            See who liked you →
+          </Link>
+        </div>
+        <div className="rounded-2xl border border-[#e2e8f0] p-4">
+          <p className="text-sm font-semibold text-[#0f172a]">People you liked</p>
+          <p className="text-xs text-[#94a3b8]">Rewind or send a message.</p>
+          <div className="mt-3 space-y-3">
+            {sent.map((like) => (
+              <div key={like.id} className="flex items-center gap-3">
+                <Image
+                  src={like.image}
+                  alt={like.name}
+                  width={44}
+                  height={44}
+                  className="h-11 w-11 rounded-2xl object-cover"
+                />
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-[#0f172a]">{like.name}</p>
+                  <p className="text-xs text-[#94a3b8]">{like.highlight}</p>
+                </div>
+                <button className="rounded-full bg-[#22c55e]/10 px-3 py-1 text-xs font-semibold text-[#15803d]">
+                  Nudge
+                </button>
+              </div>
+            ))}
+          </div>
+          <button className="mt-3 inline-flex text-sm font-semibold text-[#4338ca]">
+            Rewind last swipe
+          </button>
+        </div>
+      </div>
+    </Card>
+  );
+}
+
+function MessagesInbox({ threads }: { threads: MessageThread[] }) {
+  return (
+    <Card className="space-y-4 border-none bg-white p-6 shadow-[0_18px_50px_rgba(15,23,42,0.1)]">
+      <header className="flex items-center justify-between">
+        <div>
+          <p className="text-sm font-medium text-[#6b7280]">Messages</p>
+          <h3 className="text-xl font-semibold text-[#0f172a]">Inbox</h3>
+        </div>
+        <Link
+          href="/dashboard?section=messages#messages"
+          className="text-sm font-semibold text-[#4338ca]"
+        >
+          View all
+        </Link>
+      </header>
+      <div className="space-y-3">
+        {threads.map((thread) => (
+          <Link
+            key={thread.name}
+            href={`/messages/${encodeURIComponent(thread.name.toLowerCase())}`}
+            className="flex items-center gap-3 rounded-2xl border border-[#eef2ff] p-3 hover:border-[#cbd5f5]"
+          >
+            <Image
+              src={thread.avatar}
+              alt={thread.name}
+              width={48}
+              height={48}
+              className="h-12 w-12 rounded-2xl object-cover"
+            />
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-[#0f172a]">{thread.name}</p>
+              <p className="text-xs text-[#475569]">{thread.snippet}</p>
+            </div>
+            <div className="text-right text-xs text-[#94a3b8]">
+              <p>{thread.lastActive}</p>
+              {thread.unread ? (
+                <span className="mt-1 inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#f43f5e] text-[11px] font-semibold text-white">
+                  {thread.unread}
+                </span>
+              ) : null}
+            </div>
+          </Link>
+        ))}
+      </div>
+    </Card>
+  );
+}
+
+function MatchesPanel({ candidates }: { candidates: MatchCandidatePreview[] }) {
+  return (
+    <Card className="space-y-4 border-none bg-white p-6 shadow-[0_18px_50px_rgba(15,23,42,0.1)]">
+      <header className="flex items-center justify-between">
+        <div>
+          <p className="text-sm font-medium text-[#6b7280]">Matches hub</p>
+          <h3 className="text-xl font-semibold text-[#0f172a]">Mutual sparks</h3>
+        </div>
+        <Link href="/matches" className="text-sm font-semibold text-[#4338ca]">
+          View all
+        </Link>
+      </header>
+      <div className="space-y-3">
+        {candidates.map((candidate) => (
+          <div
+            key={candidate.id}
+            className="flex items-center justify-between rounded-2xl border border-[#eef2ff] p-3"
+          >
+            <div className="flex items-center gap-3">
+              <Image
+                src={candidate.avatar}
+                alt={candidate.name}
+                width={48}
+                height={48}
+                className="h-12 w-12 rounded-2xl object-cover"
+              />
+              <div>
+                <p className="text-sm font-semibold text-[#0f172a]">{candidate.name}</p>
+                <p className="text-xs text-[#475569]">{candidate.highlight}</p>
+              </div>
+            </div>
+            <div className="text-right">
+              <span
+                className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${
+                  candidate.status === 'new'
+                    ? 'bg-[#fef2f2] text-[#b91c1c]'
+                    : candidate.status === 'active'
+                      ? 'bg-[#ecfeff] text-[#0f766e]'
+                      : 'bg-[#fff7ed] text-[#b45309]'
+                }`}
+              >
+                {candidate.status === 'new'
+                  ? 'New match'
+                  : candidate.status === 'active'
+                    ? 'Active chat'
+                    : 'Expiring soon'}
+              </span>
+              <p className="text-xs text-[#94a3b8]">{candidate.compatibility}% vibe match</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </Card>
+  );
+}
+
+function NotificationsPanel({ toggles }: { toggles: NotificationToggle[] }) {
+  return (
+    <Card className="space-y-4 border-none bg-white p-6 shadow-[0_18px_50px_rgba(15,23,42,0.1)]">
+      <header>
+        <p className="text-sm font-medium text-[#6b7280]">Notifications</p>
+        <h3 className="text-xl font-semibold text-[#0f172a]">Stay in the loop</h3>
+      </header>
+      <div className="space-y-3">
+        {toggles.map((toggle) => (
+          <button
+            key={toggle.channel}
+            type="button"
+            className={`flex w-full items-center justify-between rounded-2xl border px-4 py-3 text-left transition ${
+              toggle.enabled
+                ? 'border-[#c7d7fe] bg-[#eef2ff]'
+                : 'border-[#e2e8f0] hover:border-[#cbd5f5]'
+            }`}
+          >
+            <span>
+              <p className="text-sm font-semibold text-[#0f172a]">{toggle.label}</p>
+              <p className="text-xs text-[#94a3b8]">{toggle.helper}</p>
+            </span>
+            <span
+              className={`inline-flex h-6 w-11 items-center rounded-full text-[11px] font-semibold ${
+                toggle.enabled
+                  ? 'bg-[#4338ca]/90 text-white justify-end'
+                  : 'bg-[#e2e8f0] text-[#475569] justify-start'
+              }`}
+            >
+              <span className="mx-1 rounded-full bg-white p-1" />
+            </span>
+          </button>
+        ))}
+      </div>
+    </Card>
+  );
+}
+
+function PremiumPanel({ perks }: { perks: PremiumPerk[] }) {
+  return (
+    <Card className="space-y-4 border-none bg-gradient-to-br from-[#fdf2f8] via-[#faf5ff] to-[#ecfeff] p-6 shadow-[0_18px_50px_rgba(15,23,42,0.1)]">
+      <header className="flex items-center justify-between">
+        <div>
+          <p className="text-sm font-medium text-[#6b7280]">Premium & boosts</p>
+          <h3 className="text-xl font-semibold text-[#0f172a]">Unlock AmoraVibe+</h3>
+        </div>
+        <Link
+          href="/premium"
+          className="rounded-full bg-[#4338ca] px-4 py-2 text-sm font-semibold text-white"
+        >
+          Upgrade
+        </Link>
+      </header>
+      <div className="space-y-3">
+        {perks.map((perk) => (
+          <div key={perk.title} className="rounded-2xl border border-white/70 bg-white/80 p-4">
+            <p className="text-sm font-semibold text-[#0f172a]">{perk.title}</p>
+            <p className="text-xs text-[#475569]">{perk.helper}</p>
+            <button className="mt-2 text-sm font-semibold text-[#7c3aed]">{perk.cta} →</button>
+          </div>
+        ))}
+      </div>
+    </Card>
+  );
+}
+
+function SafetySupportPanel({ resources }: { resources: SafetyResource[] }) {
+  return (
+    <Card className="space-y-4 border-none bg-white p-6 shadow-[0_18px_50px_rgba(15,23,42,0.1)]">
+      <header>
+        <p className="text-sm font-medium text-[#6b7280]">Safety & support</p>
+        <h3 className="text-xl font-semibold text-[#0f172a]">We’ve got you</h3>
+      </header>
+      <div className="space-y-3">
+        {resources.map((resource) => (
+          <Link
+            key={resource.href}
+            href={resource.href}
+            className="flex items-center justify-between rounded-2xl border border-[#e2e8f0] px-4 py-3 text-[#0f172a] hover:border-[#cbd5f5]"
+          >
+            <span>
+              <p className="text-sm font-semibold">{resource.title}</p>
+              <p className="text-xs text-[#94a3b8]">{resource.helper}</p>
+            </span>
+            <span className="text-xs font-semibold uppercase tracking-[0.2em] text-[#94a3b8]">
+              Open
+            </span>
+          </Link>
+        ))}
+      </div>
+      <div className="rounded-2xl bg-[#eef2ff] p-4 text-sm text-[#4338ca]">
+        Need immediate help?{' '}
+        <Link href="/support/contact" className="font-semibold underline">
+          Contact support
+        </Link>
+      </div>
+    </Card>
+  );
+}
+
+function SettingsPanel({ items }: { items: SettingItem[] }) {
+  return (
+    <Card className="space-y-4 border-none bg-white p-6 shadow-[0_18px_50px_rgba(15,23,42,0.1)]">
+      <header>
+        <p className="text-sm font-medium text-[#6b7280]">Settings</p>
+        <h3 className="text-xl font-semibold text-[#0f172a]">Control your account</h3>
+      </header>
+      <div className="grid gap-3 md:grid-cols-2">
+        {items.map((item) => (
+          <Link
+            key={item.href}
+            href={item.href}
+            className={`rounded-2xl border px-4 py-3 transition ${
+              item.tone === 'danger'
+                ? 'border-[#fecdd3] bg-[#fff1f2] text-[#b91c1c]'
+                : 'border-[#e2e8f0] text-[#0f172a] hover:border-[#cbd5f5]'
+            }`}
+          >
+            <p className="text-sm font-semibold">{item.label}</p>
+            <p className="text-xs text-[#94a3b8]">{item.helper}</p>
+          </Link>
+        ))}
+      </div>
+    </Card>
+  );
+}
+
+function HomeFeed({ profiles }: { profiles: FeedProfile[] }) {
+  return (
+    <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+      {profiles.map((profile) => (
+        <FeedCard key={profile.id} profile={profile} />
+      ))}
+    </div>
+  );
+}
+
+function FeedCard({ profile }: { profile: FeedProfile }) {
+  return (
+    <Card className="space-y-4 border-none bg-white/95 p-5 shadow-[0_18px_50px_rgba(15,23,42,0.08)]">
+      <div className="relative aspect-[4/5] overflow-hidden rounded-3xl">
+        <Image
+          src={profile.photo}
+          alt={`${profile.name} profile photo`}
+          fill
+          className="object-cover"
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+        />
+        {profile.premiumOnly ? (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#0f172a]/70 text-white">
+            <Lock className="mb-2 h-6 w-6" />
+            <p className="text-sm font-semibold">Premium spotlight</p>
+            <Link href="/premium" className="text-xs underline">
+              Unlock to view
+            </Link>
+          </div>
+        ) : null}
+        {profile.verified ? (
+          <span className="absolute left-3 top-3 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-[#0f172a]">
+            Verified
+          </span>
+        ) : null}
+      </div>
+      <div className="space-y-2">
+        <div className="flex items-start justify-between">
+          <div>
+            <p className="text-xl font-semibold text-[#0f172a]">
+              {profile.name}, {profile.age}
+            </p>
+            <p className="text-sm text-[#475569]">{profile.location}</p>
+          </div>
+          <span className="text-xs font-semibold uppercase tracking-wide text-[#94a3b8]">
+            {profile.distance}
+          </span>
+        </div>
+        <p className="text-sm text-[#475569]">
+          <span className="font-semibold text-[#0f172a]">{profile.intent}</span> · {profile.bio}
+        </p>
+        <div className="flex flex-wrap gap-2 text-xs text-[#6366f1]">
+          <span className="rounded-full bg-[#eef2ff] px-3 py-1">{profile.orientation}</span>
+          {profile.interests.map((interest) => (
+            <span key={interest} className="rounded-full bg-[#f5f3ff] px-3 py-1 text-[#7c3aed]">
+              {interest}
+            </span>
+          ))}
+        </div>
+      </div>
+      <div className="flex flex-wrap gap-3 pt-2">
+        <button
+          type="button"
+          className="flex-1 rounded-full bg-[#22c55e] px-5 py-2 text-sm font-semibold text-white shadow-sm"
+        >
+          Like
+        </button>
+        <button
+          type="button"
+          className="flex-1 rounded-full border border-[#e2e8f0] px-5 py-2 text-sm font-semibold text-[#0f172a]"
+        >
+          Pass
+        </button>
+        <button
+          type="button"
+          className="rounded-full border border-[#c084fc] px-4 py-2 text-sm font-semibold text-[#7c3aed]"
+        >
+          Save
+        </button>
+        <button
+          type="button"
+          className="rounded-full bg-[#f43f5e] px-4 py-2 text-sm font-semibold text-white"
+        >
+          Super-like
+        </button>
+      </div>
+    </Card>
+  );
+}
+
+function DiscoverFilters({ filters }: { filters: DiscoverFilter[] }) {
+  return (
+    <Card className="space-y-4 border-none bg-white p-6 shadow-[0_18px_50px_rgba(15,23,42,0.08)]">
+      <div>
+        <p className="text-sm font-medium text-[#6b7280]">Explore modes</p>
+        <h3 className="text-xl font-semibold text-[#0f172a]">Tune your discovery lane</h3>
+      </div>
+      <div className="grid gap-3 md:grid-cols-2">
+        {filters.map((filter) => (
+          <button
+            key={filter.label}
+            type="button"
+            className={`flex items-center justify-between rounded-2xl border px-4 py-3 text-left transition ${
+              filter.premium
+                ? 'border-[#fcd34d] bg-[#fffbeb]'
+                : 'border-[#e2e8f0] hover:border-[#cbd5f5]'
+            }`}
+          >
+            <span>
+              <p className="text-sm font-semibold text-[#0f172a]">{filter.label}</p>
+              <p className="text-xs text-[#94a3b8]">{filter.helper}</p>
+            </span>
+            {filter.premium ? (
+              <span className="inline-flex items-center gap-1 rounded-full bg-white px-3 py-1 text-[11px] font-semibold text-[#b45309]">
+                <Lock className="h-3 w-3" /> Premium
+              </span>
+            ) : null}
+          </button>
+        ))}
+      </div>
+    </Card>
+  );
 }
 
 interface DiscoverPerson {
   id: string;
   name: string;
-  age: number;
-  city: string;
-  distance: string;
+  age?: number;
+  city?: string;
+  distance?: string;
   tags: string[];
   image: string;
 }
@@ -59,8 +595,67 @@ interface MessageThread {
   avatar: string;
 }
 
+interface FeedProfile {
+  id: string;
+  name: string;
+  age?: number;
+  distance?: string;
+  location?: string;
+  orientation: string;
+  intent: string;
+  bio: string;
+  photo: string;
+  verified: boolean;
+  premiumOnly?: boolean;
+  interests: string[];
+}
+
+interface DiscoverFilter {
+  label: string;
+  helper: string;
+  premium?: boolean;
+}
+
+interface MatchCandidatePreview {
+  id: string;
+  name: string;
+  status: 'new' | 'active' | 'expiring';
+  highlight: string;
+  compatibility: number;
+  avatar: string;
+  verified?: boolean;
+}
+
+interface NotificationToggle {
+  channel: string;
+  label: string;
+  helper: string;
+  enabled: boolean;
+}
+
+interface PremiumPerk {
+  title: string;
+  helper: string;
+  cta: string;
+}
+
+interface SafetyResource {
+  title: string;
+  helper: string;
+  href: string;
+}
+
+interface SettingItem {
+  label: string;
+  helper: string;
+  href: string;
+  tone?: 'default' | 'danger';
+}
+
 interface DashboardPageProps {
-  searchParams?: Promise<{ userId?: string }> | { userId?: string };
+  searchParams?:
+    | Promise<{ userId?: string; section?: string }>
+    | { userId?: string; section?: string };
 }
 
 async function loadSnapshot(userId: string): Promise<TrustCenterSnapshotResponse | null> {
@@ -72,10 +667,25 @@ async function loadSnapshot(userId: string): Promise<TrustCenterSnapshotResponse
   }
 }
 
+async function loadMatches(userId: string, limit = 12): Promise<MatchCandidate[] | null> {
+  try {
+    return await lovedateApi.fetchMatches({ userId, limit });
+  } catch (error) {
+    console.error('Failed to load matches for dashboard', error);
+    return null;
+  }
+}
+
 export default async function DashboardPage(props: DashboardPageProps) {
   const resolvedParams = await Promise.resolve(props.searchParams ?? {});
   const session = getSession();
   const userId = resolvedParams?.userId ?? session?.userId ?? null;
+  const sectionParam =
+    typeof resolvedParams?.section === 'string' ? resolvedParams.section.toLowerCase() : 'home';
+  const validSections: DashboardSection[] = ['home', 'discover', 'messages'];
+  const activeSection = validSections.includes(sectionParam as DashboardSection)
+    ? (sectionParam as DashboardSection)
+    : 'home';
 
   if (!userId) {
     return (
@@ -130,6 +740,8 @@ export default async function DashboardPage(props: DashboardPageProps) {
     64 + (snapshot.user.isVerified ? 18 : 0) + Math.min(12, devicesTrusted * 3);
   const profileCompletion = Math.min(98, Math.round(profileCompletionRaw));
 
+  const matches = (await loadMatches(userId, 12)) ?? [];
+
   const discoverPeople: DiscoverPerson[] = [
     {
       id: 'peter',
@@ -161,6 +773,128 @@ export default async function DashboardPage(props: DashboardPageProps) {
       image:
         'https://images.unsplash.com/photo-1504593811423-6dd665756598?auto=format&fit=crop&w=900&q=80',
     },
+  ];
+
+  const likesGiven: LikePerson[] = [
+    {
+      id: 'drew',
+      name: 'Drew',
+      age: 29,
+      city: 'Bushwick',
+      distance: '3 mi',
+      tags: ['Film', 'Coffee'],
+      highlight: 'Waiting to hear back',
+      image:
+        'https://images.unsplash.com/photo-1504593811423-6dd665756598?auto=format&fit=crop&w=600&q=80',
+    },
+    {
+      id: 'lucia',
+      name: 'Lucia',
+      age: 30,
+      city: 'Harlem',
+      distance: '9 mi',
+      tags: ['Poetry', 'Wellness'],
+      highlight: 'You sent a like yesterday',
+      image:
+        'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=600&q=80',
+    },
+  ];
+
+  const profilePhotos = Array.isArray((snapshot as any)?.user?.photos)
+    ? ((snapshot as any).user.photos as string[])
+    : [];
+
+  const verificationTimeline = [
+    {
+      title: 'Photo verification',
+      helper: snapshot.user.isVerified ? 'Completed' : 'Pending selfie check',
+      status: snapshot.user.isVerified ? 'done' : 'pending',
+    },
+    {
+      title: 'ID verification',
+      helper: 'Optional boost to trust tier',
+      status: 'pending',
+    },
+    {
+      title: 'Community guidelines',
+      helper: 'No flags on record',
+      status: 'done',
+    },
+  ];
+
+  const feedProfiles: FeedProfile[] = matches.length
+    ? matches.slice(0, 6).map((match) => ({
+        id: match.id,
+        name: match.displayName,
+        age: undefined,
+        distance: undefined,
+        location: match.city,
+        orientation: match.orientation,
+        intent: match.matchPreferences.includes('everyone')
+          ? 'Open to everyone'
+          : 'Selective matches',
+        bio: match.bio ?? 'Prefers to reveal more in chat.',
+        photo:
+          match.photos[0] ??
+          'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=900&q=80',
+        verified: match.isVerified,
+        premiumOnly: false,
+        interests: [match.discoverySpace, `${match.compatibilityScore}% vibe`],
+      }))
+    : [
+        {
+          id: 'marco',
+          name: 'Marco',
+          age: 31,
+          distance: '4 mi',
+          location: 'Williamsburg · Brooklyn',
+          orientation: 'Pansexual · He/Him',
+          intent: 'Looking for long-term',
+          bio: 'Creative director into rooftop jazz nights, mezcal tastings, and sunrise runs over the bridge.',
+          photo:
+            'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=900&q=80',
+          verified: true,
+          interests: ['Design', 'Travel', 'Jazz clubs'],
+        },
+        {
+          id: 'ivy',
+          name: 'Ivy',
+          age: 28,
+          distance: '2 mi',
+          location: 'SoHo · Manhattan',
+          orientation: 'Queer · She/They',
+          intent: 'Dating thoughtfully',
+          bio: 'Ceramicist + gallery consultant. Planning a Lisbon sabbatical—need a partner-in-curiosity.',
+          photo:
+            'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=900&q=80',
+          verified: true,
+          premiumOnly: true,
+          interests: ['Art walks', 'Matcha', 'Analog photography'],
+        },
+        {
+          id: 'amir',
+          name: 'Amir',
+          age: 33,
+          distance: '7 mi',
+          location: 'Long Island City',
+          orientation: 'Straight · He/Him',
+          intent: 'Exploring connections',
+          bio: 'Product manager building climate tools. Loves bouldering, dumpling tours, and human design chats.',
+          photo:
+            'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=900&q=80',
+          verified: false,
+          interests: ['Outdoors', 'Tech ethics', 'Foodie'],
+        },
+      ];
+
+  const discoverFilters: DiscoverFilter[] = [
+    { label: 'Nearby', helper: 'Within 10 miles' },
+    { label: 'New this week', helper: 'Freshly onboarded' },
+    { label: 'Recently active', helper: 'Seen in the last 24h' },
+    { label: 'Verified only', helper: 'Photo / ID verified' },
+    { label: 'Shared interests', helper: 'Match your lifestyle tags' },
+    { label: 'Online now', helper: 'Ready to chat', premium: true },
+    { label: 'Advanced filters', helper: 'Height, lifestyle, intent', premium: true },
   ];
 
   const likesYou: LikePerson[] = [
@@ -216,14 +950,25 @@ export default async function DashboardPage(props: DashboardPageProps) {
   const unreadCount = messageThreads.reduce((sum, thread) => sum + (thread.unread ?? 0), 0);
 
   const navItems: NavItem[] = [
-    { label: 'Home', icon: Sparkles, active: true },
-    { label: 'Discover', icon: Compass },
-    { label: 'Matches', icon: Heart, badge: '9' },
-    { label: 'Moments', icon: Star },
-    { label: 'Messages', icon: MessageCircle, badge: unreadCount ? `${unreadCount}` : undefined },
-    { label: 'Communities', icon: Users },
-    { label: 'Safety Center', icon: ShieldCheck },
-    { label: 'Settings', icon: Settings },
+    { label: 'Home', icon: Sparkles, href: '/dashboard?section=home#top', section: 'home' },
+    {
+      label: 'Discover',
+      icon: Compass,
+      href: '/dashboard?section=discover#discover',
+      section: 'discover',
+    },
+    { label: 'Matches', icon: Heart, badge: '9', href: '/matches' },
+    { label: 'Moments', icon: Star, href: '/dashboard?section=home#top' },
+    {
+      label: 'Messages',
+      icon: MessageCircle,
+      badge: unreadCount ? `${unreadCount}` : undefined,
+      href: '/dashboard?section=messages#messages',
+      section: 'messages',
+    },
+    { label: 'Communities', icon: Users, href: '/dashboard?section=discover#discover' },
+    { label: 'Safety Center', icon: ShieldCheck, href: '/trust-center' },
+    { label: 'Settings', icon: Settings, href: '/settings/profile' },
   ];
 
   const matchPreviews: MatchPreview[] = [
@@ -256,13 +1001,131 @@ export default async function DashboardPage(props: DashboardPageProps) {
     },
   ];
 
+  const matchCandidates: MatchCandidatePreview[] = matches.length
+    ? matches.slice(0, 4).map((match, index) => ({
+        id: match.id,
+        name: match.displayName,
+        status: index === 0 ? 'new' : index === 1 ? 'active' : 'expiring',
+        highlight: match.city ?? 'Ready to connect',
+        compatibility: match.compatibilityScore,
+        avatar:
+          match.photos[0] ??
+          'https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=crop&w=200&q=80',
+        verified: match.isVerified,
+      }))
+    : [
+        {
+          id: 'liv',
+          name: 'Liv',
+          status: 'new',
+          highlight: 'Met at Hidden City supper club',
+          compatibility: 92,
+          avatar:
+            'https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=crop&w=200&q=80',
+          verified: true,
+        },
+        {
+          id: 'noah',
+          name: 'Noah',
+          status: 'active',
+          highlight: 'Chatting about gallery openings',
+          compatibility: 84,
+          avatar:
+            'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80',
+        },
+        {
+          id: 'talia',
+          name: 'Talia',
+          status: 'expiring',
+          highlight: 'Reply in 12h to keep the vibe',
+          compatibility: 77,
+          avatar:
+            'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=200&q=80',
+          verified: true,
+        },
+      ];
+
+  const notificationToggles: NotificationToggle[] = [
+    {
+      channel: 'push',
+      label: 'Push notifications',
+      helper: 'Instant match + message alerts',
+      enabled: true,
+    },
+    {
+      channel: 'email',
+      label: 'Email recaps',
+      helper: 'Daily digest of likes + invites',
+      enabled: false,
+    },
+    { channel: 'quiet', label: 'Quiet hours', helper: 'Mute alerts 10pm-8am', enabled: true },
+  ];
+
+  const premiumPerks: PremiumPerk[] = [
+    { title: 'Boost your profile', helper: 'Top of feeds for 60 minutes', cta: 'Boost now' },
+    { title: 'See who liked you', helper: 'Instant match with admirers', cta: 'View likes' },
+    {
+      title: 'Advanced filters',
+      helper: 'Height, lifestyle, intent controls',
+      cta: 'Unlock filters',
+    },
+  ];
+
+  const safetyResources: SafetyResource[] = [
+    { title: 'Report a profile', helper: 'Flag suspicious behavior', href: '/support/report' },
+    { title: 'Blocked users', helper: 'Manage who can contact you', href: '/settings/blocked' },
+    { title: 'Safety playbook', helper: 'Tips curated by our trust team', href: '/support/safety' },
+  ];
+
+  const settingItems: SettingItem[] = [
+    { label: 'Account details', helper: 'Name, email, phone', href: '/settings/profile' },
+    { label: 'Password & security', helper: 'Passcodes, devices, MFA', href: '/settings/security' },
+    {
+      label: 'Privacy & visibility',
+      helper: 'Discovery space, distance',
+      href: '/settings/privacy',
+    },
+    {
+      label: 'Pause account',
+      helper: 'Take a break without losing matches',
+      href: '/settings/pause',
+    },
+    {
+      label: 'Delete account',
+      helper: 'Remove data permanently',
+      href: '/settings/delete',
+      tone: 'danger',
+    },
+  ];
+
   return (
-    <main className="min-h-screen bg-[#f5f7fb] pb-20 pt-10">
+    <main className="min-h-screen bg-[#f5f7fb] pb-20 pt-10" id="top">
       <div className="mx-auto flex w-full max-w-[1440px] gap-8 px-4 sm:px-6 lg:px-10">
-        <SidebarNav items={navItems} />
+        <SidebarNav items={navItems} activeSection={activeSection} />
 
         <div className="flex-1 space-y-8">
-          <section className="grid gap-6 xl:grid-cols-[1.8fr,1fr]">
+          <section className="space-y-6" id="home">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-medium text-[#6b7280]">Home feed</p>
+                <h2 className="text-2xl font-semibold text-[#0f172a]">Curated for your orbit</h2>
+                <p className="text-sm text-[#94a3b8]">
+                  Discovery respects your orientation, intent, and privacy preferences.
+                </p>
+              </div>
+              <div className="flex gap-2 text-xs">
+                <span className="rounded-full bg-white/80 px-3 py-1 text-[#475569]">
+                  {snapshot.user.orientation} space
+                </span>
+                <span className="rounded-full bg-white/80 px-3 py-1 text-[#475569]">
+                  {snapshot.user.discoverySpace} visibility
+                </span>
+              </div>
+            </div>
+            <HomeFeed profiles={feedProfiles} />
+          </section>
+
+          <section className="grid gap-6 xl:grid-cols-[1.8fr,1fr]" id="overview">
             <Card className="space-y-6 border border-white/70 bg-white/90 p-6 shadow-[0_20px_60px_rgba(21,33,76,0.08)]">
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div>
@@ -274,9 +1137,12 @@ export default async function DashboardPage(props: DashboardPageProps) {
                     Profile strength {profileCompletion}% complete
                   </p>
                 </div>
-                <button className="rounded-full bg-[#eef2ff] px-4 py-2 text-sm font-medium text-[#4338ca] shadow-sm">
+                <Link
+                  href="/settings/profile"
+                  className="rounded-full bg-[#eef2ff] px-4 py-2 text-sm font-medium text-[#4338ca] shadow-sm"
+                >
                   Edit profile
-                </button>
+                </Link>
               </div>
 
               <div className="space-y-3 rounded-2xl bg-[#f8fafc] p-4">
@@ -297,25 +1163,70 @@ export default async function DashboardPage(props: DashboardPageProps) {
                   <p className="text-sm font-medium text-[#475569]">Next experience</p>
                   <p className="text-lg font-semibold text-[#0f172a]">Gallery crawl tonight</p>
                   <p className="text-sm text-[#94a3b8]">Invite your best matches</p>
+                  <Link
+                    href="/matches?view=events"
+                    className="mt-3 inline-flex rounded-full bg-[#4338ca] px-4 py-2 text-sm font-semibold text-white"
+                  >
+                    Plan outing
+                  </Link>
                 </div>
                 <div className="rounded-2xl border border-[#f1f5f9] bg-white p-4">
                   <p className="text-sm font-medium text-[#475569]">Safety pulse</p>
                   <p className="text-lg font-semibold text-[#0f172a]">
                     Verification {verifiedLabel.toLowerCase()}
                   </p>
-                  <button className="mt-3 rounded-full border border-[#d0d7ff] px-4 py-2 text-sm font-medium text-[#4338ca]">
+                  <Link
+                    href="/trust-center"
+                    className="mt-3 inline-flex rounded-full border border-[#d0d7ff] px-4 py-2 text-sm font-medium text-[#4338ca]"
+                  >
                     Review status
-                  </button>
+                  </Link>
                 </div>
               </div>
             </Card>
 
-            <RightRail matches={matchPreviews} messages={messageThreads} />
+            <div id="messages">
+              <RightRail matches={matchPreviews} messages={messageThreads} />
+            </div>
           </section>
 
           <section className="grid gap-6 xl:grid-cols-[1.7fr,1fr]">
-            <DiscoverGrid people={discoverPeople} />
-            <LikesPanel likes={likesYou} />
+            <div id="discover" className="space-y-5">
+              <DiscoverFilters filters={discoverFilters} />
+              <DiscoverGrid people={discoverPeople} />
+            </div>
+            <div id="likes">
+              <LikesPanel likes={likesYou} />
+            </div>
+          </section>
+
+          <section className="grid gap-6 xl:grid-cols-2" id="profile">
+            <ProfileManager
+              completion={profileCompletion}
+              photos={profilePhotos}
+              orientation={snapshot.user.orientation}
+              discoverySpace={snapshot.user.discoverySpace}
+            />
+            <VerificationPanel timeline={verificationTimeline} verifiedLabel={verifiedLabel} />
+          </section>
+
+          <section className="grid gap-6 xl:grid-cols-2" id="likes-inbox">
+            <LikesSplitPanel received={likesYou} sent={likesGiven} />
+            <MessagesInbox threads={messageThreads} />
+          </section>
+
+          <section className="grid gap-6 xl:grid-cols-2" id="matches">
+            <MatchesPanel candidates={matchCandidates} />
+            <NotificationsPanel toggles={notificationToggles} />
+          </section>
+
+          <section className="grid gap-6 xl:grid-cols-2" id="premium">
+            <PremiumPanel perks={premiumPerks} />
+            <SafetySupportPanel resources={safetyResources} />
+          </section>
+
+          <section id="settings">
+            <SettingsPanel items={settingItems} />
           </section>
         </div>
       </div>
@@ -323,7 +1234,13 @@ export default async function DashboardPage(props: DashboardPageProps) {
   );
 }
 
-function SidebarNav({ items }: { items: NavItem[] }) {
+function SidebarNav({
+  items,
+  activeSection,
+}: {
+  items: NavItem[];
+  activeSection: DashboardSection;
+}) {
   return (
     <aside className={`hidden w-[230px] lg:block ${sidebarFont.className}`}>
       <div className="sticky top-6 space-y-6">
@@ -341,16 +1258,23 @@ function SidebarNav({ items }: { items: NavItem[] }) {
           </div>
           <nav className="space-y-1">
             {items.map((item) => (
-              <button
+              <Link
                 key={item.label}
-                type="button"
+                href={item.href}
                 className={`flex w-full items-center justify-between rounded-2xl px-4 py-3 text-[0.95rem] font-medium transition ${
-                  item.active ? 'bg-[#eef2ff] text-[#312e81]' : 'text-[#475569] hover:bg-[#f8fafc]'
+                  item.section && item.section === activeSection
+                    ? 'bg-[#eef2ff] text-[#312e81]'
+                    : 'text-[#475569] hover:bg-[#f8fafc]'
                 }`}
+                aria-current={item.section && item.section === activeSection ? 'page' : undefined}
               >
                 <span className="inline-flex items-center gap-3">
                   <item.icon
-                    className={`${item.active ? 'text-[#5b21b6]' : 'text-[#cbd5f5]'} size-4`}
+                    className={`${
+                      item.section && item.section === activeSection
+                        ? 'text-[#5b21b6]'
+                        : 'text-[#cbd5f5]'
+                    } size-4`}
                   />
                   {item.label}
                 </span>
@@ -359,7 +1283,7 @@ function SidebarNav({ items }: { items: NavItem[] }) {
                     {item.badge}
                   </span>
                 ) : null}
-              </button>
+              </Link>
             ))}
           </nav>
           <div className="rounded-2xl bg-[#f8fafc] p-4 text-sm text-[#475569]">
@@ -388,16 +1312,31 @@ function DiscoverGrid({ people }: { people: DiscoverPerson[] }) {
           <h2 className="text-2xl font-semibold text-[#0f172a]">Discover new people</h2>
           <p className="text-sm text-[#94a3b8]">Curated for your vibe</p>
         </div>
-        <div className="flex items-center gap-3">
+        <form
+          action="/matches"
+          method="get"
+          className="flex items-center gap-3"
+          aria-label="Search discovery matches"
+        >
           <input
             type="search"
+            name="q"
             placeholder="Search people/interests"
             className="rounded-full border border-[#e2e8f0] px-4 py-2 text-sm text-[#0f172a] focus:border-[#6366f1] focus:outline-none"
           />
-          <button className="rounded-full bg-[#4338ca] px-4 py-2 text-sm font-semibold text-white">
-            Filters
+          <button
+            type="submit"
+            className="rounded-full bg-[#4338ca] px-4 py-2 text-sm font-semibold text-white"
+          >
+            Search
           </button>
-        </div>
+          <Link
+            href="/matches?view=filters"
+            className="rounded-full border border-[#e2e8f0] px-4 py-2 text-sm font-semibold text-[#4338ca]"
+          >
+            Filters
+          </Link>
+        </form>
       </header>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {people.map((person) => (
@@ -445,12 +1384,18 @@ function DiscoverCard({ person }: { person: DiscoverPerson }) {
           ))}
         </div>
         <div className="flex flex-wrap gap-2 pt-3">
-          <button className="flex-1 rounded-full bg-[#4338ca] px-4 py-2 text-sm font-semibold text-white">
+          <Link
+            href={`/matches?highlight=${encodeURIComponent(person.id)}`}
+            className="flex-1 rounded-full bg-[#4338ca] px-4 py-2 text-center text-sm font-semibold text-white"
+          >
             Say hi
-          </button>
-          <button className="rounded-full border border-[#e2e8f0] px-4 py-2 text-sm font-semibold text-[#4338ca]">
+          </Link>
+          <Link
+            href={`/matches?saved=${encodeURIComponent(person.id)}`}
+            className="rounded-full border border-[#e2e8f0] px-4 py-2 text-sm font-semibold text-[#4338ca]"
+          >
             Save
-          </button>
+          </Link>
         </div>
       </div>
     </div>
@@ -465,9 +1410,12 @@ function LikesPanel({ likes }: { likes: LikePerson[] }) {
           <h3 className="text-xl font-semibold text-[#0f172a]">Likes you</h3>
           <p className="text-sm text-[#94a3b8]">Send a quick wave back</p>
         </div>
-        <button className="rounded-full border border-[#e2e8f0] px-4 py-2 text-sm font-semibold text-[#4338ca]">
+        <Link
+          href="/matches?view=likes"
+          className="rounded-full border border-[#e2e8f0] px-4 py-2 text-sm font-semibold text-[#4338ca]"
+        >
           See all
-        </button>
+        </Link>
       </header>
       <div className="space-y-3">
         {likes.map((like) => (
@@ -496,9 +1444,12 @@ function LikeCard({ like }: { like: LikePerson }) {
         <p className="text-sm text-[#94a3b8]">{like.highlight}</p>
         <div className="text-xs text-[#6366f1]">{like.tags.join(' • ')}</div>
       </div>
-      <button className="rounded-full bg-[#fef3f2] px-4 py-2 text-sm font-semibold text-[#f43f5e]">
+      <Link
+        href={`/matches?highlight=${encodeURIComponent(like.id)}`}
+        className="rounded-full bg-[#fef3f2] px-4 py-2 text-sm font-semibold text-[#f43f5e]"
+      >
         View
-      </button>
+      </Link>
     </div>
   );
 }
@@ -506,13 +1457,18 @@ function LikeCard({ like }: { like: LikePerson }) {
 function RightRail({ matches, messages }: { matches: MatchPreview[]; messages: MessageThread[] }) {
   return (
     <div className="space-y-5">
-      <Card className="space-y-4 border-none bg-white p-6 shadow-[0_18px_50px_rgba(15,23,42,0.1)]">
+      <Card
+        id="matches-rail"
+        className="space-y-4 border-none bg-white p-6 shadow-[0_18px_50px_rgba(15,23,42,0.1)]"
+      >
         <header className="flex items-center justify-between">
           <div>
             <h3 className="text-xl font-semibold text-[#0f172a]">New matches</h3>
             <p className="text-sm text-[#94a3b8]">Start conversations faster</p>
           </div>
-          <button className="text-sm font-semibold text-[#4338ca]">See all</button>
+          <Link href="/matches" className="text-sm font-semibold text-[#4338ca]">
+            See all
+          </Link>
         </header>
         <div className="space-y-3">
           {matches.map((match) => (
@@ -521,13 +1477,21 @@ function RightRail({ matches, messages }: { matches: MatchPreview[]; messages: M
         </div>
       </Card>
 
-      <Card className="space-y-4 border-none bg-white p-6 shadow-[0_18px_50px_rgba(15,23,42,0.1)]">
+      <Card
+        id="messages-rail"
+        className="space-y-4 border-none bg-white p-6 shadow-[0_18px_50px_rgba(15,23,42,0.1)]"
+      >
         <header className="flex items-center justify-between">
           <div>
             <h3 className="text-xl font-semibold text-[#0f172a]">Messages</h3>
             <p className="text-sm text-[#94a3b8]">Keep the spark alive</p>
           </div>
-          <button className="text-sm font-semibold text-[#4338ca]">View inbox</button>
+          <Link
+            href="/dashboard?section=messages#messages"
+            className="text-sm font-semibold text-[#4338ca]"
+          >
+            View inbox
+          </Link>
         </header>
         <div className="space-y-3">
           {messages.map((thread) => (
@@ -557,16 +1521,22 @@ function MatchSnippet({ match }: { match: MatchPreview }) {
         <p className="text-xs text-[#475569]">{match.highlight}</p>
         <p className="text-xs text-[#94a3b8]">{match.compatibility}</p>
       </div>
-      <button className="rounded-full bg-white px-4 py-2 text-xs font-semibold text-[#4338ca] shadow-sm">
+      <Link
+        href={`/matches?highlight=${encodeURIComponent(match.name)}`}
+        className="rounded-full bg-white px-4 py-2 text-xs font-semibold text-[#4338ca] shadow-sm"
+      >
         {match.status}
-      </button>
+      </Link>
     </div>
   );
 }
 
 function MessageSnippet({ thread }: { thread: MessageThread }) {
   return (
-    <div className="flex items-center gap-3 rounded-2xl border border-[#eef2ff] p-3">
+    <Link
+      href={`/dashboard?section=messages#${encodeURIComponent(thread.name.toLowerCase())}`}
+      className="flex items-center gap-3 rounded-2xl border border-[#eef2ff] p-3"
+    >
       <Image
         src={thread.avatar}
         alt={thread.name}
@@ -587,6 +1557,6 @@ function MessageSnippet({ thread }: { thread: MessageThread }) {
           </span>
         ) : null}
       </div>
-    </div>
+    </Link>
   );
 }

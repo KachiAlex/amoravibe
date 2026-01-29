@@ -54,6 +54,20 @@
 - [ ] Introduce Communities section (trust tier cards, eligibility checklist, invite carousel).
 - [ ] Add support footer + contact CTA aligned with AmoraVibe style.
 
+### Dashboard Tabs Implementation
+
+- [ ] **Home / Main Feed** – Build profile card stack with like/pass/save/super-like handlers, enforcing orientation + visibility rules.
+- [ ] **Explore / Discover** – Add Nearby/New/Active/Verified tabs, advanced filters (height, lifestyle, intent, education, online) with premium gating.
+- [ ] **Matches hub** – Render mutual matches grid with status pills (new/active/expiring) and actions (chat, unmatch, block/report).
+- [ ] **Messages inbox** – Create chat list with previews + timestamps and link into dedicated conversation view; ensure no-chat-before-match guard.
+- [ ] **Likes surfaces** – Separate "You liked" vs "Liked you" plus premium upsells (see who liked you, instant match, rewind last swipe).
+- [ ] **Profile management** – Provide edit surface for photos, prompts, lifestyle tags, gender/orientation, visibility controls, completeness meter.
+- [ ] **Verification & Trust** – Integrate selfie/ID verification flows, badge display, history timeline, and re-verification triggers.
+- [ ] **Notifications center** – Surface match/message/like/safety alerts with push/email toggle controls and quiet hours.
+- [ ] **Premium & Boosts** – Add boost/super-like cards, advanced filter paywalls, subscription management (plans, history, upgrade/cancel).
+- [ ] **Safety & Support** – Embed reporting entrypoints, blocked list, safety tips, guidelines, help/FAQ, contact support CTA.
+- [ ] **Settings** – Implement account, password/security, privacy, location/distance, orientation update flow, pause/delete account actions.
+
 ## Phase 6 — Launch Readiness
 
 - [ ] Penetration testing & security audit.

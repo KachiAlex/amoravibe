@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { preflight, withCors } from '@/lib/cors';
 
 const DEFAULT_UPSTREAM = 'http://localhost:4001/api/v1';
 const upstreamBase = (process.env.TRUST_API_PROXY_TARGET || DEFAULT_UPSTREAM).replace(/\/$/, '');
@@ -19,15 +20,25 @@ async function proxy(request: Request, params: { path?: string[] }) {
 
   try {
     const response = await fetch(targetUrl, init);
-    return new NextResponse(response.body, {
-      status: response.status,
-      headers: filterHeaders(response.headers),
-    });
+    return withCors(
+      request,
+      new NextResponse(response.body, {
+        status: response.status,
+        headers: filterHeaders(response.headers),
+      }),
+      { methods: ALLOWED_METHODS }
+    );
   } catch (error) {
     console.error('Trust API proxy error', error);
-    return NextResponse.json({ message: 'Unable to reach Trust API gateway' }, { status: 502 });
+    return withCors(
+      request,
+      NextResponse.json({ message: 'Unable to reach Trust API gateway' }, { status: 502 }),
+      { methods: ALLOWED_METHODS }
+    );
   }
 }
+
+const ALLOWED_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'];
 
 function filterHeaders(headers: Headers | HeadersInit) {
   const result = new Headers(headers);
@@ -55,4 +66,8 @@ export async function PATCH(request: Request, context: { params: { path?: string
 
 export async function DELETE(request: Request, context: { params: { path?: string[] } }) {
   return proxy(request, context.params);
+}
+
+export async function OPTIONS(request: Request) {
+  return preflight(request, ALLOWED_METHODS);
 }
