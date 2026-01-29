@@ -1,10 +1,63 @@
-import { Badge, Card, PillButton } from '@lovedate/ui';
+import { Card, PillButton } from '@lovedate/ui';
 import Link from 'next/link';
-import { Activity, ShieldCheck, Smartphone } from 'lucide-react';
+import Image from 'next/image';
+import { Space_Grotesk } from 'next/font/google';
+import {
+  Compass,
+  Heart,
+  MessageCircle,
+  Settings,
+  ShieldCheck,
+  Sparkles,
+  Star,
+  Users,
+} from 'lucide-react';
+import type { ComponentType } from 'react';
 import type { TrustCenterSnapshotResponse } from '@lovedate/api';
 import { lovedateApi } from '@/lib/api';
 import { getSession } from '@/lib/session';
-import ReverifyPanel from './reverify-panel';
+
+const sidebarFont = Space_Grotesk({ subsets: ['latin'], weight: ['400', '500', '600'] });
+
+type IconType = ComponentType<{ className?: string }>;
+
+interface NavItem {
+  label: string;
+  icon: IconType;
+  badge?: string;
+  active?: boolean;
+}
+
+interface DiscoverPerson {
+  id: string;
+  name: string;
+  age: number;
+  city: string;
+  distance: string;
+  tags: string[];
+  image: string;
+}
+
+interface LikePerson extends DiscoverPerson {
+  highlight: string;
+}
+
+interface MatchPreview {
+  name: string;
+  compatibility: string;
+  highlight: string;
+  status: string;
+  accent: string;
+  avatar: string;
+}
+
+interface MessageThread {
+  name: string;
+  snippet: string;
+  lastActive: string;
+  unread?: number;
+  avatar: string;
+}
 
 interface DashboardPageProps {
   searchParams?: Promise<{ userId?: string }> | { userId?: string };
@@ -71,350 +124,469 @@ export default async function DashboardPage(props: DashboardPageProps) {
     );
   }
 
-  const verifiedTone = snapshot.user.isVerified ? 'text-emerald-500' : 'text-rose-400';
-  const verifiedLabel = snapshot.user.isVerified ? 'Verified' : 'Pending verification';
   const devicesTrusted = snapshot.devices.length;
-  const outstandingSignals = snapshot.riskSignals.length;
-  const moderationCount = snapshot.moderationEvents.length;
-  const actionItems: ActionItemProps[] = [
+  const verifiedLabel = snapshot.user.isVerified ? 'Verified' : 'Pending review';
+  const profileCompletionRaw =
+    64 + (snapshot.user.isVerified ? 18 : 0) + Math.min(12, devicesTrusted * 3);
+  const profileCompletion = Math.min(98, Math.round(profileCompletionRaw));
+
+  const discoverPeople: DiscoverPerson[] = [
     {
-      title: snapshot.user.isVerified ? 'Identity verified' : 'Verify your identity',
-      description: snapshot.user.isVerified
-        ? 'Your documents are confirmed—no further action needed.'
-        : 'Complete your identity review to unlock matches and safety tooling.',
-      complete: snapshot.user.isVerified,
-      icon: ShieldCheck,
-      href: snapshot.user.isVerified ? undefined : '#verification-panel',
+      id: 'peter',
+      name: 'Peter',
+      age: 29,
+      city: 'Brooklyn, NY',
+      distance: '3 mi',
+      tags: ['Travel', 'Photography', 'Dogs'],
+      image:
+        'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=900&q=80',
     },
     {
-      title:
-        devicesTrusted > 0
-          ? `${devicesTrusted} trusted device${devicesTrusted > 1 ? 's' : ''}`
-          : 'Add your first trusted device',
-      description:
-        devicesTrusted > 0
-          ? 'We’ll keep watching for suspicious fingerprints.'
-          : 'Pair a primary device so we can monitor unusual logins.',
-      complete: devicesTrusted > 0,
-      icon: Smartphone,
-      href: '#devices-section',
+      id: 'chloe',
+      name: 'Chloe',
+      age: 25,
+      city: 'SoHo, NY',
+      distance: '5 mi',
+      tags: ['Art', 'Ceramics'],
+      image:
+        'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=900&q=80',
     },
     {
-      title: outstandingSignals === 0 ? 'Risk signals stable' : 'Review recent risk signals',
-      description:
-        outstandingSignals === 0
-          ? 'All systems green—enjoy your matches.'
-          : 'We spotted new activity that could impact trust. Take a look.',
-      complete: outstandingSignals === 0,
-      icon: Activity,
-      href: outstandingSignals === 0 ? undefined : '#risk-section',
+      id: 'aaron',
+      name: 'Aaron',
+      age: 32,
+      city: 'Chelsea, NY',
+      distance: '8 mi',
+      tags: ['Galleries', 'Running'],
+      image:
+        'https://images.unsplash.com/photo-1504593811423-6dd665756598?auto=format&fit=crop&w=900&q=80',
+    },
+  ];
+
+  const likesYou: LikePerson[] = [
+    {
+      id: 'maya',
+      name: 'Maya',
+      age: 27,
+      city: 'Midtown',
+      distance: '2 mi',
+      tags: ['Jazz', 'Poetry'],
+      highlight: 'Sent a compliment',
+      image:
+        'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=600&q=80',
+    },
+    {
+      id: 'sasha',
+      name: 'Sasha',
+      age: 26,
+      city: 'Williamsburg',
+      distance: '6 mi',
+      tags: ['Wellness', 'Foodie'],
+      highlight: 'Shared a playlist',
+      image:
+        'https://images.unsplash.com/photo-1504593811423-6dd665756598?auto=format&fit=crop&w=600&q=80',
+    },
+  ];
+
+  const messageThreads: MessageThread[] = [
+    {
+      name: 'Sarah',
+      snippet: 'Loved your take on rooftop vinyl nights.',
+      lastActive: '5m ago',
+      unread: 1,
+      avatar:
+        'https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=crop&w=200&q=80',
+    },
+    {
+      name: 'David',
+      snippet: 'Ready for the gallery hop later?',
+      lastActive: '27m ago',
+      avatar:
+        'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80',
+    },
+    {
+      name: 'Kayla',
+      snippet: 'Just sent over café options ☕️',
+      lastActive: '1h ago',
+      avatar:
+        'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=200&q=80',
+    },
+  ];
+
+  const unreadCount = messageThreads.reduce((sum, thread) => sum + (thread.unread ?? 0), 0);
+
+  const navItems: NavItem[] = [
+    { label: 'Home', icon: Sparkles, active: true },
+    { label: 'Discover', icon: Compass },
+    { label: 'Matches', icon: Heart, badge: '9' },
+    { label: 'Moments', icon: Star },
+    { label: 'Messages', icon: MessageCircle, badge: unreadCount ? `${unreadCount}` : undefined },
+    { label: 'Communities', icon: Users },
+    { label: 'Safety Center', icon: ShieldCheck },
+    { label: 'Settings', icon: Settings },
+  ];
+
+  const matchPreviews: MatchPreview[] = [
+    {
+      name: 'Sarah',
+      compatibility: 'New match · 5m',
+      highlight: 'Artist Alley • Verified',
+      status: 'Start chat',
+      accent: 'from-[#fef3f2] to-[#fde7f5]',
+      avatar:
+        'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=200&q=80',
+    },
+    {
+      name: 'David',
+      compatibility: 'Active 27m ago',
+      highlight: 'New to the city',
+      status: 'Start chat',
+      accent: 'from-[#e0f2ff] to-[#f0f7ff]',
+      avatar:
+        'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80',
+    },
+    {
+      name: 'Kayla',
+      compatibility: 'Online now',
+      highlight: 'Vegan foodie, loves travel',
+      status: 'Wave hello',
+      accent: 'from-[#fef6d3] to-[#fff8ec]',
+      avatar:
+        'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=200&q=80',
     },
   ];
 
   return (
-    <main className="space-y-12 px-6 pb-24 pt-12 sm:px-10 lg:px-20">
-      <section className="mx-auto max-w-6xl overflow-hidden rounded-[40px] border border-white/20 bg-[radial-gradient(circle_at_top,_#1e1b4b,_#111327_60%)] text-white shadow-[0_35px_120px_rgba(13,15,26,0.45)]">
-        <div className="relative grid gap-10 p-10 lg:grid-cols-[1.7fr,1fr]">
-          <div>
-            <Badge tone="primary" className="mb-5 border border-white/30 bg-white/10 text-white">
-              Trust dashboard
-            </Badge>
-            <h1 className="font-display text-4xl sm:text-5xl">
-              Hi {snapshot.user.displayName}, welcome to your orbit
-            </h1>
-            <p className="mt-4 max-w-2xl text-lg text-white/80">
-              Monitor verification, device trust, and moderation health in one command center. Keep
-              these signals green to glide through onboarding review and matchmaking.
-            </p>
+    <main className="min-h-screen bg-[#f5f7fb] pb-20 pt-10">
+      <div className="mx-auto flex w-full max-w-[1440px] gap-8 px-4 sm:px-6 lg:px-10">
+        <SidebarNav items={navItems} />
 
-            <div className="mt-8 flex flex-wrap gap-3 text-sm">
-              <MetricPill label="Status" value={verifiedLabel} className={verifiedTone} />
-              <MetricPill
-                label="Member since"
-                value={new Date(snapshot.user.createdAt).toLocaleDateString()}
-              />
-              <MetricPill label="Trust score" value={snapshot.user.trustScore?.toString() ?? '—'} />
-            </div>
-
-            <ActionList items={actionItems} className="mt-10" />
-          </div>
-
-          <Card id="verification-panel" className="w-full border-white/30 bg-white/5 text-white">
-            <ReverifyPanel
-              userId={snapshot.user.id}
-              verificationStatus={snapshot.verification?.status ?? null}
-              providerLabel={snapshot.verification?.provider ?? 'Pending assignment'}
-              updatedAt={snapshot.verification?.updatedAt ?? null}
-            />
-          </Card>
-        </div>
-      </section>
-
-      <section className="mx-auto grid max-w-6xl gap-6 md:grid-cols-3">
-        <InsightCard
-          title="Verification"
-          icon={ShieldCheck}
-          accent="from-emerald-500/30 to-emerald-600/40"
-          description={snapshot.user.isVerified ? 'Fully unlocked' : 'Review still required'}
-        >
-          <p className="text-3xl font-semibold">{verifiedLabel}</p>
-          <p className="text-sm text-ink-600">Provider: {snapshot.verification?.provider ?? '—'}</p>
-        </InsightCard>
-        <InsightCard
-          title="Devices"
-          icon={Smartphone}
-          accent="from-sky-500/30 to-indigo-500/40"
-          description="Trusted fingerprints"
-        >
-          <p className="text-3xl font-semibold">{devicesTrusted}</p>
-          <p className="text-sm text-ink-600">
-            Last seen{' '}
-            {devicesTrusted > 0
-              ? new Date(snapshot.devices[0].observedAt).toLocaleDateString()
-              : '—'}
-          </p>
-        </InsightCard>
-        <InsightCard
-          title="Safety"
-          icon={Activity}
-          accent="from-rose-500/30 to-orange-500/40"
-          description="Moderation log"
-        >
-          <p className="text-3xl font-semibold">{moderationCount}</p>
-          <p className="text-sm text-ink-600">
-            {moderationCount === 0 ? 'Clean record' : 'Review the latest events below'}
-          </p>
-        </InsightCard>
-      </section>
-
-      <section id="risk-section" className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-2">
-        <Card className="space-y-5">
-          <header>
-            <p className="text-xs uppercase tracking-[0.35em] text-ink-700/70">Risk profile</p>
-            <h3 className="mt-2 text-2xl font-semibold text-ink-900">Signals we monitor</h3>
-          </header>
-          <div className="grid gap-4 sm:grid-cols-2">
-            {snapshot.riskProfile ? (
-              <>
-                <StatTile label="Trust score" value={snapshot.riskProfile.trustScore.toString()} />
-                <StatTile
-                  label="Last evaluated"
-                  value={
-                    snapshot.riskProfile.lastEvaluatedAt
-                      ? new Date(snapshot.riskProfile.lastEvaluatedAt).toLocaleString()
-                      : '—'
-                  }
-                />
-              </>
-            ) : (
-              <p className="text-ink-700">We haven’t computed your trust score yet.</p>
-            )}
-          </div>
-          {snapshot.riskSignals.length > 0 ? (
-            <div className="space-y-4">
-              <p className="text-xs uppercase tracking-[0.3em] text-ink-700/70">Recent signals</p>
-              <div className="space-y-3">
-                {snapshot.riskSignals.map((signal) => (
-                  <TimelineEvent
-                    key={signal.id}
-                    title={signal.type}
-                    subtitle={`${signal.channel} • ${signal.severity}${
-                      signal.score !== null ? ` • score ${signal.score}` : ''
-                    }`}
-                    timestamp={signal.createdAt}
-                  />
-                ))}
-              </div>
-            </div>
-          ) : (
-            <p className="text-ink-700">
-              No risk signals at the moment. We’ll notify you if that changes.
-            </p>
-          )}
-        </Card>
-
-        <Card id="devices-section" className="space-y-4">
-          <header>
-            <p className="text-xs uppercase tracking-[0.35em] text-ink-700/70">Devices</p>
-            <h3 className="mt-2 text-2xl font-semibold text-ink-900">Trusted fingerprints</h3>
-          </header>
-          {snapshot.devices.length ? (
-            <div className="space-y-3">
-              {snapshot.devices.map((device) => (
-                <div key={device.id} className="rounded-2xl border border-ink-900/10 bg-white p-4">
-                  <p className="text-sm font-semibold text-ink-900">{device.hash}</p>
-                  <p className="text-xs text-ink-700">{device.userAgent ?? 'Unknown agent'}</p>
-                  <p className="text-xs text-ink-600">
-                    Seen {new Date(device.observedAt).toLocaleString()} •{' '}
-                    {device.riskLabel ?? 'clean'}
+        <div className="flex-1 space-y-8">
+          <section className="grid gap-6 xl:grid-cols-[1.8fr,1fr]">
+            <Card className="space-y-6 border border-white/70 bg-white/90 p-6 shadow-[0_20px_60px_rgba(21,33,76,0.08)]">
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <div>
+                  <p className="text-sm font-medium text-[#6b7280]">Welcome back</p>
+                  <h1 className="mt-1 text-3xl font-semibold text-[#0f172a]">
+                    {snapshot.user.displayName}, explore your orbit
+                  </h1>
+                  <p className="text-sm text-[#94a3b8]">
+                    Profile strength {profileCompletion}% complete
                   </p>
                 </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-ink-700">No trusted devices yet—complete device trust to add one.</p>
-          )}
-        </Card>
-      </section>
+                <button className="rounded-full bg-[#eef2ff] px-4 py-2 text-sm font-medium text-[#4338ca] shadow-sm">
+                  Edit profile
+                </button>
+              </div>
 
-      <section className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-[1.3fr,0.7fr]">
-        <Card className="space-y-4">
-          <header>
-            <p className="text-xs uppercase tracking-[0.35em] text-ink-700/70">Moderation events</p>
-            <h3 className="mt-2 text-2xl font-semibold text-ink-900">Safety log</h3>
-          </header>
-          {snapshot.moderationEvents.length ? (
-            <ul className="space-y-3">
-              {snapshot.moderationEvents.map((event) => (
-                <li key={event.id} className="rounded-2xl border border-ink-900/10 bg-white p-4">
-                  <p className="text-sm font-semibold text-ink-900">{event.severity}</p>
-                  <p className="text-sm text-ink-700">{event.message}</p>
-                  <p className="text-xs text-ink-600">
-                    {new Date(event.createdAt).toLocaleString()}
+              <div className="space-y-3 rounded-2xl bg-[#f8fafc] p-4">
+                <div className="flex items-center justify-between text-sm text-[#475569]">
+                  <span>Profile progress</span>
+                  <span className="font-semibold text-[#0f172a]">{profileCompletion}%</span>
+                </div>
+                <div className="h-2 rounded-full bg-[#e2e8f0]">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-[#8f63ff] via-[#ff79c6] to-[#ffb347]"
+                    style={{ width: `${profileCompletion}%` }}
+                  />
+                </div>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="rounded-2xl border border-[#f1f5f9] bg-white p-4">
+                  <p className="text-sm font-medium text-[#475569]">Next experience</p>
+                  <p className="text-lg font-semibold text-[#0f172a]">Gallery crawl tonight</p>
+                  <p className="text-sm text-[#94a3b8]">Invite your best matches</p>
+                </div>
+                <div className="rounded-2xl border border-[#f1f5f9] bg-white p-4">
+                  <p className="text-sm font-medium text-[#475569]">Safety pulse</p>
+                  <p className="text-lg font-semibold text-[#0f172a]">
+                    Verification {verifiedLabel.toLowerCase()}
                   </p>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-ink-700">
-              No moderation events on your record. Keep it considerate.
-            </p>
-          )}
-        </Card>
+                  <button className="mt-3 rounded-full border border-[#d0d7ff] px-4 py-2 text-sm font-medium text-[#4338ca]">
+                    Review status
+                  </button>
+                </div>
+              </div>
+            </Card>
 
-        <Card className="space-y-4">
-          <p className="text-xs uppercase tracking-[0.35em] text-ink-700/70">Audit summary</p>
-          <h3 className="text-2xl font-semibold text-ink-900">Privacy requests</h3>
-          <p className="text-5xl font-semibold text-ink-900">{snapshot.auditSummary.totalEvents}</p>
-          <p className="text-sm text-ink-700">
-            Last event{' '}
-            {snapshot.auditSummary.lastEventAt
-              ? new Date(snapshot.auditSummary.lastEventAt).toLocaleDateString()
-              : '—'}
-          </p>
-          <PillButton asChild>
-            <Link href="/trust-center">Read transparency commitments</Link>
-          </PillButton>
-        </Card>
-      </section>
+            <RightRail matches={matchPreviews} messages={messageThreads} />
+          </section>
+
+          <section className="grid gap-6 xl:grid-cols-[1.7fr,1fr]">
+            <DiscoverGrid people={discoverPeople} />
+            <LikesPanel likes={likesYou} />
+          </section>
+        </div>
+      </div>
     </main>
   );
 }
 
-function StatTile({ label, value }: { label: string; value: string }) {
+function SidebarNav({ items }: { items: NavItem[] }) {
   return (
-    <div className="rounded-2xl border border-ink-900/10 bg-white p-4">
-      <p className="text-xs uppercase tracking-[0.35em] text-ink-700/70">{label}</p>
-      <p className="mt-2 text-2xl font-semibold text-ink-900">{value}</p>
-    </div>
-  );
-}
-
-interface ActionItemProps {
-  title: string;
-  description: string;
-  complete: boolean;
-  icon: React.ComponentType<{ className?: string }>;
-  href?: string;
-}
-
-function ActionList({ items, className = '' }: { items: ActionItemProps[]; className?: string }) {
-  if (!items.length) return null;
-  return (
-    <div className={`grid gap-4 lg:grid-cols-3 ${className}`}>
-      {items.map((item) => (
-        <ActionItem key={item.title} {...item} />
-      ))}
-    </div>
-  );
-}
-
-function ActionItem({ title, description, complete, icon: Icon, href }: ActionItemProps) {
-  const content = (
-    <div className="group flex h-full flex-col rounded-2xl border border-white/20 bg-white/5 p-4 text-white/90 transition hover:border-white/60">
-      <div
-        className={`mb-3 inline-flex size-10 items-center justify-center rounded-full ${complete ? 'bg-emerald-500/20 text-emerald-300' : 'bg-amber-400/20 text-amber-200'}`}
-      >
-        <Icon className="size-5" />
+    <aside className={`hidden w-[230px] lg:block ${sidebarFont.className}`}>
+      <div className="sticky top-6 space-y-6">
+        <Card className="space-y-6 border-none bg-white p-6 shadow-[0_20px_60px_rgba(18,24,40,0.08)]">
+          <div className="flex items-center gap-3">
+            <div className="rounded-2xl bg-gradient-to-br from-[#8f63ff] to-[#ff79c6] px-3 py-2 text-base font-semibold text-white">
+              AV
+            </div>
+            <div>
+              <p className="text-lg font-semibold tracking-tight text-[#0f172a]">AmoraVibe</p>
+              <p className="text-xs uppercase tracking-[0.3em] text-[#94a3b8]">
+                Stay in your orbit
+              </p>
+            </div>
+          </div>
+          <nav className="space-y-1">
+            {items.map((item) => (
+              <button
+                key={item.label}
+                type="button"
+                className={`flex w-full items-center justify-between rounded-2xl px-4 py-3 text-[0.95rem] font-medium transition ${
+                  item.active ? 'bg-[#eef2ff] text-[#312e81]' : 'text-[#475569] hover:bg-[#f8fafc]'
+                }`}
+              >
+                <span className="inline-flex items-center gap-3">
+                  <item.icon
+                    className={`${item.active ? 'text-[#5b21b6]' : 'text-[#cbd5f5]'} size-4`}
+                  />
+                  {item.label}
+                </span>
+                {item.badge ? (
+                  <span className="rounded-full bg-white px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-[#4338ca] shadow-sm">
+                    {item.badge}
+                  </span>
+                ) : null}
+              </button>
+            ))}
+          </nav>
+          <div className="rounded-2xl bg-[#f8fafc] p-4 text-sm text-[#475569]">
+            <p className="text-base font-semibold tracking-tight text-[#0f172a]">Safety center</p>
+            <p className="text-xs uppercase tracking-[0.25em] text-[#94a3b8]">
+              Verification & trust
+            </p>
+            <Link
+              href="/trust-center"
+              className="mt-3 inline-flex items-center text-xs font-semibold uppercase tracking-[0.25em] text-[#4338ca]"
+            >
+              Open trust hub →
+            </Link>
+          </div>
+        </Card>
       </div>
-      <p className="font-semibold text-white">{title}</p>
-      <p className="mt-1 text-sm text-white/70">{description}</p>
-      <div className="mt-auto pt-4 text-xs uppercase tracking-[0.35em] text-white/60">
-        {complete ? 'Complete' : 'Action needed'}
-      </div>
-    </div>
-  );
-
-  if (href) {
-    return (
-      <Link href={href} className="block">
-        {content}
-      </Link>
-    );
-  }
-
-  return content;
-}
-
-function MetricPill({
-  label,
-  value,
-  className = '',
-}: {
-  label: string;
-  value: string;
-  className?: string;
-}) {
-  return (
-    <span
-      className={`rounded-full border border-white/30 bg-white/10 px-4 py-2 font-semibold text-white/90 ${className}`}
-    >
-      <span className="mr-2 text-white/60">{label}</span>
-      {value}
-    </span>
+    </aside>
   );
 }
 
-interface InsightCardProps {
-  title: string;
-  description: string;
-  icon: React.ComponentType<{ className?: string }>;
-  accent: string;
-  children: React.ReactNode;
-}
-
-function InsightCard({ title, description, icon: Icon, accent, children }: InsightCardProps) {
+function DiscoverGrid({ people }: { people: DiscoverPerson[] }) {
   return (
-    <Card
-      className={`relative overflow-hidden border border-ink-900/5 bg-gradient-to-br ${accent}`}
-    >
-      <div className="relative z-10 space-y-1 p-6">
-        <div className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.35em] text-ink-900/70">
-          <Icon className="size-4" />
-          {title}
+    <Card className="space-y-5 border-none bg-white p-6 shadow-[0_20px_60px_rgba(15,23,42,0.08)]">
+      <header className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 className="text-2xl font-semibold text-[#0f172a]">Discover new people</h2>
+          <p className="text-sm text-[#94a3b8]">Curated for your vibe</p>
         </div>
-        <p className="text-sm text-ink-900/80">{description}</p>
-        <div className="pt-4">{children}</div>
+        <div className="flex items-center gap-3">
+          <input
+            type="search"
+            placeholder="Search people/interests"
+            className="rounded-full border border-[#e2e8f0] px-4 py-2 text-sm text-[#0f172a] focus:border-[#6366f1] focus:outline-none"
+          />
+          <button className="rounded-full bg-[#4338ca] px-4 py-2 text-sm font-semibold text-white">
+            Filters
+          </button>
+        </div>
+      </header>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {people.map((person) => (
+          <DiscoverCard key={person.id} person={person} />
+        ))}
       </div>
-      <div className="absolute inset-0 opacity-40" aria-hidden />
     </Card>
   );
 }
 
-function TimelineEvent({
-  title,
-  subtitle,
-  timestamp,
-}: {
-  title: string;
-  subtitle: string;
-  timestamp: string;
-}) {
+function DiscoverCard({ person }: { person: DiscoverPerson }) {
   return (
-    <div className="rounded-2xl border border-ink-900/10 bg-sand-100/70 p-4">
-      <p className="text-sm font-semibold text-ink-900">{title}</p>
-      <p className="text-xs text-ink-700">{subtitle}</p>
-      <p className="text-xs text-ink-600">{new Date(timestamp).toLocaleString()}</p>
+    <div className="rounded-3xl border border-[#eef2ff] bg-white shadow-[0_15px_40px_rgba(15,23,42,0.05)]">
+      <div className="relative aspect-[4/3] overflow-hidden rounded-3xl">
+        <Image
+          src={person.image}
+          alt={person.name}
+          fill
+          sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+          className="object-cover"
+          loading="lazy"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+        <div className="absolute bottom-3 left-3 flex gap-1 text-[11px] font-semibold uppercase tracking-wide text-white">
+          {person.tags.slice(0, 2).map((tag) => (
+            <span key={tag} className="rounded-full bg-white/30 px-2 py-1">
+              {tag}
+            </span>
+          ))}
+        </div>
+      </div>
+      <div className="space-y-2 px-4 py-4">
+        <div className="flex items-center justify-between">
+          <p className="text-lg font-semibold text-[#0f172a]">
+            {person.name}, {person.age}
+          </p>
+          <span className="text-sm text-[#94a3b8]">{person.distance}</span>
+        </div>
+        <p className="text-sm text-[#64748b]">{person.city}</p>
+        <div className="flex flex-wrap gap-2 text-xs text-[#6366f1]">
+          {person.tags.map((tag) => (
+            <span key={tag} className="rounded-full bg-[#eef2ff] px-2 py-1">
+              #{tag.toLowerCase()}
+            </span>
+          ))}
+        </div>
+        <div className="flex flex-wrap gap-2 pt-3">
+          <button className="flex-1 rounded-full bg-[#4338ca] px-4 py-2 text-sm font-semibold text-white">
+            Say hi
+          </button>
+          <button className="rounded-full border border-[#e2e8f0] px-4 py-2 text-sm font-semibold text-[#4338ca]">
+            Save
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function LikesPanel({ likes }: { likes: LikePerson[] }) {
+  return (
+    <Card className="space-y-4 border-none bg-white p-6 shadow-[0_20px_60px_rgba(15,23,42,0.07)]">
+      <header className="flex items-center justify-between">
+        <div>
+          <h3 className="text-xl font-semibold text-[#0f172a]">Likes you</h3>
+          <p className="text-sm text-[#94a3b8]">Send a quick wave back</p>
+        </div>
+        <button className="rounded-full border border-[#e2e8f0] px-4 py-2 text-sm font-semibold text-[#4338ca]">
+          See all
+        </button>
+      </header>
+      <div className="space-y-3">
+        {likes.map((like) => (
+          <LikeCard key={like.id} like={like} />
+        ))}
+      </div>
+    </Card>
+  );
+}
+
+function LikeCard({ like }: { like: LikePerson }) {
+  return (
+    <div className="flex items-center gap-4 rounded-2xl border border-[#eef2ff] p-3">
+      <Image
+        src={like.image}
+        alt={like.name}
+        width={56}
+        height={56}
+        loading="lazy"
+        className="h-14 w-14 rounded-2xl object-cover"
+      />
+      <div className="flex-1">
+        <p className="text-base font-semibold text-[#0f172a]">
+          {like.name}, {like.age}
+        </p>
+        <p className="text-sm text-[#94a3b8]">{like.highlight}</p>
+        <div className="text-xs text-[#6366f1]">{like.tags.join(' • ')}</div>
+      </div>
+      <button className="rounded-full bg-[#fef3f2] px-4 py-2 text-sm font-semibold text-[#f43f5e]">
+        View
+      </button>
+    </div>
+  );
+}
+
+function RightRail({ matches, messages }: { matches: MatchPreview[]; messages: MessageThread[] }) {
+  return (
+    <div className="space-y-5">
+      <Card className="space-y-4 border-none bg-white p-6 shadow-[0_18px_50px_rgba(15,23,42,0.1)]">
+        <header className="flex items-center justify-between">
+          <div>
+            <h3 className="text-xl font-semibold text-[#0f172a]">New matches</h3>
+            <p className="text-sm text-[#94a3b8]">Start conversations faster</p>
+          </div>
+          <button className="text-sm font-semibold text-[#4338ca]">See all</button>
+        </header>
+        <div className="space-y-3">
+          {matches.map((match) => (
+            <MatchSnippet key={match.name} match={match} />
+          ))}
+        </div>
+      </Card>
+
+      <Card className="space-y-4 border-none bg-white p-6 shadow-[0_18px_50px_rgba(15,23,42,0.1)]">
+        <header className="flex items-center justify-between">
+          <div>
+            <h3 className="text-xl font-semibold text-[#0f172a]">Messages</h3>
+            <p className="text-sm text-[#94a3b8]">Keep the spark alive</p>
+          </div>
+          <button className="text-sm font-semibold text-[#4338ca]">View inbox</button>
+        </header>
+        <div className="space-y-3">
+          {messages.map((thread) => (
+            <MessageSnippet key={thread.name} thread={thread} />
+          ))}
+        </div>
+      </Card>
+    </div>
+  );
+}
+
+function MatchSnippet({ match }: { match: MatchPreview }) {
+  return (
+    <div
+      className={`flex items-center gap-3 rounded-2xl border border-[#eef2ff] bg-gradient-to-r ${match.accent} p-3`}
+    >
+      <Image
+        src={match.avatar}
+        alt={match.name}
+        width={48}
+        height={48}
+        loading="lazy"
+        className="h-12 w-12 rounded-2xl object-cover"
+      />
+      <div className="flex-1">
+        <p className="text-sm font-semibold text-[#0f172a]">{match.name}</p>
+        <p className="text-xs text-[#475569]">{match.highlight}</p>
+        <p className="text-xs text-[#94a3b8]">{match.compatibility}</p>
+      </div>
+      <button className="rounded-full bg-white px-4 py-2 text-xs font-semibold text-[#4338ca] shadow-sm">
+        {match.status}
+      </button>
+    </div>
+  );
+}
+
+function MessageSnippet({ thread }: { thread: MessageThread }) {
+  return (
+    <div className="flex items-center gap-3 rounded-2xl border border-[#eef2ff] p-3">
+      <Image
+        src={thread.avatar}
+        alt={thread.name}
+        width={44}
+        height={44}
+        loading="lazy"
+        className="h-11 w-11 rounded-2xl object-cover"
+      />
+      <div className="flex-1">
+        <p className="text-sm font-semibold text-[#0f172a]">{thread.name}</p>
+        <p className="text-xs text-[#475569]">{thread.snippet}</p>
+      </div>
+      <div className="text-right text-xs text-[#94a3b8]">
+        <p>{thread.lastActive}</p>
+        {thread.unread ? (
+          <span className="mt-1 inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#f43f5e] text-[11px] font-semibold text-white">
+            {thread.unread}
+          </span>
+        ) : null}
+      </div>
     </div>
   );
 }
