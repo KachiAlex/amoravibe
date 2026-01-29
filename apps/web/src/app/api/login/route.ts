@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createLovedateApi } from '@lovedate/api';
 import { setSession } from '@/lib/session';
+import { preflight, withCors } from '@/lib/cors';
 
 const upstreamBase = (
   process.env.TRUST_API_PROXY_TARGET ||
@@ -32,17 +33,26 @@ export async function POST(request: Request) {
     const { email, phone, password } = normalizeCredentials(body ?? {});
 
     if ((!email && !phone) || !password) {
-      return NextResponse.json(
-        { message: 'Provide an email/phone and password.' },
-        { status: 400 }
+      return withCors(
+        request,
+        NextResponse.json({ message: 'Provide an email/phone and password.' }, { status: 400 }),
+        { methods: ['POST', 'OPTIONS'] }
       );
     }
 
     const login = await serverLovedateApi.login({ email, phone, password });
     setSession({ userId: login.user.id });
-    return NextResponse.json(login);
+    return withCors(request, NextResponse.json(login), { methods: ['POST', 'OPTIONS'] });
   } catch (error) {
     console.error('Login error', error);
-    return NextResponse.json({ message: 'Invalid credentials.' }, { status: 401 });
+    return withCors(
+      request,
+      NextResponse.json({ message: 'Invalid credentials.' }, { status: 401 }),
+      { methods: ['POST', 'OPTIONS'] }
+    );
   }
+}
+
+export async function OPTIONS(request: Request) {
+  return preflight(request, ['POST']);
 }
