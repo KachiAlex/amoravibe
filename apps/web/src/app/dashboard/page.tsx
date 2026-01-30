@@ -3,6 +3,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Space_Grotesk } from 'next/font/google';
 import { revalidatePath } from 'next/cache';
+import { redirect } from 'next/navigation';
 import {
   Compass,
   Heart,
@@ -15,18 +16,194 @@ import {
   Users,
 } from 'lucide-react';
 import type { ComponentType, ReactNode } from 'react';
+import type { MessagingThread as MessageThread } from '@/lib/messaging';
 import type {
   EngagementDashboardResponse,
+  DiscoverFeedMode,
+  DiscoverFeedResponse,
+  DiscoverFilterOption,
+  DiscoverCard,
+  DiscoverEventAction,
+  DiscoverEventPayload,
   LikeActionType,
   MatchCandidate,
   TrustCenterSnapshotResponse,
 } from '@lovedate/api';
 import { lovedateApi } from '@/lib/api';
 import { getSession } from '@/lib/session';
-import type { MessagingThread as MessageThread } from '@/lib/messaging';
 import { loadLocalThreads } from '@/lib/messaging';
 
 const sidebarFont = Space_Grotesk({ subsets: ['latin'], weight: ['400', '500', '600'] });
+
+const DISCOVER_MODES: DiscoverFeedMode[] = [
+  'default',
+  'verified',
+  'nearby',
+  'fresh',
+  'premium',
+  'shared',
+];
+const DISCOVER_FEED_LIMIT = 12;
+
+const DEFAULT_DISCOVER_FILTERS: DiscoverFilterOption[] = [
+  { label: 'Curated for you', helper: 'Compatibility weighted', value: 'default' },
+  { label: 'Verified orbit', helper: 'Photo / ID verified', value: 'verified' },
+  { label: 'Nearby now', helper: 'Within 10 miles', value: 'nearby' },
+  { label: 'New this week', helper: 'Freshly onboarded', value: 'fresh' },
+  { label: 'Premium spotlights', helper: 'High-intent members', value: 'premium', premium: true },
+  { label: 'Shared interests', helper: 'Mutual lifestyle tags', value: 'shared' },
+];
+
+const DISCOVER_EVENT_ACTIONS: DiscoverEventAction[] = [
+  'view',
+  'like',
+  'pass',
+  'save',
+  'dismiss',
+  'filter',
+];
+
+const deriveModeFromLabel = (label: string): DiscoverFeedMode => {
+  const normalized = label.toLowerCase();
+  if (normalized.includes('verified')) return 'verified';
+  if (normalized.includes('near')) return 'nearby';
+  if (normalized.includes('new') || normalized.includes('fresh')) return 'fresh';
+  if (normalized.includes('premium')) return 'premium';
+  if (normalized.includes('shared') || normalized.includes('interest')) return 'shared';
+  return 'default';
+};
+
+const isDiscoverMode = (value: unknown): value is DiscoverFeedMode =>
+  typeof value === 'string' && DISCOVER_MODES.includes(value as DiscoverFeedMode);
+
+const isDiscoverEventAction = (value: unknown): value is DiscoverEventAction =>
+  typeof value === 'string' && DISCOVER_EVENT_ACTIONS.includes(value as DiscoverEventAction);
+
+const STATIC_DISCOVER_CARDS: DiscoverCard[] = [
+  {
+    id: 'peter',
+    name: 'Peter',
+    age: 29,
+    city: 'Brooklyn, NY',
+    cityRegion: 'Brooklyn',
+    distance: '3 mi',
+    distanceKm: 5,
+    tags: ['Travel', 'Photography', 'Dogs'],
+    image:
+      'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=900&q=80',
+    compatibility: 84,
+    verified: true,
+    premiumOnly: false,
+    receiverId: 'peter',
+    actionable: false,
+  },
+  {
+    id: 'chloe',
+    name: 'Chloe',
+    age: 25,
+    city: 'SoHo, NY',
+    cityRegion: 'Manhattan',
+    distance: '5 mi',
+    distanceKm: 8,
+    tags: ['Art', 'Ceramics', 'Slow mornings'],
+    image:
+      'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=900&q=80',
+    compatibility: 72,
+    verified: true,
+    premiumOnly: true,
+    receiverId: 'chloe',
+    actionable: false,
+  },
+  {
+    id: 'aaron',
+    name: 'Aaron',
+    age: 32,
+    city: 'Lower East Side, NY',
+    cityRegion: 'Manhattan',
+    distance: '1 mi',
+    distanceKm: 2,
+    tags: ['Coffee shops', 'Film festivals'],
+    image:
+      'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=900&q=80',
+    compatibility: 69,
+    verified: false,
+    premiumOnly: false,
+    receiverId: 'aaron',
+    actionable: false,
+  },
+];
+
+const applyActiveStateToFilters = (
+  filters: DiscoverFilterOption[],
+  mode: DiscoverFeedMode
+): DiscoverFilterOption[] =>
+  filters.map((filter) => {
+    const value = filter.value ?? deriveModeFromLabel(filter.label);
+    return {
+      ...filter,
+      value,
+      active: value === mode,
+    };
+  });
+
+const createDiscoverFeedFromCards = (
+  cards: DiscoverCard[],
+  mode: DiscoverFeedMode,
+  filters: DiscoverFilterOption[] = DEFAULT_DISCOVER_FILTERS
+): DiscoverFeedResponse => ({
+  hero: cards[0] ?? null,
+  featured: cards.slice(1, 3),
+  grid: cards.slice(3, 12),
+  filters: applyActiveStateToFilters(filters, mode),
+  total: cards.length,
+  mode,
+  generatedAt: new Date().toISOString(),
+});
+
+const normalizeDiscoverFeed = (
+  feed: DiscoverFeedResponse | null,
+  fallback: DiscoverFeedResponse
+): DiscoverFeedResponse => {
+  if (!feed) {
+    return fallback;
+  }
+
+  return {
+    ...feed,
+    hero: feed.hero ?? fallback.hero,
+    featured: feed.featured?.length ? feed.featured : fallback.featured,
+    grid: feed.grid?.length ? feed.grid : fallback.grid,
+    filters: applyActiveStateToFilters(
+      feed.filters?.length ? feed.filters : fallback.filters,
+      feed.mode ?? fallback.mode
+    ),
+    total: typeof feed.total === 'number' ? feed.total : fallback.total,
+  };
+};
+
+const mapCardToDiscoverPerson = (card: DiscoverCard, mode: DiscoverFeedMode): DiscoverPerson => ({
+  id: card.id,
+  name: card.name,
+  age: card.age ?? null,
+  city: card.city ?? null,
+  cityRegion: card.cityRegion ?? null,
+  distance: card.distance ?? null,
+  tags: card.tags ?? [],
+  image: card.image,
+  compatibility: card.compatibility,
+  verified: card.verified,
+  premiumOnly: card.premiumOnly,
+  receiverId: card.receiverId,
+  actionable: card.actionable,
+  mode,
+});
+
+const STATUS_TONE_STYLES: Record<MessageThread['status']['tone'], { pill: string; dot: string }> = {
+  violet: { pill: 'bg-[#f5f3ff] text-[#5b21b6]', dot: 'bg-[#a78bfa]' },
+  rose: { pill: 'bg-[#fef2f2] text-[#b91c1c]', dot: 'bg-[#fb7185]' },
+  amber: { pill: 'bg-[#fffbeb] text-[#a16207]', dot: 'bg-[#f59e0b]' },
+  emerald: { pill: 'bg-[#ecfdf5] text-[#047857]', dot: 'bg-[#34d399]' },
+};
 
 type IconType = ComponentType<{ className?: string }>;
 
@@ -234,34 +411,58 @@ function MessagesInbox({ threads }: { threads: MessageThread[] }) {
           View all
         </Link>
       </header>
-      <div className="space-y-3">
-        {threads.map((thread) => (
-          <Link
-            key={thread.name}
-            href={`/messages/${encodeURIComponent(thread.name.toLowerCase())}`}
-            className="flex items-center gap-3 rounded-2xl border border-[#eef2ff] p-3 hover:border-[#cbd5f5]"
-          >
-            <Image
-              src={thread.avatar}
-              alt={thread.name}
-              width={48}
-              height={48}
-              className="h-12 w-12 rounded-2xl object-cover"
-            />
-            <div className="flex-1">
-              <p className="text-sm font-semibold text-[#0f172a]">{thread.name}</p>
-              <p className="text-xs text-[#475569]">{thread.snippet}</p>
+      <div className="space-y-4">
+        {threads.map((thread) => {
+          const toneStyles = STATUS_TONE_STYLES[thread.status.tone];
+          return (
+            <div
+              key={thread.id}
+              className="rounded-2xl border border-[#eef2ff] p-3 transition hover:border-[#cbd5f5]"
+            >
+              <Link href={thread.route} className="flex items-start gap-3">
+                <Image
+                  src={thread.avatar}
+                  alt={thread.name}
+                  width={48}
+                  height={48}
+                  className="h-12 w-12 rounded-2xl object-cover"
+                />
+                <div className="flex-1 space-y-1">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <p className="text-sm font-semibold text-[#0f172a]">{thread.name}</p>
+                    <span className="text-xs text-[#94a3b8]">{thread.lastActive}</span>
+                  </div>
+                  <p className="text-xs text-[#475569]">{thread.snippet}</p>
+                  <p className="text-xs text-[#94a3b8]">{thread.vibeLine}</p>
+                  <span
+                    className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-[11px] font-semibold ${toneStyles.pill}`}
+                  >
+                    <span className={`h-2 w-2 rounded-full ${toneStyles.dot}`} />
+                    {thread.status.label}
+                  </span>
+                </div>
+                <div className="flex flex-col items-end gap-2 text-xs text-[#94a3b8]">
+                  {thread.unread ? (
+                    <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#f43f5e] text-[11px] font-semibold text-white">
+                      {thread.unread}
+                    </span>
+                  ) : null}
+                </div>
+              </Link>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {thread.quickReplies.map((reply) => (
+                  <button
+                    type="button"
+                    key={`${thread.id}-${reply}`}
+                    className="rounded-full border border-[#e2e8f0] px-3 py-1 text-xs font-medium text-[#4338ca] hover:border-[#cbd5f5]"
+                  >
+                    {reply}
+                  </button>
+                ))}
+              </div>
             </div>
-            <div className="text-right text-xs text-[#94a3b8]">
-              <p>{thread.lastActive}</p>
-              {thread.unread ? (
-                <span className="mt-1 inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#f43f5e] text-[11px] font-semibold text-white">
-                  {thread.unread}
-                </span>
-              ) : null}
-            </div>
-          </Link>
-        ))}
+          );
+        })}
       </div>
     </Card>
   );
@@ -556,7 +757,15 @@ function FeedCard({ profile, senderId }: { profile: FeedProfile; senderId?: stri
   );
 }
 
-function DiscoverFilters({ filters }: { filters: DiscoverFilter[] }) {
+function DiscoverFilters({
+  filters,
+  activeMode,
+  userId,
+}: {
+  filters: DiscoverFilterOption[];
+  activeMode: DiscoverFeedMode;
+  userId: string;
+}) {
   return (
     <Card className="space-y-4 border-none bg-white p-6 shadow-[0_18px_50px_rgba(15,23,42,0.08)]">
       <div>
@@ -564,27 +773,38 @@ function DiscoverFilters({ filters }: { filters: DiscoverFilter[] }) {
         <h3 className="text-xl font-semibold text-[#0f172a]">Tune your discovery lane</h3>
       </div>
       <div className="grid gap-3 md:grid-cols-2">
-        {filters.map((filter) => (
-          <button
-            key={filter.label}
-            type="button"
-            className={`flex items-center justify-between rounded-2xl border px-4 py-3 text-left transition ${
-              filter.premium
-                ? 'border-[#fcd34d] bg-[#fffbeb]'
-                : 'border-[#e2e8f0] hover:border-[#cbd5f5]'
-            }`}
-          >
-            <span>
-              <p className="text-sm font-semibold text-[#0f172a]">{filter.label}</p>
-              <p className="text-xs text-[#94a3b8]">{filter.helper}</p>
-            </span>
-            {filter.premium ? (
-              <span className="inline-flex items-center gap-1 rounded-full bg-white px-3 py-1 text-[11px] font-semibold text-[#b45309]">
-                <Lock className="h-3 w-3" /> Premium
-              </span>
-            ) : null}
-          </button>
-        ))}
+        {filters.map((filter) => {
+          const value = filter.value ?? deriveModeFromLabel(filter.label);
+          const isActive = filter.active ?? value === activeMode;
+
+          return (
+            <form action={selectDiscoverModeAction} key={`${filter.label}-${value}`}>
+              <input type="hidden" name="userId" value={userId} />
+              <input type="hidden" name="mode" value={value} />
+              <button
+                type="submit"
+                className={`flex w-full items-center justify-between rounded-2xl border px-4 py-3 text-left transition ${
+                  isActive
+                    ? 'border-[#4338ca] bg-[#eef2ff] text-[#1e1b4b] shadow-sm'
+                    : filter.premium
+                      ? 'border-[#fcd34d] bg-[#fffbeb] text-[#92400e]'
+                      : 'border-[#e2e8f0] text-[#0f172a] hover:border-[#cbd5f5]'
+                }`}
+                aria-current={isActive ? 'true' : undefined}
+              >
+                <span>
+                  <p className="text-sm font-semibold">{filter.label}</p>
+                  <p className="text-xs text-[#94a3b8]">{filter.helper}</p>
+                </span>
+                {filter.premium ? (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-white px-3 py-1 text-[11px] font-semibold text-[#b45309]">
+                    <Lock className="h-3 w-3" /> Premium
+                  </span>
+                ) : null}
+              </button>
+            </form>
+          );
+        })}
       </div>
     </Card>
   );
@@ -593,13 +813,18 @@ function DiscoverFilters({ filters }: { filters: DiscoverFilter[] }) {
 interface DiscoverPerson {
   id: string;
   name: string;
-  age?: number;
-  city?: string;
-  distance?: string;
+  age?: number | null;
+  city?: string | null;
+  cityRegion?: string | null;
+  distance?: string | null;
   tags: string[];
   image: string;
+  compatibility?: number;
+  verified: boolean;
+  premiumOnly?: boolean;
   receiverId?: string;
   actionable?: boolean;
+  mode?: DiscoverFeedMode;
 }
 
 function LikeActionButton({
@@ -610,6 +835,7 @@ function LikeActionButton({
   children,
   className,
   disabled,
+  telemetry,
 }: {
   senderId?: string | null;
   receiverId?: string;
@@ -618,6 +844,12 @@ function LikeActionButton({
   children: ReactNode;
   className?: string;
   disabled?: boolean;
+  telemetry?: {
+    action: DiscoverEventAction;
+    cardUserId?: string;
+    filter?: DiscoverFeedMode;
+    surface?: string;
+  };
 }) {
   if (!senderId || !receiverId) {
     return (
@@ -633,6 +865,20 @@ function LikeActionButton({
       <input type="hidden" name="receiverId" value={receiverId} />
       <input type="hidden" name="action" value={action} />
       {highlight ? <input type="hidden" name="highlight" value={highlight} /> : null}
+      {telemetry ? (
+        <>
+          <input type="hidden" name="telemetryAction" value={telemetry.action} />
+          {telemetry.cardUserId ? (
+            <input type="hidden" name="telemetryCardUserId" value={telemetry.cardUserId} />
+          ) : null}
+          {telemetry.filter ? (
+            <input type="hidden" name="telemetryFilter" value={telemetry.filter} />
+          ) : null}
+          {telemetry.surface ? (
+            <input type="hidden" name="telemetrySurface" value={telemetry.surface} />
+          ) : null}
+        </>
+      ) : null}
       <button type="submit" className={className} disabled={disabled}>
         {children}
       </button>
@@ -673,12 +919,6 @@ interface FeedProfile {
   actionable?: boolean;
 }
 
-interface DiscoverFilter {
-  label: string;
-  helper: string;
-  premium?: boolean;
-}
-
 interface MatchCandidatePreview {
   id: string;
   name: string;
@@ -717,8 +957,8 @@ interface SettingItem {
 
 interface DashboardPageProps {
   searchParams?:
-    | Promise<{ userId?: string; section?: string }>
-    | { userId?: string; section?: string };
+    | Promise<{ userId?: string; section?: string; discoverMode?: string }>
+    | { userId?: string; section?: string; discoverMode?: string };
 }
 
 async function loadSnapshot(userId: string): Promise<TrustCenterSnapshotResponse | null> {
@@ -750,6 +990,19 @@ async function loadEngagementDashboard(
   }
 }
 
+async function loadDiscoverFeed(
+  userId: string,
+  mode: DiscoverFeedMode,
+  limit = DISCOVER_FEED_LIMIT
+): Promise<DiscoverFeedResponse | null> {
+  try {
+    return await lovedateApi.fetchDiscoverFeed({ userId, mode, limit });
+  } catch (error) {
+    console.error('Failed to load discover feed', error);
+    return null;
+  }
+}
+
 async function applyLikeAction(formData: FormData) {
   'use server';
 
@@ -768,6 +1021,8 @@ async function applyLikeAction(formData: FormData) {
     action,
     highlight: highlight?.trim() ? highlight : undefined,
   });
+
+  await maybeTrackDiscoverEvent(formData, senderId, receiverId);
 
   revalidatePath('/dashboard');
 }
@@ -800,7 +1055,110 @@ async function toggleNotificationAction(formData: FormData) {
   revalidatePath('/dashboard');
 }
 
-const serverActionRegistry = [applyLikeAction, nudgeLikeAction, toggleNotificationAction];
+async function selectDiscoverModeAction(formData: FormData) {
+  'use server';
+
+  const userId = formData.get('userId')?.toString();
+  const mode = formData.get('mode')?.toString();
+
+  if (!userId || !mode || !isDiscoverMode(mode)) {
+    return;
+  }
+
+  await lovedateApi.trackDiscoverEvent({
+    userId,
+    action: 'filter',
+    filter: mode,
+    surface: 'discover_filters',
+  });
+
+  redirect(`/dashboard?section=discover&discoverMode=${mode}#discover`);
+}
+
+async function trackDiscoverEventAction(formData: FormData) {
+  'use server';
+
+  const userId = formData.get('userId')?.toString();
+  const action = formData.get('action')?.toString();
+
+  if (!userId || !isDiscoverEventAction(action)) {
+    return;
+  }
+
+  const payload: DiscoverEventPayload = {
+    userId,
+    action,
+  };
+
+  const cardUserId = formData.get('cardUserId')?.toString();
+  if (cardUserId) {
+    payload.cardUserId = cardUserId;
+  }
+
+  const filter = formData.get('filter')?.toString();
+  if (isDiscoverMode(filter)) {
+    payload.filter = filter;
+  }
+
+  const surface = formData.get('surface')?.toString();
+  if (surface) {
+    payload.surface = surface;
+  }
+
+  const latency = Number(formData.get('latencyMs'));
+  if (!Number.isNaN(latency) && latency >= 0) {
+    payload.latencyMs = latency;
+  }
+
+  await lovedateApi.trackDiscoverEvent(payload);
+}
+
+async function maybeTrackDiscoverEvent(
+  formData: FormData,
+  userId: string,
+  fallbackCardUserId?: string
+) {
+  const telemetryAction = formData.get('telemetryAction')?.toString();
+  if (!telemetryAction || !isDiscoverEventAction(telemetryAction)) {
+    return;
+  }
+
+  const payload: DiscoverEventPayload = {
+    userId,
+    action: telemetryAction,
+  };
+
+  const formCardUserId = formData.get('telemetryCardUserId')?.toString();
+  const cardUserId = formCardUserId || fallbackCardUserId;
+  if (cardUserId) {
+    payload.cardUserId = cardUserId;
+  }
+
+  const filter = formData.get('telemetryFilter')?.toString();
+  if (filter && isDiscoverMode(filter)) {
+    payload.filter = filter;
+  }
+
+  const surface = formData.get('telemetrySurface')?.toString();
+  if (surface) {
+    payload.surface = surface;
+  }
+
+  const latency = Number(formData.get('telemetryLatency'));
+  if (!Number.isNaN(latency) && latency >= 0) {
+    payload.latencyMs = latency;
+  }
+
+  await lovedateApi.trackDiscoverEvent(payload);
+}
+
+const serverActionRegistry = [
+  applyLikeAction,
+  nudgeLikeAction,
+  toggleNotificationAction,
+  selectDiscoverModeAction,
+  trackDiscoverEventAction,
+];
 void serverActionRegistry;
 
 export default async function DashboardPage(props: DashboardPageProps) {
@@ -813,6 +1171,9 @@ export default async function DashboardPage(props: DashboardPageProps) {
   const activeSection = validSections.includes(sectionParam as DashboardSection)
     ? (sectionParam as DashboardSection)
     : 'home';
+  const discoverModeParam =
+    typeof resolvedParams?.discoverMode === 'string' ? resolvedParams.discoverMode : undefined;
+  const discoverMode = isDiscoverMode(discoverModeParam) ? discoverModeParam : 'default';
 
   if (!userId) {
     return (
@@ -835,9 +1196,10 @@ export default async function DashboardPage(props: DashboardPageProps) {
     );
   }
 
-  const [snapshot, engagement] = await Promise.all([
+  const [snapshot, engagement, discoverFeedResponse] = await Promise.all([
     loadSnapshot(userId),
     loadEngagementDashboard(userId),
+    loadDiscoverFeed(userId, discoverMode, DISCOVER_FEED_LIMIT),
   ]);
 
   if (!snapshot) {
@@ -871,6 +1233,15 @@ export default async function DashboardPage(props: DashboardPageProps) {
   const profileCompletion = Math.min(98, Math.round(profileCompletionRaw));
 
   const matches = (await loadMatches(userId, 18)) ?? [];
+  const fallbackDiscoverFeed = createDiscoverFeedFromCards(STATIC_DISCOVER_CARDS, discoverMode);
+  const discoverFeed = normalizeDiscoverFeed(discoverFeedResponse, fallbackDiscoverFeed);
+  const discoverCards = [discoverFeed.hero, ...discoverFeed.featured, ...discoverFeed.grid].filter(
+    Boolean
+  ) as DiscoverCard[];
+  const discoverPeople = discoverCards.map((card) =>
+    mapCardToDiscoverPerson(card, discoverFeed.mode)
+  );
+  const discoverFilters = discoverFeed.filters;
 
   const fallbackProfilePhoto =
     'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=900&q=80';
@@ -1065,18 +1436,6 @@ export default async function DashboardPage(props: DashboardPageProps) {
           verified: false,
           interests: ['Outdoors', 'Tech ethics', 'Foodie'],
         },
-      ];
-
-  const discoverFilters: DiscoverFilter[] = engagementFallback.discoverFilters.length
-    ? engagementFallback.discoverFilters
-    : [
-        { label: 'Nearby', helper: 'Within 10 miles' },
-        { label: 'New this week', helper: 'Freshly onboarded' },
-        { label: 'Recently active', helper: 'Seen in the last 24h' },
-        { label: 'Verified only', helper: 'Photo / ID verified' },
-        { label: 'Shared interests', helper: 'Match your lifestyle tags' },
-        { label: 'Online now', helper: 'Ready to chat', premium: true },
-        { label: 'Advanced filters', helper: 'Height, lifestyle, intent', premium: true },
       ];
 
   const likesYou: LikePerson[] = engagementFallback.receivedLikes.length
@@ -1697,7 +2056,7 @@ function RightRail({ matches, messages }: { matches: MatchPreview[]; messages: M
         </header>
         <div className="space-y-3">
           {messages.map((thread) => (
-            <MessageSnippet key={thread.name} thread={thread} />
+            <MessageSnippet key={thread.id} thread={thread} />
           ))}
         </div>
       </Card>
@@ -1734,10 +2093,11 @@ function MatchSnippet({ match }: { match: MatchPreview }) {
 }
 
 function MessageSnippet({ thread }: { thread: MessageThread }) {
+  const toneStyles = STATUS_TONE_STYLES[thread.status.tone];
   return (
     <Link
-      href={`/dashboard?section=messages#${encodeURIComponent(thread.name.toLowerCase())}`}
-      className="flex items-center gap-3 rounded-2xl border border-[#eef2ff] p-3"
+      href={thread.route}
+      className="flex items-start gap-3 rounded-2xl border border-[#eef2ff] p-3"
     >
       <Image
         src={thread.avatar}
@@ -1747,18 +2107,25 @@ function MessageSnippet({ thread }: { thread: MessageThread }) {
         loading="lazy"
         className="h-11 w-11 rounded-2xl object-cover"
       />
-      <div className="flex-1">
-        <p className="text-sm font-semibold text-[#0f172a]">{thread.name}</p>
+      <div className="flex-1 space-y-1">
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-sm font-semibold text-[#0f172a]">{thread.name}</p>
+          <span className="text-xs text-[#94a3b8]">{thread.lastActive}</span>
+        </div>
         <p className="text-xs text-[#475569]">{thread.snippet}</p>
+        <p className="text-xs text-[#94a3b8]">{thread.vibeLine}</p>
+        <span
+          className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-[11px] font-semibold ${toneStyles.pill}`}
+        >
+          <span className={`h-2 w-2 rounded-full ${toneStyles.dot}`} />
+          {thread.status.label}
+        </span>
       </div>
-      <div className="text-right text-xs text-[#94a3b8]">
-        <p>{thread.lastActive}</p>
-        {thread.unread ? (
-          <span className="mt-1 inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#f43f5e] text-[11px] font-semibold text-white">
-            {thread.unread}
-          </span>
-        ) : null}
-      </div>
+      {thread.unread ? (
+        <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#f43f5e] text-[11px] font-semibold text-white">
+          {thread.unread}
+        </span>
+      ) : null}
     </Link>
   );
 }
