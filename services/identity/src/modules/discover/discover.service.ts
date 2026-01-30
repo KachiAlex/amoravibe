@@ -10,7 +10,7 @@ import {
   DiscoverFilterOptionDto,
 } from './dto/discover-feed.dto';
 import { DiscoverEventDto } from './dto/discover-event.dto';
-import { DiscoverEventAction } from '../../prisma/client';
+import { DiscoverEventAction, Prisma } from '../../prisma/client';
 
 const DEFAULT_FEED_LIMIT = 9;
 const MAX_FEED_LIMIT = 24;
@@ -67,7 +67,7 @@ export class DiscoverService {
         surface: dto.surface ?? null,
         filter: dto.filter ?? null,
         latencyMs: dto.latencyMs ?? null,
-        metadata: dto.metadata ?? null,
+        metadata: (dto.metadata as Prisma.JsonValue | null | undefined) ?? undefined,
       },
     });
   }

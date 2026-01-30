@@ -370,6 +370,26 @@ export interface EngagementDashboardResponse {
   discoverFilters: EngagementDiscoverFilter[];
 }
 
+export type MessagingStatusTone = 'violet' | 'rose' | 'amber' | 'emerald';
+
+export interface MessagingThreadStatus {
+  label: string;
+  tone: MessagingStatusTone;
+}
+
+export interface MessagingThread {
+  id: string;
+  name: string;
+  snippet: string;
+  vibeLine: string;
+  lastActive: string;
+  unread: number;
+  avatar: string;
+  route: string;
+  status: MessagingThreadStatus;
+  quickReplies: string[];
+}
+
 export type LikeActionType = 'like' | 'pass' | 'save';
 
 export interface LikeActionPayload {
@@ -489,6 +509,13 @@ export class LovedateApi {
   fetchEngagementDashboard(userId: string): Promise<EngagementDashboardResponse> {
     return this.client.get<EngagementDashboardResponse>(
       `/engagement/dashboard/${encodeURIComponent(userId)}`
+    );
+  }
+
+  fetchMessagingThreads(userId: string, limit?: number): Promise<MessagingThread[]> {
+    const query = typeof limit === 'number' ? `?limit=${encodeURIComponent(limit.toString())}` : '';
+    return this.client.get<MessagingThread[]>(
+      `/messaging/threads/${encodeURIComponent(userId)}${query}`
     );
   }
 

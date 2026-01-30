@@ -1,20 +1,4 @@
-type StatusTone = 'violet' | 'rose' | 'amber' | 'emerald';
-
-export interface MessagingThread {
-  id: string;
-  name: string;
-  snippet: string;
-  vibeLine: string;
-  lastActive: string;
-  unread: number;
-  avatar: string;
-  route: string;
-  status: {
-    label: string;
-    tone: StatusTone;
-  };
-  quickReplies: string[];
-}
+import type { MessagingThread, MessagingStatusTone } from '@lovedate/api';
 
 interface ThreadPersona {
   id: string;
@@ -164,7 +148,7 @@ const PERSONAS: ThreadPersona[] = [
   },
 ];
 
-const STATUS_VARIANTS: MessagingThread['status'][] = [
+const STATUS_VARIANTS: { label: string; tone: MessagingStatusTone }[] = [
   { label: 'Typing now', tone: 'violet' },
   { label: 'Shared a voice note', tone: 'rose' },
   { label: 'Awaiting your RSVP', tone: 'amber' },
@@ -235,7 +219,7 @@ function rotateThreads(userId: string): MessagingThread[] {
   });
 }
 
-export async function loadLocalThreads(userId: string, limit = 6): Promise<MessagingThread[]> {
+export function buildMessagingFallback(userId: string, limit = 6): MessagingThread[] {
   const rotated = rotateThreads(userId);
   return rotated.slice(0, limit);
 }

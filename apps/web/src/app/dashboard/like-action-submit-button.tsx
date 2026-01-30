@@ -4,19 +4,19 @@ import { Loader2 } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useFormStatus } from 'react-dom';
 
-interface LikeActionSubmitButtonProps {
+interface PendingSubmitButtonProps {
   children: ReactNode;
   className?: string;
   disabled?: boolean;
   pendingLabel?: string;
 }
 
-export function LikeActionSubmitButton({
+export function PendingSubmitButton({
   children,
   className,
   disabled,
   pendingLabel = 'Sending…',
-}: LikeActionSubmitButtonProps) {
+}: PendingSubmitButtonProps) {
   const { pending } = useFormStatus();
   const isDisabled = disabled || pending;
 
@@ -39,3 +39,5 @@ export function LikeActionSubmitButton({
     </button>
   );
 }
+
+export { PendingSubmitButton as LikeActionSubmitButton };

@@ -245,7 +245,7 @@ export class EngagementService {
   private statusForAction(action: LikeActionType): $Enums.LikeEdgeStatus {
     switch (action) {
       case 'pass':
-        return $Enums.LikeEdgeStatus.dismissed;
+        return $Enums.LikeEdgeStatus.passed;
       case 'save':
       case 'like':
       default:

@@ -16,7 +16,6 @@ import {
   Users,
 } from 'lucide-react';
 import type { ComponentType, ReactNode } from 'react';
-import type { MessagingThread as MessageThread } from '@/lib/messaging';
 import type {
   EngagementDashboardResponse,
   DiscoverFeedMode,
@@ -28,10 +27,11 @@ import type {
   LikeActionType,
   MatchCandidate,
   TrustCenterSnapshotResponse,
+  MessagingThread,
 } from '@lovedate/api';
 import { lovedateApi } from '@/lib/api';
 import { getSession } from '@/lib/session';
-import { loadLocalThreads } from '@/lib/messaging';
+import { buildMessagingFallback } from '@/lib/messaging';
 import { LikeActionSubmitButton } from './like-action-submit-button';
 
 const sidebarFont = Space_Grotesk({ subsets: ['latin'], weight: ['400', '500', '600'] });
@@ -1001,6 +1001,19 @@ async function loadEngagementDashboard(
   }
 }
 
+async function loadMessagingThreads(userId: string, limit = 6): Promise<MessagingThread[]> {
+  try {
+    const threads = await lovedateApi.fetchMessagingThreads(userId, limit);
+    if (threads.length) {
+      return threads;
+    }
+  } catch (error) {
+    console.error('Failed to load messaging threads', error);
+  }
+
+  return buildMessagingFallback(userId, limit);
+}
+
 async function loadDiscoverFeed(
   userId: string,
   mode: DiscoverFeedMode,
@@ -1448,7 +1461,7 @@ export default async function DashboardPage(props: DashboardPageProps) {
         },
       ];
 
-  const messageThreads = await loadLocalThreads(userId);
+  const messageThreads = await loadMessagingThreads(userId);
 
   const unreadCount = messageThreads.reduce((sum, thread) => sum + (thread.unread ?? 0), 0);
 

@@ -16,6 +16,7 @@ import { MatchModule } from './modules/match/match.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { EngagementModule } from './modules/engagement/engagement.module';
 import { DiscoverModule } from './modules/discover/discover.module';
+import { MessagingModule } from './modules/messaging/messaging.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { DiscoverModule } from './modules/discover/discover.module';
     AuthModule,
     EngagementModule,
     DiscoverModule,
+    MessagingModule,
   ],
 })
 export class AppModule {}

@@ -188,6 +188,47 @@ model User {
   sentLikes               UserLike[]               @relation("UserLikeSender")
   receivedLikes           UserLike[]               @relation("UserLikeReceiver")
   notificationPreferences NotificationPreference[]
+  messageParticipants     MessageParticipant[]
+  sentMessages            Message[]                @relation("UserSentMessages")
+  discoverEvents          DiscoverEvent[]
+  discoverCardEvents      DiscoverEvent[]          @relation("DiscoverEventCardUser")
+}
+
+model MessageThread {
+  id            String               @id @default(uuid())
+  title         String?
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+  lastMessageId String?              @unique
+  messages      Message[]
+  participants  MessageParticipant[]
+  lastMessage   Message?             @relation("ThreadLastMessage", fields: [lastMessageId], references: [id])
+}
+
+model MessageParticipant {
+  id          String        @id @default(uuid())
+  threadId    String
+  userId      String
+  unreadCount Int           @default(0)
+  lastReadAt  DateTime?
+  role        String?
+  thread      MessageThread @relation(fields: [threadId], references: [id])
+  user        User          @relation(fields: [userId], references: [id])
+
+  @@unique([threadId, userId])
+}
+
+model Message {
+  id        String         @id @default(uuid())
+  threadId  String
+  senderId  String
+  body      String
+  createdAt DateTime       @default(now())
+  thread    MessageThread  @relation(fields: [threadId], references: [id])
+  sender    User           @relation("UserSentMessages", fields: [senderId], references: [id])
+  lastOf    MessageThread? @relation("ThreadLastMessage")
+
+  @@index([threadId, createdAt])
 }
 
 model Verification {
@@ -486,18 +527,18 @@ model DiscoverFilter {
 }
 
 model DiscoverEvent {
-  id        String               @id @default(uuid())
-  userId    String
+  id         String              @id @default(uuid())
+  userId     String
   cardUserId String?
-  action    DiscoverEventAction
-  surface   String?
-  filter    String?
-  latencyMs Int?
-  metadata  Json?
-  createdAt DateTime             @default(now())
+  action     DiscoverEventAction
+  surface    String?
+  filter     String?
+  latencyMs  Int?
+  metadata   Json?
+  createdAt  DateTime            @default(now())
 
-  user      User                 @relation(fields: [userId], references: [id])
-  cardUser  User?                @relation("DiscoverEventCardUser", fields: [cardUserId], references: [id])
+  user     User  @relation(fields: [userId], references: [id])
+  cardUser User? @relation("DiscoverEventCardUser", fields: [cardUserId], references: [id])
 
   @@index([userId, createdAt])
   @@index([cardUserId])
