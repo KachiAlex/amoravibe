@@ -9,10 +9,7 @@ export class MessagingController {
   constructor(private readonly messaging: MessagingService) {}
 
   @Get('threads/:userId')
-  getThreads(
-    @Param('userId', new ParseUUIDPipe()) userId: string,
-    @Query('limit') limit?: string
-  ) {
+  getThreads(@Param('userId', new ParseUUIDPipe()) userId: string, @Query('limit') limit?: string) {
     return this.messaging.getThreads(userId, this.normalizeLimit(limit));
   }
 

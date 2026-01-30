@@ -56,7 +56,10 @@ export class MessagingService {
   }
 
   private async ensureUser(userId: string) {
-    const exists = await this.prisma.user.findUnique({ where: { id: userId }, select: { id: true } });
+    const exists = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true },
+    });
     if (!exists) {
       throw new NotFoundException(`User ${userId} not found`);
     }
@@ -71,8 +74,12 @@ export class MessagingService {
     }>,
     viewerId: string
   ): MessagingThreadDto {
-    const viewerParticipant = thread.participants.find((participant) => participant.userId === viewerId);
-    const otherParticipant = thread.participants.find((participant) => participant.userId !== viewerId)?.user;
+    const viewerParticipant = thread.participants.find(
+      (participant) => participant.userId === viewerId
+    );
+    const otherParticipant = thread.participants.find(
+      (participant) => participant.userId !== viewerId
+    )?.user;
 
     const displayName = otherParticipant?.displayName ?? thread.title ?? 'Conversation';
     const avatar = this.extractPrimaryPhoto(otherParticipant?.photos) ?? FALLBACK_AVATAR;
