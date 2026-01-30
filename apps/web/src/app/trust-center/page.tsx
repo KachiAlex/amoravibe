@@ -57,6 +57,12 @@ const fallbackPreview: TrustPreviewResponse = {
 };
 
 const demoUserId = process.env.NEXT_PUBLIC_DEMO_USER_ID ?? 'demo-user';
+const stageThemes = [
+  'from-[#fef2f2] via-[#fff5f7] to-white',
+  'from-[#eef2ff] via-white to-[#f5f7ff]',
+  'from-[#ecfeff] via-white to-[#f0fdfa]',
+  'from-[#fff7ed] via-white to-[#fef9c3]',
+];
 
 async function getTrustPreview(): Promise<TrustPreviewResponse | null> {
   try {
@@ -76,8 +82,10 @@ export default async function TrustCenterPage() {
     { label: 'Export SLA', value: `< ${preview.stats.exportSlaHours}h` },
   ];
 
-  const journeySteps = preview.journey.map((step, index) => ({
+  const journeyStages = preview.journey.map((step, index) => ({
     order: String(index + 1).padStart(2, '0'),
+    theme: stageThemes[index % stageThemes.length],
+    anchor: `stage-${step.id}`,
     ...step,
   }));
 
@@ -87,129 +95,164 @@ export default async function TrustCenterPage() {
     'Every trust center access is recorded via ANALYTICS_DASHBOARD_ACCESSED actions.',
   ];
 
-  const signalChips = [
-    { label: 'PII tiering', detail: 'Tier-1 PII hashed with salted SHA-256.' },
-    { label: 'Device trust', detail: 'Passkeys + biometric fallback enforced.' },
-    { label: 'Model explainability', detail: 'Phase 4 risk signals surfaced verbatim.' },
-  ];
-
   return (
-    <main className="space-y-16 px-6 pb-24 pt-12 sm:px-12 lg:px-20">
-      <Card variant="highlight" className="mx-auto max-w-6xl">
-        <div className="flex flex-col gap-10 lg:flex-row lg:justify-between">
-          <div className="space-y-6">
-            <Badge tone="primary" className="gap-3 text-sm">
-              {preview.snapshotLabel}
-            </Badge>
-            <div className="space-y-4">
-              <h1 className="font-display text-4xl leading-tight text-ink-900 sm:text-5xl">
-                Trust center transparency preview
-              </h1>
-              <p className="max-w-2xl text-lg text-ink-700">
-                Built on Phase 4 analytics + audit guarantees, this surface lets members verify
-                identity status, inspect risk signals, and initiate privacy workflows in a single
-                motion.
-              </p>
+    <main className="min-h-screen bg-gradient-to-b from-[#0b0c1a] via-[#0f172a] to-[#101828] pb-24 pt-14 text-white">
+      <div className="mx-auto flex max-w-6xl flex-col gap-16 px-6 sm:px-10 lg:px-16">
+        <section className="grid gap-10 lg:grid-cols-[1.15fr,0.85fr]">
+          <Card className="relative overflow-hidden border-none bg-gradient-to-br from-[#111f3a] via-[#141a2f] to-[#0f172a] p-10 text-white shadow-[0_30px_80px_rgba(6,7,12,0.65)]">
+            <div className="absolute -right-10 -top-12 h-72 w-72 rounded-full bg-[#7c3aed]/20 blur-3xl" />
+            <div className="space-y-6">
+              <Badge
+                tone="primary"
+                className="bg-white/10 text-xs font-semibold uppercase tracking-[0.3em] text-white"
+              >
+                {preview.snapshotLabel}
+              </Badge>
+              <div className="space-y-4">
+                <p className="text-sm uppercase tracking-[0.3em] text-white/70">Trust view</p>
+                <h1 className="font-display text-4xl leading-tight sm:text-5xl">
+                  Transparency lens before you enter the orbit
+                </h1>
+                <p className="max-w-2xl text-base text-white/80">
+                  Live analytics fuel this preview so members understand verification, device trust,
+                  and privacy tooling before landing on the full discovery dashboard.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-4">
+                <Link href="/dashboard?section=home#top">
+                  <PillButton className="bg-white text-[#0f172a] hover:bg-white/90">
+                    Continue to dashboard
+                  </PillButton>
+                </Link>
+                <Link href="#stages">
+                  <PillButton variant="outline" className="border-white/30 text-white">
+                    Preview each stage
+                  </PillButton>
+                </Link>
+              </div>
             </div>
-            <div className="flex flex-wrap gap-4">
-              <Link href="/">
-                <PillButton>Return to overview</PillButton>
-              </Link>
-              <Link href="#journey">
-                <PillButton variant="outline">Review onboarding runway</PillButton>
-              </Link>
-            </div>
-          </div>
-          <Card className="w-full max-w-md border-rose-500/30 bg-white/90">
-            <p className="text-xs uppercase tracking-[0.3em] text-rose-500">Snapshot</p>
-            <dl className="mt-6 space-y-5">
+          </Card>
+
+          <Card className="border-none bg-white/95 p-8 text-ink-900 shadow-[0_25px_70px_rgba(11,17,34,0.2)]">
+            <p className="text-xs font-semibold uppercase tracking-[0.35em] text-ink-500">
+              Live snapshot
+            </p>
+            <dl className="mt-6 grid gap-6">
               {heroStats.map((stat) => (
                 <div key={stat.label}>
-                  <dt className="text-xs uppercase tracking-[0.3em] text-ink-700/70">
-                    {stat.label}
-                  </dt>
-                  <dd className="text-3xl font-semibold text-ink-900">{stat.value}</dd>
+                  <dt className="text-xs uppercase tracking-[0.25em] text-ink-500">{stat.label}</dt>
+                  <dd className="text-4xl font-semibold text-ink-900">{stat.value}</dd>
                 </div>
               ))}
             </dl>
+            <div className="mt-6 rounded-2xl bg-ink-50/90 p-4 text-sm text-ink-700">
+              <p className="font-semibold text-ink-900">What powers this?</p>
+              <p>
+                Analytics snapshots (PII tiered), trust signal facts, and moderation reports all
+                export into this overview within minutes.
+              </p>
+            </div>
           </Card>
-        </div>
-      </Card>
+        </section>
 
-      <section id="journey" className="mx-auto max-w-6xl space-y-10">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <p className="text-xs uppercase tracking-[0.3em] text-ink-700/70">Journey</p>
-            <h2 className="mt-2 font-display text-3xl text-ink-900">Four-step onboarding runway</h2>
-          </div>
-          <div className="flex flex-wrap gap-3">
-            {signalChips.map((chip) => (
-              <span
-                key={chip.label}
-                className="rounded-full border border-ink-900/10 bg-sand-100/70 px-4 py-2 text-xs font-semibold text-ink-800"
-              >
-                <span className="uppercase tracking-[0.2em] text-rose-500">{chip.label}</span>
-                <span className="ml-2 text-ink-700">{chip.detail}</span>
-              </span>
-            ))}
-          </div>
-        </div>
-        <div className="grid gap-6 md:grid-cols-2">
-          {journeySteps.map((phase) => (
-            <Card key={phase.title} className="border-ink-900/10 bg-white/80">
-              <div className="flex items-center justify-between">
-                <p className="text-xs font-semibold text-rose-500">{phase.order}</p>
-                <p className="text-xs uppercase tracking-[0.2em] text-ink-700/70">{phase.tag}</p>
-              </div>
-              <h3 className="mt-3 text-2xl font-semibold text-ink-900">{phase.title}</h3>
-              <p className="mt-2 text-sm text-ink-700">{phase.description}</p>
-            </Card>
-          ))}
-        </div>
-      </section>
-
-      <section className="mx-auto max-w-6xl">
-        <Card className="space-y-8 border-ink-900/10 bg-white/80">
+        <section id="stages" className="space-y-8">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <p className="text-xs uppercase tracking-[0.3em] text-ink-700/70">Highlights</p>
-              <h2 className="mt-2 font-display text-3xl text-ink-900">
-                What the trust center exposes
-              </h2>
+              <p className="text-xs uppercase tracking-[0.35em] text-white/70">Journey</p>
+              <h2 className="mt-2 text-3xl font-semibold">Four trust stages before discovery</h2>
             </div>
-            <Badge tone="primary">Live data</Badge>
+            <div className="flex flex-wrap gap-3 text-xs text-white/80">
+              <span className="rounded-full border border-white/20 px-4 py-2">PII tiering</span>
+              <span className="rounded-full border border-white/20 px-4 py-2">Device trust</span>
+              <span className="rounded-full border border-white/20 px-4 py-2">Explainability</span>
+            </div>
           </div>
-          <div className="grid gap-6 lg:grid-cols-3">
-            {preview.highlights.map((highlight) => (
-              <div
-                key={highlight.title}
-                className="rounded-3xl border border-ink-900/10 bg-white/70 p-6 shadow-[0_12px_40px_rgba(13,15,26,0.08)]"
-              >
-                <p className="text-xs font-semibold uppercase tracking-[0.3em] text-rose-500">
-                  {highlight.badge}
-                </p>
-                <h3 className="mt-3 text-2xl font-semibold text-ink-900">{highlight.title}</h3>
-                <p className="mt-2 text-sm text-ink-700">{highlight.body}</p>
-              </div>
-            ))}
+          <div className="grid gap-6 lg:grid-cols-2">
+            {journeyStages.map((stage, index) => {
+              const nextStage = journeyStages[index + 1]?.anchor;
+              const nextHref = nextStage ? `#${nextStage}` : '/dashboard?section=home#top';
+              return (
+                <div
+                  key={stage.title}
+                  id={stage.anchor}
+                  className={`relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br ${stage.theme} p-6 text-[#0f172a] shadow-[0_25px_60px_rgba(8,9,14,0.4)]`}
+                >
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-semibold uppercase tracking-[0.35em] text-[#7c3aed]">
+                      {stage.order}
+                    </p>
+                    <span className="rounded-full bg-white/70 px-3 py-1 text-xs font-semibold text-[#0f172a]">
+                      {stage.tag}
+                    </span>
+                  </div>
+                  <h3 className="mt-4 text-2xl font-semibold">{stage.title}</h3>
+                  <p className="mt-2 text-sm text-[#475569]">{stage.description}</p>
+                  <div className="mt-6 flex flex-wrap gap-3">
+                    <Link href={nextHref}>
+                      <PillButton className="bg-[#0f172a] text-white hover:bg-[#0b1020]">
+                        {nextStage ? 'Next stage' : 'Enter dashboard'}
+                      </PillButton>
+                    </Link>
+                    <Link href="/dashboard?section=discover#discover">
+                      <PillButton variant="outline" className="border-[#0f172a] text-[#0f172a]">
+                        See how it shows up in discover
+                      </PillButton>
+                    </Link>
+                  </div>
+                </div>
+              );
+            })}
           </div>
-        </Card>
-      </section>
+        </section>
 
-      <section className="mx-auto max-w-6xl">
-        <Card className="grid gap-10 border-ink-900/10 bg-white/80 lg:grid-cols-[1.5fr,1fr]">
-          <div>
-            <p className="text-xs uppercase tracking-[0.3em] text-ink-700/70">Audit + privacy</p>
-            <h2 className="mt-2 font-display text-3xl text-ink-900">Member-facing controls</h2>
+        <section className="grid gap-10 lg:grid-cols-[1.4fr,0.9fr]">
+          <Card className="space-y-8 border-none bg-white/95 p-8 text-ink-900 shadow-[0_25px_70px_rgba(11,17,34,0.2)]">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.35em] text-ink-500">
+                  Highlights
+                </p>
+                <h2 className="mt-2 text-3xl font-semibold text-ink-900">
+                  What members can inspect
+                </h2>
+              </div>
+              <Badge tone="primary">Live data</Badge>
+            </div>
+            <div className="grid gap-6 lg:grid-cols-3">
+              {preview.highlights.map((highlight) => (
+                <div
+                  key={highlight.title}
+                  className="rounded-3xl border border-ink-100 bg-white/90 p-5 shadow-[0_12px_35px_rgba(15,23,42,0.08)]"
+                >
+                  <p className="text-xs font-semibold uppercase tracking-[0.35em] text-rose-500">
+                    {highlight.badge}
+                  </p>
+                  <h3 className="mt-3 text-xl font-semibold text-ink-900">{highlight.title}</h3>
+                  <p className="mt-2 text-sm text-ink-700">{highlight.body}</p>
+                </div>
+              ))}
+            </div>
+          </Card>
+
+          <Card className="border-none bg-gradient-to-br from-white/95 to-white/80 p-8 text-ink-900 shadow-[0_25px_70px_rgba(11,17,34,0.2)]">
+            <p className="text-xs font-semibold uppercase tracking-[0.35em] text-ink-500">
+              Audit + privacy
+            </p>
+            <h2 className="mt-3 text-2xl font-semibold text-ink-900">Member-facing controls</h2>
             <ul className="mt-6 space-y-4 text-sm text-ink-700">
               {auditChecklist.map((item) => (
-                <li key={item}>• {item}</li>
+                <li key={item} className="flex items-start gap-3">
+                  <span className="mt-1 h-2 w-2 rounded-full bg-[#7c3aed]" />
+                  <span>{item}</span>
+                </li>
               ))}
             </ul>
-          </div>
-          <PrivacyActionsPanel userId={demoUserId} />
-        </Card>
-      </section>
+            <div className="mt-8 rounded-2xl border border-ink-100 bg-white p-4">
+              <PrivacyActionsPanel userId={demoUserId} />
+            </div>
+          </Card>
+        </section>
+      </div>
     </main>
   );
 }

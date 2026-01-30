@@ -40,6 +40,11 @@ export class AnalyticsController {
     return this.dashboard.getDashboard({ ...query, maxPiiTier: resolvedTier });
   }
 
+  @Get('trust-preview')
+  getTrustPreview() {
+    return this.dashboard.getTrustPreview();
+  }
+
   @Get('leadership-report')
   @UseGuards(AnalyticsTierGuard)
   async getLeadershipReport(
