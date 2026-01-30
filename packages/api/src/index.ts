@@ -109,6 +109,9 @@ export interface MatchCandidate {
   discoverySpace: DiscoverySpace;
   isVerified: boolean;
   compatibilityScore: number;
+  distanceKm?: number | null;
+  cityCountry?: string | null;
+  cityRegion?: string | null;
 }
 
 export interface FetchMatchesParams {
@@ -173,6 +176,16 @@ export interface OnboardingSubmissionPayload {
   discoverySpace: DiscoverySpace;
   matchPreferences: MatchPreference[];
   city: string;
+  cityPlaceId?: string;
+  cityCountry?: string;
+  cityCountryCode?: string;
+  cityRegion?: string;
+  cityRegionCode?: string;
+  cityTimezone?: string;
+  cityLat?: number;
+  cityLng?: number;
+  locationAccuracyMeters?: number;
+  locationUpdatedAt?: string;
   bio?: string;
   photos: string[];
   verificationIntent: VerificationIntent;
@@ -302,6 +315,75 @@ export interface CreateAuditPurgeRequest {
   reason?: string;
 }
 
+export interface EngagementLike {
+  id: string;
+  name: string;
+  age?: number;
+  city?: string;
+  distance?: string;
+  image: string;
+  highlight: string;
+  tags: string[];
+  premiumOnly?: boolean;
+}
+
+export interface EngagementNotificationPreference {
+  channel: string;
+  label: string;
+  helper: string;
+  enabled: boolean;
+}
+
+export interface EngagementPremiumPerk {
+  title: string;
+  helper: string;
+  cta: string;
+}
+
+export interface EngagementSafetyResource {
+  title: string;
+  helper: string;
+  href: string;
+}
+
+export interface EngagementSettingsShortcut {
+  label: string;
+  helper: string;
+  href: string;
+  tone?: 'default' | 'danger';
+}
+
+export interface EngagementDiscoverFilter {
+  label: string;
+  helper: string;
+  premium?: boolean;
+}
+
+export interface EngagementDashboardResponse {
+  receivedLikes: EngagementLike[];
+  sentLikes: EngagementLike[];
+  notificationPreferences: EngagementNotificationPreference[];
+  premiumPerks: EngagementPremiumPerk[];
+  safetyResources: EngagementSafetyResource[];
+  settingsShortcuts: EngagementSettingsShortcut[];
+  discoverFilters: EngagementDiscoverFilter[];
+}
+
+export type LikeActionType = 'like' | 'pass' | 'save';
+
+export interface LikeActionPayload {
+  senderId: string;
+  receiverId: string;
+  action: LikeActionType;
+  highlight?: string;
+  tags?: string[];
+}
+
+export interface NotificationTogglePayload {
+  userId: string;
+  enabled: boolean;
+}
+
 export class LovedateApi {
   constructor(private readonly client: ApiClient) {}
 
@@ -346,6 +428,30 @@ export class LovedateApi {
 
   login(payload: LoginRequestPayload): Promise<LoginResponse> {
     return this.client.post<LoginResponse>('/auth/login', payload);
+  }
+
+  fetchEngagementDashboard(userId: string): Promise<EngagementDashboardResponse> {
+    return this.client.get<EngagementDashboardResponse>(
+      `/engagement/dashboard/${encodeURIComponent(userId)}`
+    );
+  }
+
+  likeUser(payload: LikeActionPayload): Promise<EngagementLike> {
+    return this.client.post<EngagementLike>('/engagement/likes', payload);
+  }
+
+  nudgeLike(likeId: string): Promise<EngagementLike> {
+    return this.client.post<EngagementLike>(
+      `/engagement/likes/${encodeURIComponent(likeId)}/nudge`
+    );
+  }
+
+  toggleNotification(channel: string, payload: NotificationTogglePayload) {
+    return this.client.post<EngagementNotificationPreference>(
+      `/engagement/notifications/${encodeURIComponent(channel)}`,
+      payload,
+      { method: 'PATCH' }
+    );
   }
 }
 

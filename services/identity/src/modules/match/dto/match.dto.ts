@@ -6,6 +6,8 @@ export interface MatchCandidateDto {
   id: string;
   displayName: string;
   city: string;
+  cityCountry?: string | null;
+  cityRegion?: string | null;
   bio: string | null;
   photos: string[];
   trustScore: number;
@@ -14,4 +16,5 @@ export interface MatchCandidateDto {
   discoverySpace: DiscoverySpace;
   isVerified: boolean;
   compatibilityScore: number;
+  distanceKm?: number | null;
 }

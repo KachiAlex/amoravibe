@@ -148,6 +148,16 @@ model User {
   discoverySpace          DiscoverySpace
   matchPreferences        MatchPreference[]        @default([])
   city                    String
+  cityPlaceId             String?
+  cityCountry             String?
+  cityCountryCode         String?
+  cityRegion              String?
+  cityRegionCode          String?
+  cityTimezone            String?
+  cityLat                 Decimal?
+  cityLng                 Decimal?
+  locationAccuracyMeters  Float?
+  locationUpdatedAt       DateTime?
   bio                     String?
   photos                  Json?
   verificationIntent      VerificationIntent       @default(skip)

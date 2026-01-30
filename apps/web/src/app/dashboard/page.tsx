@@ -14,7 +14,11 @@ import {
   Users,
 } from 'lucide-react';
 import type { ComponentType } from 'react';
-import type { MatchCandidate, TrustCenterSnapshotResponse } from '@lovedate/api';
+import type {
+  EngagementDashboardResponse,
+  MatchCandidate,
+  TrustCenterSnapshotResponse,
+} from '@lovedate/api';
 import { lovedateApi } from '@/lib/api';
 import { getSession } from '@/lib/session';
 
@@ -578,6 +582,8 @@ interface DiscoverPerson {
 
 interface LikePerson extends DiscoverPerson {
   highlight: string;
+  likeEdgeId?: string;
+  premiumOnly?: boolean;
 }
 
 interface MatchPreview {
@@ -610,6 +616,7 @@ interface FeedProfile {
   verified: boolean;
   premiumOnly?: boolean;
   interests: string[];
+  isLive?: boolean;
 }
 
 interface DiscoverFilter {
@@ -678,6 +685,17 @@ async function loadMatches(userId: string, limit = 12): Promise<MatchCandidate[]
   }
 }
 
+async function loadEngagementDashboard(
+  userId: string
+): Promise<EngagementDashboardResponse | null> {
+  try {
+    return await lovedateApi.fetchEngagementDashboard(userId);
+  } catch (error) {
+    console.error('Failed to load engagement dashboard', error);
+    return null;
+  }
+}
+
 export default async function DashboardPage(props: DashboardPageProps) {
   const resolvedParams = await Promise.resolve(props.searchParams ?? {});
   const session = getSession();
@@ -710,7 +728,10 @@ export default async function DashboardPage(props: DashboardPageProps) {
     );
   }
 
-  const snapshot = await loadSnapshot(userId);
+  const [snapshot, engagement] = await Promise.all([
+    loadSnapshot(userId),
+    loadEngagementDashboard(userId),
+  ]);
 
   if (!snapshot) {
     return (
@@ -744,6 +765,16 @@ export default async function DashboardPage(props: DashboardPageProps) {
 
   const matches = (await loadMatches(userId, 12)) ?? [];
 
+  const engagementFallback: EngagementDashboardResponse = engagement ?? {
+    receivedLikes: [],
+    sentLikes: [],
+    notificationPreferences: [],
+    premiumPerks: [],
+    safetyResources: [],
+    settingsShortcuts: [],
+    discoverFilters: [],
+  };
+
   const discoverPeople: DiscoverPerson[] = [
     {
       id: 'peter',
@@ -769,38 +800,26 @@ export default async function DashboardPage(props: DashboardPageProps) {
       id: 'aaron',
       name: 'Aaron',
       age: 32,
-      city: 'Chelsea, NY',
-      distance: '8 mi',
-      tags: ['Galleries', 'Running'],
+      city: 'Lower East Side, NY',
+      distance: '1 mi',
+      tags: ['Coffee shops', 'Film festivals'],
       image:
-        'https://images.unsplash.com/photo-1504593811423-6dd665756598?auto=format&fit=crop&w=900&q=80',
+        'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=900&q=80',
     },
   ];
 
-  const likesGiven: LikePerson[] = [
-    {
-      id: 'drew',
-      name: 'Drew',
-      age: 29,
-      city: 'Bushwick',
-      distance: '3 mi',
-      tags: ['Film', 'Coffee'],
-      highlight: 'Waiting to hear back',
-      image:
-        'https://images.unsplash.com/photo-1504593811423-6dd665756598?auto=format&fit=crop&w=600&q=80',
-    },
-    {
-      id: 'lucia',
-      name: 'Lucia',
-      age: 30,
-      city: 'Harlem',
-      distance: '9 mi',
-      tags: ['Poetry', 'Wellness'],
-      highlight: 'You sent a like yesterday',
-      image:
-        'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=600&q=80',
-    },
-  ];
+  const likesGiven: LikePerson[] = engagementFallback.sentLikes.map((like) => ({
+    id: like.id,
+    likeEdgeId: like.id,
+    name: like.name,
+    age: like.age,
+    city: like.city,
+    distance: like.distance,
+    tags: like.tags,
+    highlight: like.highlight,
+    image: like.image,
+    premiumOnly: like.premiumOnly,
+  }));
 
   const profilePhotos = Array.isArray((snapshot as any)?.user?.photos)
     ? ((snapshot as any).user.photos as string[])
@@ -889,40 +908,55 @@ export default async function DashboardPage(props: DashboardPageProps) {
         },
       ];
 
-  const discoverFilters: DiscoverFilter[] = [
-    { label: 'Nearby', helper: 'Within 10 miles' },
-    { label: 'New this week', helper: 'Freshly onboarded' },
-    { label: 'Recently active', helper: 'Seen in the last 24h' },
-    { label: 'Verified only', helper: 'Photo / ID verified' },
-    { label: 'Shared interests', helper: 'Match your lifestyle tags' },
-    { label: 'Online now', helper: 'Ready to chat', premium: true },
-    { label: 'Advanced filters', helper: 'Height, lifestyle, intent', premium: true },
-  ];
+  const discoverFilters: DiscoverFilter[] = engagementFallback.discoverFilters.length
+    ? engagementFallback.discoverFilters
+    : [
+        { label: 'Nearby', helper: 'Within 10 miles' },
+        { label: 'New this week', helper: 'Freshly onboarded' },
+        { label: 'Recently active', helper: 'Seen in the last 24h' },
+        { label: 'Verified only', helper: 'Photo / ID verified' },
+        { label: 'Shared interests', helper: 'Match your lifestyle tags' },
+        { label: 'Online now', helper: 'Ready to chat', premium: true },
+        { label: 'Advanced filters', helper: 'Height, lifestyle, intent', premium: true },
+      ];
 
-  const likesYou: LikePerson[] = [
-    {
-      id: 'maya',
-      name: 'Maya',
-      age: 27,
-      city: 'Midtown',
-      distance: '2 mi',
-      tags: ['Jazz', 'Poetry'],
-      highlight: 'Sent a compliment',
-      image:
-        'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=600&q=80',
-    },
-    {
-      id: 'sasha',
-      name: 'Sasha',
-      age: 26,
-      city: 'Williamsburg',
-      distance: '6 mi',
-      tags: ['Wellness', 'Foodie'],
-      highlight: 'Shared a playlist',
-      image:
-        'https://images.unsplash.com/photo-1504593811423-6dd665756598?auto=format&fit=crop&w=600&q=80',
-    },
-  ];
+  const likesYou: LikePerson[] = engagementFallback.receivedLikes.length
+    ? engagementFallback.receivedLikes.map((like) => ({
+        id: like.id,
+        likeEdgeId: like.id,
+        name: like.name,
+        age: like.age,
+        city: like.city,
+        distance: like.distance,
+        tags: like.tags,
+        highlight: like.highlight,
+        image: like.image,
+        premiumOnly: like.premiumOnly,
+      }))
+    : [
+        {
+          id: 'maya',
+          name: 'Maya',
+          age: 27,
+          city: 'Midtown',
+          distance: '2 mi',
+          tags: ['Jazz', 'Poetry'],
+          highlight: 'Sent a compliment',
+          image:
+            'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=600&q=80',
+        },
+        {
+          id: 'sasha',
+          name: 'Sasha',
+          age: 26,
+          city: 'Williamsburg',
+          distance: '6 mi',
+          tags: ['Wellness', 'Foodie'],
+          highlight: 'Shared a playlist',
+          image:
+            'https://images.unsplash.com/photo-1504593811423-6dd665756598?auto=format&fit=crop&w=600&q=80',
+        },
+      ];
 
   const messageThreads: MessageThread[] = [
     {
@@ -1047,58 +1081,80 @@ export default async function DashboardPage(props: DashboardPageProps) {
         },
       ];
 
-  const notificationToggles: NotificationToggle[] = [
-    {
-      channel: 'push',
-      label: 'Push notifications',
-      helper: 'Instant match + message alerts',
-      enabled: true,
-    },
-    {
-      channel: 'email',
-      label: 'Email recaps',
-      helper: 'Daily digest of likes + invites',
-      enabled: false,
-    },
-    { channel: 'quiet', label: 'Quiet hours', helper: 'Mute alerts 10pm-8am', enabled: true },
-  ];
+  const notificationToggles: NotificationToggle[] = engagementFallback.notificationPreferences
+    .length
+    ? engagementFallback.notificationPreferences
+    : [
+        {
+          channel: 'push',
+          label: 'Push notifications',
+          helper: 'Instant match + message alerts',
+          enabled: true,
+        },
+        {
+          channel: 'email',
+          label: 'Email recaps',
+          helper: 'Daily digest of likes + invites',
+          enabled: false,
+        },
+        { channel: 'quiet', label: 'Quiet hours', helper: 'Mute alerts 10pm-8am', enabled: true },
+      ];
 
-  const premiumPerks: PremiumPerk[] = [
-    { title: 'Boost your profile', helper: 'Top of feeds for 60 minutes', cta: 'Boost now' },
-    { title: 'See who liked you', helper: 'Instant match with admirers', cta: 'View likes' },
-    {
-      title: 'Advanced filters',
-      helper: 'Height, lifestyle, intent controls',
-      cta: 'Unlock filters',
-    },
-  ];
+  const premiumPerks: PremiumPerk[] = engagementFallback.premiumPerks.length
+    ? engagementFallback.premiumPerks
+    : [
+        { title: 'Boost your profile', helper: 'Top of feeds for 60 minutes', cta: 'Boost now' },
+        { title: 'See who liked you', helper: 'Instant match with admirers', cta: 'View likes' },
+        {
+          title: 'Advanced filters',
+          helper: 'Height, lifestyle, intent controls',
+          cta: 'Unlock filters',
+        },
+      ];
 
-  const safetyResources: SafetyResource[] = [
-    { title: 'Report a profile', helper: 'Flag suspicious behavior', href: '/support/report' },
-    { title: 'Blocked users', helper: 'Manage who can contact you', href: '/settings/blocked' },
-    { title: 'Safety playbook', helper: 'Tips curated by our trust team', href: '/support/safety' },
-  ];
+  const safetyResources: SafetyResource[] = engagementFallback.safetyResources.length
+    ? engagementFallback.safetyResources
+    : [
+        { title: 'Report a profile', helper: 'Flag suspicious behavior', href: '/support/report' },
+        { title: 'Blocked users', helper: 'Manage who can contact you', href: '/settings/blocked' },
+        {
+          title: 'Safety playbook',
+          helper: 'Tips curated by our trust team',
+          href: '/support/safety',
+        },
+      ];
 
-  const settingItems: SettingItem[] = [
-    { label: 'Account details', helper: 'Name, email, phone', href: '/settings/profile' },
-    { label: 'Password & security', helper: 'Passcodes, devices, MFA', href: '/settings/security' },
-    {
-      label: 'Privacy & visibility',
-      helper: 'Discovery space, distance',
-      href: '/settings/privacy',
-    },
-    {
-      label: 'Pause account',
-      helper: 'Take a break without losing matches',
-      href: '/settings/pause',
-    },
-    {
-      label: 'Delete account',
-      helper: 'Remove data permanently',
-      href: '/settings/delete',
-      tone: 'danger',
-    },
-  ];
+  const settingItems: SettingItem[] = engagementFallback.settingsShortcuts.length
+    ? engagementFallback.settingsShortcuts.map((item) => ({
+        label: item.label,
+        helper: item.helper,
+        href: item.href,
+        tone: item.tone ?? 'default',
+      }))
+    : [
+        { label: 'Account details', helper: 'Name, email, phone', href: '/settings/profile' },
+        {
+          label: 'Password & security',
+          helper: 'Passcodes, devices, MFA',
+          href: '/settings/security',
+        },
+        {
+          label: 'Privacy & visibility',
+          helper: 'Discovery space, distance',
+          href: '/settings/privacy',
+        },
+        {
+          label: 'Pause account',
+          helper: 'Take a break without losing matches',
+          href: '/settings/pause',
+        },
+        {
+          label: 'Delete account',
+          helper: 'Remove data permanently',
+          href: '/settings/delete',
+          tone: 'danger',
+        },
+      ];
 
   return (
     <main className="min-h-screen bg-[#f5f7fb] pb-20 pt-10" id="top">

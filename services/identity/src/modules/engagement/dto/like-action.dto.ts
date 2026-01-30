@@ -1,6 +1,10 @@
 import { IsEnum, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
 
-export type LikeActionType = 'like' | 'pass' | 'save';
+export enum LikeActionType {
+  LIKE = 'like',
+  PASS = 'pass',
+  SAVE = 'save',
+}
 
 export class LikeActionDto {
   @IsUUID('4')
@@ -9,9 +13,7 @@ export class LikeActionDto {
   @IsUUID('4')
   receiverId!: string;
 
-  @IsEnum(['like', 'pass', 'save'], {
-    message: 'Action must be one of like, pass, save',
-  })
+  @IsEnum(LikeActionType, { message: 'Action must be one of like, pass, save' })
   action!: LikeActionType;
 
   @IsOptional()

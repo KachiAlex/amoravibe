@@ -10,22 +10,40 @@ import { Orientation } from '../../common/enums/orientation.enum';
 
 const DEFAULT_MATCH_LIMIT = 12;
 const MAX_MATCH_LIMIT = 50;
+const MAX_DISTANCE_KM = 50;
+
+type Coordinates = {
+  lat: number;
+  lng: number;
+};
 
 type NormalizedUser = Omit<
   User,
-  'gender' | 'discoverySpace' | 'matchPreferences' | 'orientation' | 'orientationPreferences'
+  | 'gender'
+  | 'discoverySpace'
+  | 'matchPreferences'
+  | 'orientation'
+  | 'orientationPreferences'
+  | 'cityLat'
+  | 'cityLng'
 > & {
   gender: Gender;
   discoverySpace: DiscoverySpace;
   matchPreferences: MatchPreference[];
   orientation: Orientation;
   orientationPreferences: Orientation[];
+  cityLat: number | null;
+  cityLng: number | null;
 };
 
 type CandidateRecord = {
   id: string;
   displayName: string;
   city: string;
+  cityCountry: string | null;
+  cityRegion: string | null;
+  cityLat: Prisma.Decimal | null;
+  cityLng: Prisma.Decimal | null;
   bio: string | null;
   photos: Prisma.JsonValue;
   trustScore: number;
@@ -39,13 +57,27 @@ type CandidateRecord = {
 
 type NormalizedCandidate = Omit<
   CandidateRecord,
-  'gender' | 'discoverySpace' | 'matchPreferences' | 'orientation' | 'orientationPreferences'
+  | 'gender'
+  | 'discoverySpace'
+  | 'matchPreferences'
+  | 'orientation'
+  | 'orientationPreferences'
+  | 'cityLat'
+  | 'cityLng'
+  | 'cityCountry'
+  | 'cityRegion'
+  | 'photos'
 > & {
   gender: Gender;
   discoverySpace: DiscoverySpace;
   matchPreferences: MatchPreference[];
   orientation: Orientation;
   orientationPreferences: Orientation[];
+  cityLat: number | null;
+  cityLng: number | null;
+  cityCountry: string | null;
+  cityRegion: string | null;
+  photos: Prisma.JsonValue;
 };
 
 type ComparableProfile = Pick<
@@ -73,6 +105,7 @@ export class MatchService {
     const normalizedLimit = Math.min(Math.max(limit, 1), MAX_MATCH_LIMIT);
     const genderPreferences = this.mapMatchPreferencesToGenders(user.matchPreferences);
     const discoverySpaces = this.allowedDiscoverySpaces(user.discoverySpace);
+    const userLocation = this.resolveCoordinates(user.cityLat, user.cityLng);
 
     const candidateWhere: Prisma.UserWhereInput = {
       id: { not: user.id },
@@ -97,6 +130,10 @@ export class MatchService {
         id: true,
         displayName: true,
         city: true,
+        cityCountry: true,
+        cityRegion: true,
+        cityLat: true,
+        cityLng: true,
         bio: true,
         photos: true,
         trustScore: true,
@@ -113,16 +150,37 @@ export class MatchService {
 
     const enriched = candidates
       .map((candidate) => this.normalizeCandidateEnums(candidate as CandidateRecord))
-      .map((candidate) => ({
-        candidate,
-        compatibility: this.computeCompatibility(user, candidate),
-      }))
+      .map((candidate) => {
+        const compatibility = this.computeCompatibility(user, candidate);
+        const candidateLocation = this.resolveCoordinates(candidate.cityLat, candidate.cityLng);
+        const distanceKm =
+          userLocation && candidateLocation
+            ? this.roundDistance(this.computeDistanceKm(userLocation, candidateLocation))
+            : null;
+
+        return {
+          candidate,
+          compatibility,
+          distanceKm,
+        };
+      })
+      .filter((entry) => {
+        if (!userLocation) {
+          return true;
+        }
+        if (entry.distanceKm === null) {
+          return true;
+        }
+        return entry.distanceKm <= MAX_DISTANCE_KM;
+      })
       .sort((a, b) => b.compatibility - a.compatibility)
       .slice(0, normalizedLimit)
-      .map(({ candidate, compatibility }) => ({
+      .map(({ candidate, compatibility, distanceKm }) => ({
         id: candidate.id,
         displayName: candidate.displayName,
         city: candidate.city,
+        cityCountry: candidate.cityCountry,
+        cityRegion: candidate.cityRegion,
         bio: candidate.bio ?? null,
         photos: this.extractPhotos(candidate.photos),
         trustScore: candidate.trustScore,
@@ -131,6 +189,7 @@ export class MatchService {
         discoverySpace: candidate.discoverySpace,
         isVerified: candidate.isVerified,
         compatibilityScore: compatibility,
+        distanceKm,
       }));
 
     return enriched;
@@ -257,6 +316,8 @@ export class MatchService {
       matchPreferences: (user.matchPreferences ?? []) as MatchPreference[],
       orientation: user.orientation as Orientation,
       orientationPreferences: (user.orientationPreferences ?? []) as Orientation[],
+      cityLat: this.toNumber(user.cityLat),
+      cityLng: this.toNumber(user.cityLng),
     };
   }
 
@@ -268,6 +329,52 @@ export class MatchService {
       matchPreferences: (candidate.matchPreferences ?? []) as MatchPreference[],
       orientation: candidate.orientation as Orientation,
       orientationPreferences: (candidate.orientationPreferences ?? []) as Orientation[],
+      cityLat: this.toNumber(candidate.cityLat),
+      cityLng: this.toNumber(candidate.cityLng),
+      cityCountry: candidate.cityCountry ?? null,
+      cityRegion: candidate.cityRegion ?? null,
     };
+  }
+
+  private resolveCoordinates(lat: number | null, lng: number | null): Coordinates | null {
+    if (typeof lat !== 'number' || typeof lng !== 'number') {
+      return null;
+    }
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+      return null;
+    }
+    return { lat, lng };
+  }
+
+  private computeDistanceKm(a: Coordinates, b: Coordinates): number {
+    const earthRadiusKm = 6371;
+    const dLat = this.deg2rad(b.lat - a.lat);
+    const dLng = this.deg2rad(b.lng - a.lng);
+    const lat1 = this.deg2rad(a.lat);
+    const lat2 = this.deg2rad(b.lat);
+
+    const sinDLat = Math.sin(dLat / 2);
+    const sinDLng = Math.sin(dLng / 2);
+    const haversine = sinDLat * sinDLat + Math.cos(lat1) * Math.cos(lat2) * sinDLng * sinDLng;
+    const c = 2 * Math.atan2(Math.sqrt(haversine), Math.sqrt(Math.max(0, 1 - haversine)));
+    return earthRadiusKm * c;
+  }
+
+  private deg2rad(value: number): number {
+    return (value * Math.PI) / 180;
+  }
+
+  private roundDistance(value: number): number {
+    return Math.round(value * 10) / 10;
+  }
+
+  private toNumber(value: Prisma.Decimal | number | null | undefined): number | null {
+    if (value === null || value === undefined) {
+      return null;
+    }
+    if (typeof value === 'number') {
+      return value;
+    }
+    return value.toNumber();
   }
 }

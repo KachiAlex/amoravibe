@@ -10,6 +10,7 @@ import {
   IsEmail,
   IsEnum,
   IsISO8601,
+  IsNumber,
   IsOptional,
   IsString,
   Matches,
@@ -69,6 +70,46 @@ export class CreateUserDto {
   @IsString()
   @MinLength(2)
   city!: string;
+
+  @IsOptional()
+  @IsString()
+  cityPlaceId?: string;
+
+  @IsOptional()
+  @IsString()
+  cityCountry?: string;
+
+  @IsOptional()
+  @IsString()
+  cityCountryCode?: string;
+
+  @IsOptional()
+  @IsString()
+  cityRegion?: string;
+
+  @IsOptional()
+  @IsString()
+  cityRegionCode?: string;
+
+  @IsOptional()
+  @IsString()
+  cityTimezone?: string;
+
+  @IsOptional()
+  @IsNumber()
+  cityLat?: number;
+
+  @IsOptional()
+  @IsNumber()
+  cityLng?: number;
+
+  @IsOptional()
+  @IsNumber()
+  locationAccuracyMeters?: number;
+
+  @IsOptional()
+  @IsISO8601()
+  locationUpdatedAt?: string;
 
   @IsOptional()
   @IsString()

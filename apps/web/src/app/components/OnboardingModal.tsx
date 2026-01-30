@@ -1,6 +1,14 @@
 'use client';
 
-import { FormEvent, useEffect, useMemo, useState, type ReactNode } from 'react';
+import {
+  FormEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react';
 import { useRouter } from 'next/navigation';
 import { AnimatePresence, motion } from 'motion/react';
 import {
@@ -13,6 +21,7 @@ import {
   Lock,
   Mail,
   MapPin,
+  Crosshair,
   ShieldCheck,
   Sparkles,
   User,
@@ -112,12 +121,45 @@ type FormData = {
   lookingFor: string;
   interests: string[];
   city: string;
+  cityPlaceId?: string | null;
+  cityCountry?: string | null;
+  cityCountryCode?: string | null;
+  cityRegion?: string | null;
+  cityRegionCode?: string | null;
+  cityTimezone?: string | null;
+  cityLat?: number | null;
+  cityLng?: number | null;
+  locationAccuracyMeters?: number | null;
+  locationUpdatedAt?: string | null;
   bio: string;
   photos: string[];
   verificationIntent: VerificationIntent;
 };
 
+const mapFeatureToSuggestion = (feature: MapboxFeature): CitySuggestion => {
+  const [lng, lat] = feature.center ?? feature.geometry?.coordinates ?? [0, 0];
+  const context = feature.context ?? [];
+  const country = context.find((entry) => entry.id.startsWith('country'));
+  const region = context.find((entry) => entry.id.startsWith('region'));
+  const place = feature.text ?? feature.place_name;
+
+  return {
+    id: feature.id,
+    label: place,
+    secondaryLabel: feature.place_name,
+    fullLabel: feature.place_name,
+    lat,
+    lng,
+    country: country?.text ?? null,
+    countryCode: country?.short_code ?? feature.properties?.short_code ?? null,
+    region: region?.text ?? null,
+    regionCode: region?.short_code ?? null,
+    timezone: feature.properties?.timezone ?? null,
+  };
+};
+
 type UpdateFn = (field: keyof FormData, value: FormData[keyof FormData]) => void;
+type UpdateManyFn = (values: Partial<FormData>) => void;
 
 export interface OnboardingModalProps {
   isOpen: boolean;
@@ -140,6 +182,16 @@ const INITIAL_FORM: FormData = {
   lookingFor: '',
   interests: [],
   city: '',
+  cityPlaceId: null,
+  cityCountry: null,
+  cityCountryCode: null,
+  cityRegion: null,
+  cityRegionCode: null,
+  cityTimezone: null,
+  cityLat: null,
+  cityLng: null,
+  locationAccuracyMeters: null,
+  locationUpdatedAt: null,
   bio: '',
   photos: ['', ''],
   verificationIntent: 'verify_now',
@@ -165,6 +217,10 @@ export function OnboardingModal({ isOpen, onClose }: OnboardingModalProps) {
   const updateFormData: UpdateFn = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
+
+  const updateFormDataBatch: UpdateManyFn = useCallback((values) => {
+    setFormData((prev) => ({ ...prev, ...values }));
+  }, []);
 
   const toggleInterest = (interest: string) => {
     setFormData((prev) => ({
@@ -300,6 +356,16 @@ export function OnboardingModal({ isOpen, onClose }: OnboardingModalProps) {
           ? formData.matchPreferences
           : ['everyone']) as MatchPreference[],
         city: formData.city,
+        cityPlaceId: formData.cityPlaceId || undefined,
+        cityCountry: formData.cityCountry || undefined,
+        cityCountryCode: formData.cityCountryCode || undefined,
+        cityRegion: formData.cityRegion || undefined,
+        cityRegionCode: formData.cityRegionCode || undefined,
+        cityTimezone: formData.cityTimezone || undefined,
+        cityLat: formData.cityLat ?? undefined,
+        cityLng: formData.cityLng ?? undefined,
+        locationAccuracyMeters: formData.locationAccuracyMeters ?? undefined,
+        locationUpdatedAt: formData.locationUpdatedAt || undefined,
         bio: formData.bio,
         photos: formData.photos.filter((url) => url.trim().length > 0),
         verificationIntent: formData.verificationIntent,
@@ -366,6 +432,7 @@ export function OnboardingModal({ isOpen, onClose }: OnboardingModalProps) {
             key="step-story"
             data={formData}
             onChange={updateFormData}
+            onBulkChange={updateFormDataBatch}
             onPhotoChange={updatePhoto}
             onPhotoFileUpload={handlePhotoFileUpload}
             onAddPhoto={addPhotoField}
@@ -806,20 +873,211 @@ const StepIntent = ({ data, onChange, onToggleInterest }: StepIntentProps) => {
 type StepStoryProps = {
   data: FormData;
   onChange: UpdateFn;
+  onBulkChange: UpdateManyFn;
   onPhotoChange: (index: number, value: string) => void;
   onPhotoFileUpload: (index: number, file: File | null) => void;
   onAddPhoto: () => void;
   onRemovePhoto: (index: number) => void;
 };
 
+type CitySuggestion = {
+  id: string;
+  label: string;
+  secondaryLabel: string;
+  fullLabel: string;
+  lat: number;
+  lng: number;
+  country?: string | null;
+  countryCode?: string | null;
+  region?: string | null;
+  regionCode?: string | null;
+  timezone?: string | null;
+};
+
+type MapboxGeocodeResponse = {
+  features?: MapboxFeature[];
+};
+
+type MapboxFeature = {
+  id: string;
+  place_name: string;
+  text?: string;
+  center?: [number, number];
+  geometry?: {
+    coordinates?: [number, number];
+  };
+  properties?: {
+    short_code?: string;
+    timezone?: string;
+  } & Record<string, unknown>;
+  context?: {
+    id: string;
+    text?: string;
+    short_code?: string;
+  }[];
+};
+
 const StepStory = ({
   data,
   onChange,
+  onBulkChange,
   onPhotoChange,
   onPhotoFileUpload,
   onAddPhoto,
   onRemovePhoto,
 }: StepStoryProps) => {
+  const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
+  const [suggestions, setSuggestions] = useState<CitySuggestion[]>([]);
+  const [suggestionsOpen, setSuggestionsOpen] = useState(false);
+  const [suggestionsLoading, setSuggestionsLoading] = useState(false);
+  const [locationError, setLocationError] = useState<string | null>(null);
+  const [geoLoading, setGeoLoading] = useState(false);
+  const skipFetchRef = useRef(false);
+
+  const clearLocationMetadata = useCallback(
+    () =>
+      onBulkChange({
+        cityPlaceId: null,
+        cityCountry: null,
+        cityCountryCode: null,
+        cityRegion: null,
+        cityRegionCode: null,
+        cityTimezone: null,
+        cityLat: null,
+        cityLng: null,
+        locationAccuracyMeters: null,
+        locationUpdatedAt: null,
+      }),
+    [onBulkChange]
+  );
+
+  const handleCityInput = (value: string) => {
+    setLocationError(null);
+    onBulkChange({ city: value });
+    clearLocationMetadata();
+    setSuggestionsOpen(Boolean(value.trim().length));
+  };
+
+  const applySuggestion = useCallback(
+    (suggestion: CitySuggestion, accuracyMeters?: number | null) => {
+      skipFetchRef.current = true;
+      onBulkChange({
+        city: suggestion.fullLabel,
+        cityPlaceId: suggestion.id,
+        cityCountry: suggestion.country ?? null,
+        cityCountryCode: suggestion.countryCode ?? null,
+        cityRegion: suggestion.region ?? null,
+        cityRegionCode: suggestion.regionCode ?? null,
+        cityTimezone: suggestion.timezone ?? null,
+        cityLat: suggestion.lat,
+        cityLng: suggestion.lng,
+        locationAccuracyMeters: accuracyMeters ?? null,
+        locationUpdatedAt: new Date().toISOString(),
+      });
+      setSuggestions([]);
+      setSuggestionsOpen(false);
+    },
+    [onBulkChange]
+  );
+
+  useEffect(() => {
+    if (!mapboxToken) {
+      setSuggestions([]);
+      return;
+    }
+    if (skipFetchRef.current) {
+      skipFetchRef.current = false;
+      return;
+    }
+    const query = data.city.trim();
+    if (query.length < 2) {
+      setSuggestions([]);
+      return;
+    }
+    const controller = new AbortController();
+    setSuggestionsLoading(true);
+    const timeoutId = setTimeout(async () => {
+      try {
+        const url = new URL(
+          `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json`
+        );
+        url.searchParams.set('access_token', mapboxToken);
+        url.searchParams.set('types', 'place,locality');
+        url.searchParams.set('limit', '5');
+        url.searchParams.set('autocomplete', 'true');
+        const response = await fetch(url.toString(), { signal: controller.signal });
+        if (!response.ok) {
+          throw new Error('Mapbox geocoding failed');
+        }
+        const data = (await response.json()) as MapboxGeocodeResponse;
+        setSuggestions((data.features ?? []).map(mapFeatureToSuggestion));
+        setLocationError(null);
+        setSuggestionsOpen(true);
+      } catch (error) {
+        if (!controller.signal.aborted) {
+          console.error('Mapbox geocoding error', error);
+          setLocationError('Unable to fetch city suggestions. Please try again.');
+          setSuggestions([]);
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setSuggestionsLoading(false);
+        }
+      }
+    }, 350);
+
+    return () => {
+      clearTimeout(timeoutId);
+      controller.abort();
+    };
+  }, [data.city, mapboxToken]);
+
+  const handleUseCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      setLocationError('Location services are not supported on this device.');
+      return;
+    }
+    if (!mapboxToken) {
+      setLocationError('Mapbox token missing. Add NEXT_PUBLIC_MAPBOX_TOKEN and reload.');
+      return;
+    }
+    setGeoLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          const { latitude, longitude, accuracy } = position.coords;
+          const url = new URL(
+            `https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json`
+          );
+          url.searchParams.set('access_token', mapboxToken);
+          url.searchParams.set('types', 'place,locality');
+          url.searchParams.set('limit', '1');
+          const response = await fetch(url.toString());
+          if (!response.ok) {
+            throw new Error('Reverse geocoding failed');
+          }
+          const data = (await response.json()) as MapboxGeocodeResponse;
+          const feature = data.features?.[0];
+          if (feature) {
+            applySuggestion(mapFeatureToSuggestion(feature), accuracy ?? null);
+          } else {
+            setLocationError('We could not determine a city for your location.');
+          }
+        } catch (error) {
+          console.error('Geolocation reverse lookup failed', error);
+          setLocationError('Unable to resolve your location at the moment.');
+        } finally {
+          setGeoLoading(false);
+        }
+      },
+      (error) => {
+        setGeoLoading(false);
+        setLocationError(error.message || 'Unable to access your location.');
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
+
   return (
     <motion.div
       key="story"
@@ -835,13 +1093,50 @@ const StepStory = ({
       />
       <div className="space-y-5">
         <Field label="City">
-          <input
-            type="text"
-            value={data.city}
-            onChange={(event) => onChange('city', event.target.value)}
-            className="w-full rounded-xl border-2 border-gray-200 px-4 py-3 focus:border-purple-500 focus:outline-none"
-            placeholder="Brooklyn, New York"
-          />
+          <div className="space-y-2">
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <input
+                type="text"
+                value={data.city}
+                onChange={(event) => handleCityInput(event.target.value)}
+                className="flex-1 rounded-xl border-2 border-gray-200 px-4 py-3 focus:border-purple-500 focus:outline-none"
+                placeholder="Brooklyn, New York"
+                autoComplete="off"
+              />
+              <button
+                type="button"
+                onClick={handleUseCurrentLocation}
+                disabled={geoLoading}
+                className="inline-flex items-center justify-center gap-2 rounded-xl border-2 border-gray-200 px-4 py-3 text-sm font-semibold text-gray-600 transition hover:border-purple-500 hover:text-purple-600 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                <Crosshair className="h-4 w-4" />
+                {geoLoading ? 'Locating…' : 'Use my location'}
+              </button>
+            </div>
+            {locationError && <p className="text-sm text-rose-600">{locationError}</p>}
+            {!mapboxToken && (
+              <p className="text-sm text-amber-600">
+                Map search is offline until a Mapbox token is configured.
+              </p>
+            )}
+          </div>
+          {suggestionsOpen && suggestions.length > 0 && (
+            <ul className="mt-2 max-h-56 overflow-y-auto rounded-2xl border border-gray-200 bg-white shadow-xl">
+              {suggestions.map((suggestion) => (
+                <li key={suggestion.id}>
+                  <button
+                    type="button"
+                    className="flex w-full flex-col items-start gap-1 px-4 py-3 text-left hover:bg-purple-50"
+                    onClick={() => applySuggestion(suggestion)}
+                  >
+                    <span className="text-sm font-semibold text-gray-900">{suggestion.label}</span>
+                    <span className="text-xs text-gray-500">{suggestion.secondaryLabel}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+          {suggestionsLoading && <p className="mt-2 text-xs text-gray-500">Searching Mapbox…</p>}
         </Field>
         <Field label="Bio (min 20 characters)">
           <textarea

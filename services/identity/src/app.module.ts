@@ -14,6 +14,7 @@ import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { OnboardingModule } from './modules/onboarding/onboarding.module';
 import { MatchModule } from './modules/match/match.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { EngagementModule } from './modules/engagement/engagement.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { AuthModule } from './modules/auth/auth.module';
     OnboardingModule,
     MatchModule,
     AuthModule,
+    EngagementModule,
   ],
 })
 export class AppModule {}

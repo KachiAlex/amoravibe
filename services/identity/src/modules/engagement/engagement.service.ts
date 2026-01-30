@@ -116,6 +116,7 @@ export class EngagementService {
       this.prisma.premiumPerk.findMany({
         where: { isActive: true },
         orderBy: { sortOrder: 'asc' },
+        select: { title: true, helper: true, cta: true },
       }),
       this.prisma.safetyResource.findMany({
         where: { isActive: true },
@@ -267,7 +268,9 @@ export class EngagementService {
     }));
   }
 
-  private mapPremiumPerks(records: Prisma.PremiumPerk[]): EngagementPremiumPerkDto[] {
+  private mapPremiumPerks(
+    records: Array<{ title: string; helper: string; cta: string }>
+  ): EngagementPremiumPerkDto[] {
     return records.map((perk) => ({ title: perk.title, helper: perk.helper, cta: perk.cta }));
   }
 
