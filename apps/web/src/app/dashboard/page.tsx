@@ -14,7 +14,7 @@ import {
   Star,
   Users,
 } from 'lucide-react';
-import type { ComponentType } from 'react';
+import type { ComponentType, ReactNode } from 'react';
 import type {
   EngagementDashboardResponse,
   LikeActionType,
@@ -23,6 +23,8 @@ import type {
 } from '@lovedate/api';
 import { lovedateApi } from '@/lib/api';
 import { getSession } from '@/lib/session';
+import type { MessagingThread as MessageThread } from '@/lib/messaging';
+import { loadLocalThreads } from '@/lib/messaging';
 
 const sidebarFont = Space_Grotesk({ subsets: ['latin'], weight: ['400', '500', '600'] });
 
@@ -613,7 +615,7 @@ function LikeActionButton({
   receiverId?: string;
   action: LikeActionType;
   highlight?: string;
-  children: React.ReactNode;
+  children: ReactNode;
   className?: string;
   disabled?: boolean;
 }) {
@@ -650,14 +652,6 @@ interface MatchPreview {
   highlight: string;
   status: string;
   accent: string;
-  avatar: string;
-}
-
-interface MessageThread {
-  name: string;
-  snippet: string;
-  lastActive: string;
-  unread?: number;
   avatar: string;
 }
 
@@ -806,11 +800,8 @@ async function toggleNotificationAction(formData: FormData) {
   revalidatePath('/dashboard');
 }
 
-export const dashboardServerActions = {
-  applyLikeAction,
-  nudgeLikeAction,
-  toggleNotificationAction,
-};
+const serverActionRegistry = [applyLikeAction, nudgeLikeAction, toggleNotificationAction];
+void serverActionRegistry;
 
 export default async function DashboardPage(props: DashboardPageProps) {
   const resolvedParams = await Promise.resolve(props.searchParams ?? {});
@@ -1126,30 +1117,7 @@ export default async function DashboardPage(props: DashboardPageProps) {
         },
       ];
 
-  const messageThreads: MessageThread[] = [
-    {
-      name: 'Sarah',
-      snippet: 'Loved your take on rooftop vinyl nights.',
-      lastActive: '5m ago',
-      unread: 1,
-      avatar:
-        'https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=crop&w=200&q=80',
-    },
-    {
-      name: 'David',
-      snippet: 'Ready for the gallery hop later?',
-      lastActive: '27m ago',
-      avatar:
-        'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80',
-    },
-    {
-      name: 'Kayla',
-      snippet: 'Just sent over café options ☕️',
-      lastActive: '1h ago',
-      avatar:
-        'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=200&q=80',
-    },
-  ];
+  const messageThreads = await loadLocalThreads(userId);
 
   const unreadCount = messageThreads.reduce((sum, thread) => sum + (thread.unread ?? 0), 0);
 
