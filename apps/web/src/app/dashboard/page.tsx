@@ -2,6 +2,7 @@ import { Card, PillButton } from '@lovedate/ui';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Space_Grotesk } from 'next/font/google';
+import { revalidatePath } from 'next/cache';
 import {
   Compass,
   Heart,
@@ -16,6 +17,7 @@ import {
 import type { ComponentType } from 'react';
 import type {
   EngagementDashboardResponse,
+  LikeActionType,
   MatchCandidate,
   TrustCenterSnapshotResponse,
 } from '@lovedate/api';
@@ -446,17 +448,17 @@ function SettingsPanel({ items }: { items: SettingItem[] }) {
   );
 }
 
-function HomeFeed({ profiles }: { profiles: FeedProfile[] }) {
+function HomeFeed({ profiles, senderId }: { profiles: FeedProfile[]; senderId?: string }) {
   return (
     <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
       {profiles.map((profile) => (
-        <FeedCard key={profile.id} profile={profile} />
+        <FeedCard key={profile.id} profile={profile} senderId={senderId} />
       ))}
     </div>
   );
 }
 
-function FeedCard({ profile }: { profile: FeedProfile }) {
+function FeedCard({ profile, senderId }: { profile: FeedProfile; senderId?: string }) {
   return (
     <Card className="space-y-4 border-none bg-white/95 p-5 shadow-[0_18px_50px_rgba(15,23,42,0.08)]">
       <div className="relative aspect-[4/5] overflow-hidden rounded-3xl">
@@ -507,30 +509,46 @@ function FeedCard({ profile }: { profile: FeedProfile }) {
         </div>
       </div>
       <div className="flex flex-wrap gap-3 pt-2">
-        <button
-          type="button"
+        <LikeActionButton
+          senderId={senderId}
+          receiverId={profile.receiverId}
+          action="like"
+          highlight={`Home feed like for ${profile.name}`}
           className="flex-1 rounded-full bg-[#22c55e] px-5 py-2 text-sm font-semibold text-white shadow-sm"
+          disabled={!profile.actionable}
         >
           Like
-        </button>
-        <button
-          type="button"
+        </LikeActionButton>
+        <LikeActionButton
+          senderId={senderId}
+          receiverId={profile.receiverId}
+          action="pass"
+          highlight={`Passed on ${profile.name}`}
           className="flex-1 rounded-full border border-[#e2e8f0] px-5 py-2 text-sm font-semibold text-[#0f172a]"
+          disabled={!profile.actionable}
         >
           Pass
-        </button>
-        <button
-          type="button"
+        </LikeActionButton>
+        <LikeActionButton
+          senderId={senderId}
+          receiverId={profile.receiverId}
+          action="save"
+          highlight={`Saved ${profile.name}`}
           className="rounded-full border border-[#c084fc] px-4 py-2 text-sm font-semibold text-[#7c3aed]"
+          disabled={!profile.actionable}
         >
           Save
-        </button>
-        <button
-          type="button"
+        </LikeActionButton>
+        <LikeActionButton
+          senderId={senderId}
+          receiverId={profile.receiverId}
+          action="like"
+          highlight={`Super-like sent to ${profile.name}`}
           className="rounded-full bg-[#f43f5e] px-4 py-2 text-sm font-semibold text-white"
+          disabled={!profile.actionable}
         >
           Super-like
-        </button>
+        </LikeActionButton>
       </div>
     </Card>
   );
@@ -578,6 +596,46 @@ interface DiscoverPerson {
   distance?: string;
   tags: string[];
   image: string;
+  receiverId?: string;
+  actionable?: boolean;
+}
+
+function LikeActionButton({
+  senderId,
+  receiverId,
+  action,
+  highlight,
+  children,
+  className,
+  disabled,
+}: {
+  senderId?: string | null;
+  receiverId?: string;
+  action: LikeActionType;
+  highlight?: string;
+  children: React.ReactNode;
+  className?: string;
+  disabled?: boolean;
+}) {
+  if (!senderId || !receiverId) {
+    return (
+      <button type="button" className={className} disabled>
+        {children}
+      </button>
+    );
+  }
+
+  return (
+    <form action={applyLikeAction} className="flex-1">
+      <input type="hidden" name="senderId" value={senderId} />
+      <input type="hidden" name="receiverId" value={receiverId} />
+      <input type="hidden" name="action" value={action} />
+      {highlight ? <input type="hidden" name="highlight" value={highlight} /> : null}
+      <button type="submit" className={className} disabled={disabled}>
+        {children}
+      </button>
+    </form>
+  );
 }
 
 interface LikePerson extends DiscoverPerson {
@@ -617,6 +675,8 @@ interface FeedProfile {
   premiumOnly?: boolean;
   interests: string[];
   isLive?: boolean;
+  receiverId?: string;
+  actionable?: boolean;
 }
 
 interface DiscoverFilter {
@@ -696,6 +756,62 @@ async function loadEngagementDashboard(
   }
 }
 
+async function applyLikeAction(formData: FormData) {
+  'use server';
+
+  const senderId = formData.get('senderId')?.toString();
+  const receiverId = formData.get('receiverId')?.toString();
+  const action = formData.get('action')?.toString() as LikeActionType | undefined;
+  const highlight = formData.get('highlight')?.toString();
+
+  if (!senderId || !receiverId || !action) {
+    return;
+  }
+
+  await lovedateApi.likeUser({
+    senderId,
+    receiverId,
+    action,
+    highlight: highlight?.trim() ? highlight : undefined,
+  });
+
+  revalidatePath('/dashboard');
+}
+
+async function nudgeLikeAction(formData: FormData) {
+  'use server';
+
+  const likeId = formData.get('likeId')?.toString();
+  if (!likeId) {
+    return;
+  }
+
+  await lovedateApi.nudgeLike(likeId);
+  revalidatePath('/dashboard');
+}
+
+async function toggleNotificationAction(formData: FormData) {
+  'use server';
+
+  const channel = formData.get('channel')?.toString();
+  const userId = formData.get('userId')?.toString();
+  const enabledRaw = formData.get('enabled')?.toString();
+
+  if (!channel || !userId || typeof enabledRaw === 'undefined') {
+    return;
+  }
+
+  const enabled = enabledRaw === 'true';
+  await lovedateApi.toggleNotification(channel, { userId, enabled });
+  revalidatePath('/dashboard');
+}
+
+export const dashboardServerActions = {
+  applyLikeAction,
+  nudgeLikeAction,
+  toggleNotificationAction,
+};
+
 export default async function DashboardPage(props: DashboardPageProps) {
   const resolvedParams = await Promise.resolve(props.searchParams ?? {});
   const session = getSession();
@@ -763,7 +879,74 @@ export default async function DashboardPage(props: DashboardPageProps) {
     64 + (snapshot.user.isVerified ? 18 : 0) + Math.min(12, devicesTrusted * 3);
   const profileCompletion = Math.min(98, Math.round(profileCompletionRaw));
 
-  const matches = (await loadMatches(userId, 12)) ?? [];
+  const matches = (await loadMatches(userId, 18)) ?? [];
+
+  const fallbackProfilePhoto =
+    'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=900&q=80';
+
+  const formatOrientation = (orientation: string | undefined) =>
+    orientation ? orientation.replace(/_/g, ' ') : 'Private';
+
+  const formatDistance = (distanceKm?: number | null) => {
+    if (typeof distanceKm !== 'number' || Number.isNaN(distanceKm)) {
+      return undefined;
+    }
+    if (distanceKm < 1) {
+      return `${Math.round(distanceKm * 1000)} m`;
+    }
+    return `${Math.round(distanceKm)} km`;
+  };
+
+  const mapMatchToFeedProfile = (match: MatchCandidate): FeedProfile => ({
+    id: match.id,
+    name: match.displayName,
+    age: undefined,
+    distance: formatDistance(match.distanceKm),
+    location: match.cityRegion ? `${match.city} · ${match.cityRegion}` : match.city,
+    orientation: formatOrientation(match.orientation),
+    intent: match.matchPreferences.includes('everyone')
+      ? 'Open to everyone'
+      : match.matchPreferences.includes('women')
+        ? 'Prefers women'
+        : 'Prefers men',
+    bio: match.bio ?? 'Prefers to reveal more in chat.',
+    photo: match.photos[0] ?? fallbackProfilePhoto,
+    verified: match.isVerified,
+    premiumOnly: false,
+    interests: [
+      match.discoverySpace === 'both'
+        ? 'All vibes'
+        : match.discoverySpace === 'lgbtq'
+          ? 'LGBTQ+ orbit'
+          : 'Straight orbit',
+      `${match.compatibilityScore}% vibe`,
+    ],
+    receiverId: match.id,
+    actionable: true,
+  });
+
+  const mapMatchToDiscoverPerson = (match: MatchCandidate): DiscoverPerson => ({
+    id: match.id,
+    name: match.displayName,
+    age: undefined,
+    city: match.cityRegion ? `${match.city} · ${match.cityRegion}` : match.city,
+    distance: formatDistance(match.distanceKm),
+    tags: [
+      formatOrientation(match.orientation),
+      match.discoverySpace === 'both'
+        ? 'All vibes'
+        : match.discoverySpace === 'lgbtq'
+          ? 'LGBTQ+'
+          : 'Straight orbit',
+      `${match.compatibilityScore}% vibe`,
+    ].filter(Boolean),
+    image: match.photos[0] ?? fallbackProfilePhoto,
+    receiverId: match.id,
+    actionable: true,
+  });
+
+  const liveFeedProfiles = matches.map(mapMatchToFeedProfile);
+  const liveDiscoverPeople = matches.map(mapMatchToDiscoverPerson);
 
   const engagementFallback: EngagementDashboardResponse = engagement ?? {
     receivedLikes: [],
@@ -775,38 +958,40 @@ export default async function DashboardPage(props: DashboardPageProps) {
     discoverFilters: [],
   };
 
-  const discoverPeople: DiscoverPerson[] = [
-    {
-      id: 'peter',
-      name: 'Peter',
-      age: 29,
-      city: 'Brooklyn, NY',
-      distance: '3 mi',
-      tags: ['Travel', 'Photography', 'Dogs'],
-      image:
-        'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=900&q=80',
-    },
-    {
-      id: 'chloe',
-      name: 'Chloe',
-      age: 25,
-      city: 'SoHo, NY',
-      distance: '5 mi',
-      tags: ['Art', 'Ceramics'],
-      image:
-        'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=900&q=80',
-    },
-    {
-      id: 'aaron',
-      name: 'Aaron',
-      age: 32,
-      city: 'Lower East Side, NY',
-      distance: '1 mi',
-      tags: ['Coffee shops', 'Film festivals'],
-      image:
-        'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=900&q=80',
-    },
-  ];
+  const discoverPeople: DiscoverPerson[] = liveDiscoverPeople.length
+    ? liveDiscoverPeople.slice(0, 9)
+    : [
+        {
+          id: 'peter',
+          name: 'Peter',
+          age: 29,
+          city: 'Brooklyn, NY',
+          distance: '3 mi',
+          tags: ['Travel', 'Photography', 'Dogs'],
+          image:
+            'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=900&q=80',
+        },
+        {
+          id: 'chloe',
+          name: 'Chloe',
+          age: 25,
+          city: 'SoHo, NY',
+          distance: '5 mi',
+          tags: ['Art', 'Ceramics'],
+          image:
+            'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=900&q=80',
+        },
+        {
+          id: 'aaron',
+          name: 'Aaron',
+          age: 32,
+          city: 'Lower East Side, NY',
+          distance: '1 mi',
+          tags: ['Coffee shops', 'Film festivals'],
+          image:
+            'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=900&q=80',
+        },
+      ];
 
   const likesGiven: LikePerson[] = engagementFallback.sentLikes.map((like) => ({
     id: like.id,
@@ -843,25 +1028,8 @@ export default async function DashboardPage(props: DashboardPageProps) {
     },
   ];
 
-  const feedProfiles: FeedProfile[] = matches.length
-    ? matches.slice(0, 6).map((match) => ({
-        id: match.id,
-        name: match.displayName,
-        age: undefined,
-        distance: undefined,
-        location: match.city,
-        orientation: match.orientation,
-        intent: match.matchPreferences.includes('everyone')
-          ? 'Open to everyone'
-          : 'Selective matches',
-        bio: match.bio ?? 'Prefers to reveal more in chat.',
-        photo:
-          match.photos[0] ??
-          'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=900&q=80',
-        verified: match.isVerified,
-        premiumOnly: false,
-        interests: [match.discoverySpace, `${match.compatibilityScore}% vibe`],
-      }))
+  const feedProfiles: FeedProfile[] = liveFeedProfiles.length
+    ? liveFeedProfiles.slice(0, 6)
     : [
         {
           id: 'marco',
@@ -1180,7 +1348,7 @@ export default async function DashboardPage(props: DashboardPageProps) {
                 </span>
               </div>
             </div>
-            <HomeFeed profiles={feedProfiles} />
+            <HomeFeed profiles={feedProfiles} senderId={userId} />
           </section>
 
           <section className="grid gap-6 xl:grid-cols-[1.8fr,1fr]" id="overview">
@@ -1251,7 +1419,7 @@ export default async function DashboardPage(props: DashboardPageProps) {
           <section className="grid gap-6 xl:grid-cols-[1.7fr,1fr]">
             <div id="discover" className="space-y-5">
               <DiscoverFilters filters={discoverFilters} />
-              <DiscoverGrid people={discoverPeople} />
+              <DiscoverGrid people={discoverPeople} senderId={userId} />
             </div>
             <div id="likes">
               <LikesPanel likes={likesYou} />
@@ -1362,7 +1530,7 @@ function SidebarNav({
   );
 }
 
-function DiscoverGrid({ people }: { people: DiscoverPerson[] }) {
+function DiscoverGrid({ people, senderId }: { people: DiscoverPerson[]; senderId?: string }) {
   return (
     <Card className="space-y-5 border-none bg-white p-6 shadow-[0_20px_60px_rgba(15,23,42,0.08)]">
       <header className="flex flex-wrap items-center justify-between gap-3">
@@ -1398,14 +1566,14 @@ function DiscoverGrid({ people }: { people: DiscoverPerson[] }) {
       </header>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {people.map((person) => (
-          <DiscoverCard key={person.id} person={person} />
+          <DiscoverCard key={person.id} person={person} senderId={senderId} />
         ))}
       </div>
     </Card>
   );
 }
 
-function DiscoverCard({ person }: { person: DiscoverPerson }) {
+function DiscoverCard({ person, senderId }: { person: DiscoverPerson; senderId?: string }) {
   return (
     <div className="rounded-3xl border border-[#eef2ff] bg-white shadow-[0_15px_40px_rgba(15,23,42,0.05)]">
       <div className="relative aspect-[4/3] overflow-hidden rounded-3xl">
@@ -1442,18 +1610,26 @@ function DiscoverCard({ person }: { person: DiscoverPerson }) {
           ))}
         </div>
         <div className="flex flex-wrap gap-2 pt-3">
-          <Link
-            href={`/matches?highlight=${encodeURIComponent(person.id)}`}
+          <LikeActionButton
+            senderId={senderId}
+            receiverId={person.receiverId}
+            action="like"
+            highlight={`Discovery hi to ${person.name}`}
             className="flex-1 rounded-full bg-[#4338ca] px-4 py-2 text-center text-sm font-semibold text-white"
+            disabled={!person.actionable}
           >
             Say hi
-          </Link>
-          <Link
-            href={`/matches?saved=${encodeURIComponent(person.id)}`}
+          </LikeActionButton>
+          <LikeActionButton
+            senderId={senderId}
+            receiverId={person.receiverId}
+            action="save"
+            highlight={`Saved discovery profile ${person.name}`}
             className="rounded-full border border-[#e2e8f0] px-4 py-2 text-sm font-semibold text-[#4338ca]"
+            disabled={!person.actionable}
           >
             Save
-          </Link>
+          </LikeActionButton>
         </div>
       </div>
     </div>
