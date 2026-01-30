@@ -890,6 +890,7 @@ interface LikePerson extends DiscoverPerson {
   highlight: string;
   likeEdgeId?: string;
   premiumOnly?: boolean;
+  verified?: boolean;
 }
 
 interface MatchPreview {
@@ -1287,28 +1288,7 @@ export default async function DashboardPage(props: DashboardPageProps) {
     actionable: true,
   });
 
-  const mapMatchToDiscoverPerson = (match: MatchCandidate): DiscoverPerson => ({
-    id: match.id,
-    name: match.displayName,
-    age: undefined,
-    city: match.cityRegion ? `${match.city} · ${match.cityRegion}` : match.city,
-    distance: formatDistance(match.distanceKm),
-    tags: [
-      formatOrientation(match.orientation),
-      match.discoverySpace === 'both'
-        ? 'All vibes'
-        : match.discoverySpace === 'lgbtq'
-          ? 'LGBTQ+'
-          : 'Straight orbit',
-      `${match.compatibilityScore}% vibe`,
-    ].filter(Boolean),
-    image: match.photos[0] ?? fallbackProfilePhoto,
-    receiverId: match.id,
-    actionable: true,
-  });
-
   const liveFeedProfiles = matches.map(mapMatchToFeedProfile);
-  const liveDiscoverPeople = matches.map(mapMatchToDiscoverPerson);
 
   const engagementFallback: EngagementDashboardResponse = engagement ?? {
     receivedLikes: [],
@@ -1319,41 +1299,6 @@ export default async function DashboardPage(props: DashboardPageProps) {
     settingsShortcuts: [],
     discoverFilters: [],
   };
-
-  const discoverPeople: DiscoverPerson[] = liveDiscoverPeople.length
-    ? liveDiscoverPeople.slice(0, 9)
-    : [
-        {
-          id: 'peter',
-          name: 'Peter',
-          age: 29,
-          city: 'Brooklyn, NY',
-          distance: '3 mi',
-          tags: ['Travel', 'Photography', 'Dogs'],
-          image:
-            'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=900&q=80',
-        },
-        {
-          id: 'chloe',
-          name: 'Chloe',
-          age: 25,
-          city: 'SoHo, NY',
-          distance: '5 mi',
-          tags: ['Art', 'Ceramics'],
-          image:
-            'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=900&q=80',
-        },
-        {
-          id: 'aaron',
-          name: 'Aaron',
-          age: 32,
-          city: 'Lower East Side, NY',
-          distance: '1 mi',
-          tags: ['Coffee shops', 'Film festivals'],
-          image:
-            'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=900&q=80',
-        },
-      ];
 
   const likesGiven: LikePerson[] = engagementFallback.sentLikes.map((like) => ({
     id: like.id,
@@ -1745,8 +1690,12 @@ export default async function DashboardPage(props: DashboardPageProps) {
 
           <section className="grid gap-6 xl:grid-cols-[1.7fr,1fr]">
             <div id="discover" className="space-y-5">
-              <DiscoverFilters filters={discoverFilters} />
-              <DiscoverGrid people={discoverPeople} senderId={userId} />
+              <DiscoverFilters
+                filters={discoverFilters}
+                activeMode={discoverFeed.mode}
+                userId={userId}
+              />
+              <DiscoverGrid people={discoverPeople} senderId={userId} mode={discoverFeed.mode} />
             </div>
             <div id="likes">
               <LikesPanel likes={likesYou} />
@@ -1857,7 +1806,15 @@ function SidebarNav({
   );
 }
 
-function DiscoverGrid({ people, senderId }: { people: DiscoverPerson[]; senderId?: string }) {
+function DiscoverGrid({
+  people,
+  senderId,
+  mode,
+}: {
+  people: DiscoverPerson[];
+  senderId?: string;
+  mode: DiscoverFeedMode;
+}) {
   return (
     <Card className="space-y-5 border-none bg-white p-6 shadow-[0_20px_60px_rgba(15,23,42,0.08)]">
       <header className="flex flex-wrap items-center justify-between gap-3">
@@ -1893,14 +1850,22 @@ function DiscoverGrid({ people, senderId }: { people: DiscoverPerson[]; senderId
       </header>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {people.map((person) => (
-          <DiscoverCard key={person.id} person={person} senderId={senderId} />
+          <DiscoverCard key={person.id} person={person} senderId={senderId} mode={mode} />
         ))}
       </div>
     </Card>
   );
 }
 
-function DiscoverCard({ person, senderId }: { person: DiscoverPerson; senderId?: string }) {
+function DiscoverCard({
+  person,
+  senderId,
+  mode,
+}: {
+  person: DiscoverPerson;
+  senderId?: string;
+  mode: DiscoverFeedMode;
+}) {
   return (
     <div className="rounded-3xl border border-[#eef2ff] bg-white shadow-[0_15px_40px_rgba(15,23,42,0.05)]">
       <div className="relative aspect-[4/3] overflow-hidden rounded-3xl">
@@ -1944,6 +1909,12 @@ function DiscoverCard({ person, senderId }: { person: DiscoverPerson; senderId?:
             highlight={`Discovery hi to ${person.name}`}
             className="flex-1 rounded-full bg-[#4338ca] px-4 py-2 text-center text-sm font-semibold text-white"
             disabled={!person.actionable}
+            telemetry={{
+              action: 'like',
+              cardUserId: person.receiverId ?? person.id,
+              filter: person.mode ?? mode,
+              surface: 'discover_grid',
+            }}
           >
             Say hi
           </LikeActionButton>
@@ -1954,6 +1925,12 @@ function DiscoverCard({ person, senderId }: { person: DiscoverPerson; senderId?:
             highlight={`Saved discovery profile ${person.name}`}
             className="rounded-full border border-[#e2e8f0] px-4 py-2 text-sm font-semibold text-[#4338ca]"
             disabled={!person.actionable}
+            telemetry={{
+              action: 'save',
+              cardUserId: person.receiverId ?? person.id,
+              filter: person.mode ?? mode,
+              surface: 'discover_grid',
+            }}
           >
             Save
           </LikeActionButton>
