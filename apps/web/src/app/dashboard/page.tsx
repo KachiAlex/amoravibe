@@ -32,6 +32,7 @@ import type {
 import { lovedateApi } from '@/lib/api';
 import { getSession } from '@/lib/session';
 import { loadLocalThreads } from '@/lib/messaging';
+import { LikeActionSubmitButton } from './like-action-submit-button';
 
 const sidebarFont = Space_Grotesk({ subsets: ['latin'], weight: ['400', '500', '600'] });
 
@@ -836,6 +837,7 @@ function LikeActionButton({
   className,
   disabled,
   telemetry,
+  pendingLabel,
 }: {
   senderId?: string | null;
   receiverId?: string;
@@ -850,6 +852,7 @@ function LikeActionButton({
     filter?: DiscoverFeedMode;
     surface?: string;
   };
+  pendingLabel?: string;
 }) {
   if (!senderId || !receiverId) {
     return (
@@ -858,6 +861,10 @@ function LikeActionButton({
       </button>
     );
   }
+
+  const defaultPendingLabel =
+    action === 'pass' ? 'Passing…' : action === 'save' ? 'Saving…' : 'Sending…';
+  const resolvedPendingLabel = pendingLabel ?? defaultPendingLabel;
 
   return (
     <form action={applyLikeAction} className="flex-1">
@@ -879,9 +886,13 @@ function LikeActionButton({
           ) : null}
         </>
       ) : null}
-      <button type="submit" className={className} disabled={disabled}>
+      <LikeActionSubmitButton
+        className={className}
+        disabled={disabled}
+        pendingLabel={resolvedPendingLabel}
+      >
         {children}
-      </button>
+      </LikeActionSubmitButton>
     </form>
   );
 }
@@ -890,7 +901,6 @@ interface LikePerson extends DiscoverPerson {
   highlight: string;
   likeEdgeId?: string;
   premiumOnly?: boolean;
-  verified?: boolean;
 }
 
 interface MatchPreview {
@@ -1311,6 +1321,7 @@ export default async function DashboardPage(props: DashboardPageProps) {
     highlight: like.highlight,
     image: like.image,
     premiumOnly: like.premiumOnly,
+    verified: like.verified ?? false,
   }));
 
   const profilePhotos = Array.isArray((snapshot as any)?.user?.photos)
@@ -1337,7 +1348,7 @@ export default async function DashboardPage(props: DashboardPageProps) {
 
   const feedProfiles: FeedProfile[] = liveFeedProfiles.length
     ? liveFeedProfiles.slice(0, 6)
-    : [
+    : ([
         {
           id: 'marco',
           name: 'Marco',
@@ -1381,7 +1392,20 @@ export default async function DashboardPage(props: DashboardPageProps) {
           verified: false,
           interests: ['Outdoors', 'Tech ethics', 'Foodie'],
         },
-      ];
+        {
+          id: 'sasha',
+          name: 'Sasha',
+          age: 26,
+          city: 'Williamsburg',
+          distance: '6 mi',
+          tags: ['Wellness', 'Foodie'],
+          highlight: 'Shared a playlist',
+          image:
+            'https://images.unsplash.com/photo-1504593811423-6dd665756598?auto=format&fit=crop&w=600&q=80',
+          verified: false,
+          interests: ['Wellness', 'Foodie'],
+        },
+      ] as FeedProfile[]);
 
   const likesYou: LikePerson[] = engagementFallback.receivedLikes.length
     ? engagementFallback.receivedLikes.map((like) => ({
@@ -1395,6 +1419,7 @@ export default async function DashboardPage(props: DashboardPageProps) {
         highlight: like.highlight,
         image: like.image,
         premiumOnly: like.premiumOnly,
+        verified: like.verified ?? false,
       }))
     : [
         {
@@ -1407,6 +1432,7 @@ export default async function DashboardPage(props: DashboardPageProps) {
           highlight: 'Sent a compliment',
           image:
             'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=600&q=80',
+          verified: true,
         },
         {
           id: 'sasha',
@@ -1418,6 +1444,7 @@ export default async function DashboardPage(props: DashboardPageProps) {
           highlight: 'Shared a playlist',
           image:
             'https://images.unsplash.com/photo-1504593811423-6dd665756598?auto=format&fit=crop&w=600&q=80',
+          verified: false,
         },
       ];
 
@@ -1866,6 +1893,9 @@ function DiscoverCard({
   senderId?: string;
   mode: DiscoverFeedMode;
 }) {
+  const cardUserId = person.receiverId ?? person.id;
+  const filterMode = person.mode ?? mode;
+
   return (
     <div className="rounded-3xl border border-[#eef2ff] bg-white shadow-[0_15px_40px_rgba(15,23,42,0.05)]">
       <div className="relative aspect-[4/3] overflow-hidden rounded-3xl">
@@ -1911,8 +1941,8 @@ function DiscoverCard({
             disabled={!person.actionable}
             telemetry={{
               action: 'like',
-              cardUserId: person.receiverId ?? person.id,
-              filter: person.mode ?? mode,
+              cardUserId,
+              filter: filterMode,
               surface: 'discover_grid',
             }}
           >
@@ -1927,14 +1957,55 @@ function DiscoverCard({
             disabled={!person.actionable}
             telemetry={{
               action: 'save',
-              cardUserId: person.receiverId ?? person.id,
-              filter: person.mode ?? mode,
+              cardUserId,
+              filter: filterMode,
               surface: 'discover_grid',
             }}
           >
             Save
           </LikeActionButton>
+          <LikeActionButton
+            senderId={senderId}
+            receiverId={person.receiverId}
+            action="pass"
+            highlight={`Passed on ${person.name}`}
+            className="rounded-full border border-[#fee2e2] px-4 py-2 text-sm font-semibold text-[#b91c1c]"
+            disabled={!person.actionable}
+            telemetry={{
+              action: 'pass',
+              cardUserId,
+              filter: filterMode,
+              surface: 'discover_grid',
+            }}
+            pendingLabel="Passing…"
+          >
+            Pass
+          </LikeActionButton>
         </div>
+        {senderId ? (
+          <div className="flex flex-wrap gap-2 pt-3 text-sm">
+            <form action={trackDiscoverEventAction} className="flex-1">
+              <input type="hidden" name="userId" value={senderId} />
+              <input type="hidden" name="action" value="view" />
+              <input type="hidden" name="cardUserId" value={cardUserId} />
+              <input type="hidden" name="filter" value={filterMode} />
+              <input type="hidden" name="surface" value="discover_grid" />
+              <LikeActionSubmitButton className="w-full rounded-full border border-[#e2e8f0] px-4 py-2 font-semibold text-[#0f172a]">
+                View profile
+              </LikeActionSubmitButton>
+            </form>
+            <form action={trackDiscoverEventAction} className="flex-1">
+              <input type="hidden" name="userId" value={senderId} />
+              <input type="hidden" name="action" value="dismiss" />
+              <input type="hidden" name="cardUserId" value={cardUserId} />
+              <input type="hidden" name="filter" value={filterMode} />
+              <input type="hidden" name="surface" value="discover_grid" />
+              <LikeActionSubmitButton className="w-full rounded-full border border-[#ffe4e6] px-4 py-2 font-semibold text-[#be123c]">
+                Dismiss
+              </LikeActionSubmitButton>
+            </form>
+          </div>
+        ) : null}
       </div>
     </div>
   );
@@ -1979,6 +2050,11 @@ function LikeCard({ like }: { like: LikePerson }) {
         <p className="text-base font-semibold text-[#0f172a]">
           {like.name}, {like.age}
         </p>
+        {like.verified ? (
+          <span className="inline-flex items-center gap-1 text-xs font-semibold text-[#0ea5e9]">
+            <span className="inline-block h-1.5 w-1.5 rounded-full bg-[#0ea5e9]" /> Verified
+          </span>
+        ) : null}
         <p className="text-sm text-[#94a3b8]">{like.highlight}</p>
         <div className="text-xs text-[#6366f1]">{like.tags.join(' • ')}</div>
       </div>

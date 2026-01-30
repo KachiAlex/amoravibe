@@ -48,7 +48,16 @@ enum VisibilityStatus {
 enum LikeEdgeStatus {
   pending
   matched
-  dismissed
+  passed
+}
+
+enum DiscoverEventAction {
+  view
+  like
+  pass
+  save
+  dismiss
+  filter
 }
 
 enum VerificationIntent {
@@ -474,4 +483,22 @@ model DiscoverFilter {
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model DiscoverEvent {
+  id        String               @id @default(uuid())
+  userId    String
+  cardUserId String?
+  action    DiscoverEventAction
+  surface   String?
+  filter    String?
+  latencyMs Int?
+  metadata  Json?
+  createdAt DateTime             @default(now())
+
+  user      User                 @relation(fields: [userId], references: [id])
+  cardUser  User?                @relation("DiscoverEventCardUser", fields: [cardUserId], references: [id])
+
+  @@index([userId, createdAt])
+  @@index([cardUserId])
 }

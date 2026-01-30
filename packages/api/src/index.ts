@@ -325,6 +325,7 @@ export interface EngagementLike {
   highlight: string;
   tags: string[];
   premiumOnly?: boolean;
+  verified?: boolean;
 }
 
 export interface EngagementNotificationPreference {
@@ -382,6 +383,61 @@ export interface LikeActionPayload {
 export interface NotificationTogglePayload {
   userId: string;
   enabled: boolean;
+}
+
+export type DiscoverFeedMode = 'default' | 'verified' | 'nearby' | 'fresh' | 'premium' | 'shared';
+
+export interface DiscoverFilterOption {
+  label: string;
+  helper: string;
+  value: DiscoverFeedMode;
+  premium?: boolean;
+  active?: boolean;
+}
+
+export interface DiscoverCard {
+  id: string;
+  name: string;
+  age?: number | null;
+  city?: string | null;
+  cityRegion?: string | null;
+  distance?: string | null;
+  distanceKm?: number | null;
+  tags: string[];
+  image: string;
+  compatibility: number;
+  verified: boolean;
+  premiumOnly?: boolean;
+  receiverId: string;
+  actionable: boolean;
+}
+
+export interface DiscoverFeedResponse {
+  hero: DiscoverCard | null;
+  featured: DiscoverCard[];
+  grid: DiscoverCard[];
+  filters: DiscoverFilterOption[];
+  total: number;
+  mode: DiscoverFeedMode;
+  generatedAt: string;
+}
+
+export interface DiscoverFeedParams {
+  userId: string;
+  mode?: DiscoverFeedMode;
+  limit?: number;
+}
+
+export type DiscoverEventAction = 'view' | 'like' | 'pass' | 'save' | 'dismiss' | 'filter';
+
+export interface DiscoverEventPayload {
+  userId: string;
+  action: DiscoverEventAction;
+  cardUserId?: string;
+  surface?: string;
+  filter?: DiscoverFeedMode;
+  latencyMs?: number;
+  metadata?: Record<string, unknown>;
 }
 
 export class LovedateApi {
@@ -452,6 +508,26 @@ export class LovedateApi {
       payload,
       { method: 'PATCH' }
     );
+  }
+
+  fetchDiscoverFeed(params: DiscoverFeedParams): Promise<DiscoverFeedResponse> {
+    const query = new URLSearchParams();
+    if (params.mode) {
+      query.set('mode', params.mode);
+    }
+    if (typeof params.limit === 'number') {
+      query.set('limit', params.limit.toString());
+    }
+
+    const queryString = query.toString();
+    const suffix = queryString ? `?${queryString}` : '';
+    return this.client.get<DiscoverFeedResponse>(
+      `/discover/feed/${encodeURIComponent(params.userId)}${suffix}`
+    );
+  }
+
+  trackDiscoverEvent(payload: DiscoverEventPayload): Promise<void> {
+    return this.client.post<void>('/discover/events', payload);
   }
 }
 

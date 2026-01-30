@@ -292,6 +292,7 @@ export class EngagementService {
         like.highlight ??
         (perspective === 'sender' ? 'Blurred for privacy' : 'You liked this member'),
       tags: like.tags ?? [],
+      verified: person.isVerified ?? false,
     };
   }
 

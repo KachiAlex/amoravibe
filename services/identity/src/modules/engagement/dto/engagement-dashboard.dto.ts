@@ -8,6 +8,7 @@ export interface EngagementLikeDto {
   highlight: string;
   tags: string[];
   premiumOnly?: boolean;
+  verified?: boolean;
 }
 
 export interface EngagementNotificationPreferenceDto {
