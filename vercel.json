@@ -1,6 +1,5 @@
 {
   "version": 2,
-  "name": "amoravibe-web",
   "public": true,
   "builds": [
     {
@@ -11,7 +10,8 @@
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "/apps/web/$1"
+      "dest": "apps/web/$1"
     }
-  ]
+  ],
+  "installCommand": "npm install --legacy-peer-deps"
 }
