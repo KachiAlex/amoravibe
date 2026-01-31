@@ -1,11 +1,4 @@
 import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
-
-const upstreamBase = (
-  process.env.TRUST_API_PROXY_TARGET ||
-  process.env.NEXT_PUBLIC_TRUST_API_URL ||
-  'http://localhost:4001/api/v1'
-).replace(/\/$/, '');
 
 /**
  * Mock response for onboarding (identity service lambda not working on Vercel)
@@ -24,9 +17,8 @@ function getMockOnboardingResponse() {
  * Proxy for POST /api/trust/onboarding
  * Currently returns mock response (identity service lambda timeout)
  */
-export async function POST(request: NextRequest) {
+export async function POST() {
   try {
-    const body = await request.text();
     console.info('[Trust API] POST /onboarding received');
 
     // For now, return mock response to unblock onboarding flow
@@ -45,7 +37,7 @@ export async function POST(request: NextRequest) {
  * Proxy for GET /api/trust/onboarding/status
  * Currently returns mock response
  */
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     console.info('[Trust API] GET /onboarding/status received');
 
