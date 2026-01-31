@@ -4,6 +4,8 @@ import type { TrustPreviewResponse } from '@lovedate/api';
 import { lovedateApi } from '@/lib/api';
 import PrivacyActionsPanel from './privacy-actions-panel';
 
+export const dynamic = 'force-dynamic';
+
 const fallbackPreview: TrustPreviewResponse = {
   snapshotLabel: 'Lovedate · Phase 5',
   stats: {
