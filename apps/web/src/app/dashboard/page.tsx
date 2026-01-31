@@ -199,12 +199,13 @@ const mapCardToDiscoverPerson = (card: DiscoverCard, mode: DiscoverFeedMode): Di
   mode,
 });
 
-const STATUS_TONE_STYLES: Record<MessageThread['status']['tone'], { pill: string; dot: string }> = {
-  violet: { pill: 'bg-[#f5f3ff] text-[#5b21b6]', dot: 'bg-[#a78bfa]' },
-  rose: { pill: 'bg-[#fef2f2] text-[#b91c1c]', dot: 'bg-[#fb7185]' },
-  amber: { pill: 'bg-[#fffbeb] text-[#a16207]', dot: 'bg-[#f59e0b]' },
-  emerald: { pill: 'bg-[#ecfdf5] text-[#047857]', dot: 'bg-[#34d399]' },
-};
+const STATUS_TONE_STYLES: Record<MessagingThread['status']['tone'], { pill: string; dot: string }> =
+  {
+    violet: { pill: 'bg-[#f5f3ff] text-[#5b21b6]', dot: 'bg-[#a78bfa]' },
+    rose: { pill: 'bg-[#fef2f2] text-[#b91c1c]', dot: 'bg-[#fb7185]' },
+    amber: { pill: 'bg-[#fffbeb] text-[#a16207]', dot: 'bg-[#f59e0b]' },
+    emerald: { pill: 'bg-[#ecfdf5] text-[#047857]', dot: 'bg-[#34d399]' },
+  };
 
 type IconType = ComponentType<{ className?: string }>;
 
@@ -397,7 +398,7 @@ function LikesSplitPanel({ received, sent }: { received: LikePerson[]; sent: Lik
   );
 }
 
-function MessagesInbox({ threads }: { threads: MessageThread[] }) {
+function MessagesInbox({ threads }: { threads: MessagingThread[] }) {
   return (
     <Card className="space-y-4 border-none bg-white p-6 shadow-[0_18px_50px_rgba(15,23,42,0.1)]">
       <header className="flex items-center justify-between">
@@ -2081,7 +2082,13 @@ function LikeCard({ like }: { like: LikePerson }) {
   );
 }
 
-function RightRail({ matches, messages }: { matches: MatchPreview[]; messages: MessageThread[] }) {
+function RightRail({
+  matches,
+  messages,
+}: {
+  matches: MatchPreview[];
+  messages: MessagingThread[];
+}) {
   return (
     <div className="space-y-5">
       <Card
@@ -2158,7 +2165,7 @@ function MatchSnippet({ match }: { match: MatchPreview }) {
   );
 }
 
-function MessageSnippet({ thread }: { thread: MessageThread }) {
+function MessageSnippet({ thread }: { thread: MessagingThread }) {
   const toneStyles = STATUS_TONE_STYLES[thread.status.tone];
   return (
     <Link
