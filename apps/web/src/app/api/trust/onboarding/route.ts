@@ -8,97 +8,58 @@ const upstreamBase = (
 ).replace(/\/$/, '');
 
 /**
+ * Mock response for onboarding (identity service lambda not working on Vercel)
+ * TODO: Remove this mock once identity service is fixed for serverless
+ */
+function getMockOnboardingResponse() {
+  return {
+    success: true,
+    message: 'Onboarding completed successfully (mock response)',
+    userId: 'user-' + Math.random().toString(36).slice(2, 11),
+    redirectUrl: '/dashboard',
+  };
+}
+
+/**
  * Proxy for POST /api/trust/onboarding
- * Forwards to upstream identity service
+ * Currently returns mock response (identity service lambda timeout)
  */
 export async function POST(request: NextRequest) {
   try {
     const body = await request.text();
-    const url = `${upstreamBase}/onboarding`;
+    console.info('[Trust API] POST /onboarding received');
 
-    console.info('[Trust API Proxy] POST /onboarding ->', url);
+    // For now, return mock response to unblock onboarding flow
+    // TODO: Replace with actual identity service call when lambda is fixed
+    const mockResponse = getMockOnboardingResponse();
 
-    // Build headers, excluding host to avoid conflicts
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-    };
-    request.headers.forEach((value, key) => {
-      if (!['host', 'connection', 'content-type'].includes(key.toLowerCase())) {
-        headers[key] = value;
-      }
-    });
-
-    // Add auth header if available
-    if (process.env.TRUST_API_KEY) {
-      headers['x-api-key'] = process.env.TRUST_API_KEY;
-    }
-
-    const upstreamResponse = await fetch(url, {
-      method: 'POST',
-      headers,
-      body,
-    });
-
-    const responseBody = await upstreamResponse.text();
-
-    console.info('[Trust API Proxy] POST /onboarding <-', upstreamResponse.status);
-
-    return new NextResponse(responseBody, {
-      status: upstreamResponse.status,
-      statusText: upstreamResponse.statusText,
-      headers: {
-        'Content-Type': upstreamResponse.headers.get('content-type') || 'application/json',
-      },
-    });
+    console.info('[Trust API] POST /onboarding ->', 'mock response (200)');
+    return NextResponse.json(mockResponse, { status: 200 });
   } catch (error) {
-    console.error('[Trust API Proxy] Onboarding error:', error);
-    return NextResponse.json({ message: 'Failed to reach onboarding service' }, { status: 503 });
+    console.error('[Trust API] Onboarding error:', error);
+    return NextResponse.json({ message: 'Failed to process onboarding' }, { status: 503 });
   }
 }
 
 /**
  * Proxy for GET /api/trust/onboarding/status
+ * Currently returns mock response
  */
 export async function GET(request: NextRequest) {
   try {
-    const search = request.nextUrl.search;
-    const url = `${upstreamBase}/onboarding/status${search}`;
+    console.info('[Trust API] GET /onboarding/status received');
 
-    console.info('[Trust API Proxy] GET /onboarding/status ->', url);
-
-    // Build headers
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-    };
-    request.headers.forEach((value, key) => {
-      if (!['host', 'connection', 'content-type'].includes(key.toLowerCase())) {
-        headers[key] = value;
-      }
-    });
-
-    // Add auth header if available
-    if (process.env.TRUST_API_KEY) {
-      headers['x-api-key'] = process.env.TRUST_API_KEY;
-    }
-
-    const upstreamResponse = await fetch(url, {
-      method: 'GET',
-      headers,
-    });
-
-    const responseBody = await upstreamResponse.text();
-
-    console.info('[Trust API Proxy] GET /onboarding/status <-', upstreamResponse.status);
-
-    return new NextResponse(responseBody, {
-      status: upstreamResponse.status,
-      statusText: upstreamResponse.statusText,
-      headers: {
-        'Content-Type': upstreamResponse.headers.get('content-type') || 'application/json',
+    // Return mock status response to unblock onboarding checks
+    return NextResponse.json(
+      {
+        success: true,
+        status: 'completed',
+        message: 'Onboarding status (mock response)',
       },
-    });
+      { status: 200 }
+    );
   } catch (error) {
-    console.error('[Trust API Proxy] Onboarding status error:', error);
-    return NextResponse.json({ message: 'Failed to reach onboarding service' }, { status: 503 });
+    console.error('[Trust API] Onboarding status error:', error);
+    return NextResponse.json({ message: 'Failed to check onboarding status' }, { status: 503 });
   }
 }
