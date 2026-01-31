@@ -10,12 +10,14 @@
   },
   "dependencies": {
     "@lovedate/api": "file:../../packages/api",
+    "@lovedate/ui": "file:../../packages/ui",
+    "@upstash/ratelimit": "^2.0.8",
+    "@upstash/redis": "^1.36.1",
+    "lucide-react": "^0.344.0",
+    "motion": "^12.23.24",
     "next": "14.2.5",
     "react": "^18",
-    "react-dom": "^18",
-    "@lovedate/ui": "file:../../packages/ui",
-    "lucide-react": "^0.344.0",
-    "motion": "^12.23.24"
+    "react-dom": "^18"
   },
   "devDependencies": {
     "@types/node": "^20",

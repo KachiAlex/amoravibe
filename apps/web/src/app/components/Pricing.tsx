@@ -127,15 +127,16 @@ export function Pricing() {
 
                 {/* CTA Button */}
                 <div className="p-8 pt-0">
-                  <button
-                    className={`w-full py-3 px-6 rounded-full font-medium transition-all ${
+                  <Link
+                    href="/onboarding"
+                    className={`w-full inline-block py-3 px-6 rounded-full font-medium transition-all text-center ${
                       plan.popular
                         ? 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white'
                         : 'bg-white border-2 border-gray-300 hover:border-gray-400 text-gray-900'
                     }`}
                   >
                     {plan.name === 'Free' ? 'Get Started Free' : `Choose ${plan.name}`}
-                  </button>
+                  </Link>
                 </div>
               </div>
             </div>

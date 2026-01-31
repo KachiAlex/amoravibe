@@ -1,83 +1,53 @@
+'use client';
+
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, ShieldCheck, Sparkles, Smartphone, Fingerprint } from 'lucide-react';
-import { PillButton, Card, Badge } from '@lovedate/ui';
-import { Onboarding } from '@/app/components/Onboarding';
-import { OpenOnboardingButton } from '@/app/onboarding/OpenOnboardingButton';
-
-const reassurancePoints = [
-  'Persona-backed identity verification with concierge fallback.',
-  'Device fingerprinting + passkey pairing before messaging unlocks.',
-  'Privacy controls (export, delete, pause) wired into the Trust Center pipeline.',
-];
-
-const accelerators = [
-  {
-    icon: ShieldCheck,
-    title: 'Identity proof',
-    body: 'Government ID + selfie match complete in under two minutes.',
-  },
-  {
-    icon: Sparkles,
-    title: 'Values inventory',
-    body: 'Pronouns, orientation, boundaries, and intent captured once and synced to discovery.',
-  },
-  {
-    icon: Smartphone,
-    title: 'Device aura',
-    body: 'Trusted devices + behavioral biometrics registered for live threat monitoring.',
-  },
-  {
-    icon: Fingerprint,
-    title: 'Trust review',
-    body: 'Preview your Trust Center snapshot and privacy levers before you meet anyone new.',
-  },
-];
-
-export const metadata = {
-  title: 'Lovedate · Onboarding',
-  description:
-    'Complete the Lovedate trust ritual so you can access the dashboard, discovery, and messaging surfaces.',
-};
+import { ArrowLeft } from 'lucide-react';
+import { OnboardingFlow } from '@/app/components/OnboardingFlow';
 
 export default function OnboardingPage() {
-  return (
-    <main className="min-h-screen bg-[#050616] text-white">
-      <div className="mx-auto flex max-w-6xl flex-col gap-16 px-6 py-16 sm:px-10 lg:px-16">
-        <header className="space-y-6">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 text-sm text-white/70 transition hover:text-white"
-          >
-            <ArrowLeft className="h-4 w-4" /> Back to welcome
-          </Link>
-          <div className="space-y-4">
-            <Badge
-              tone="primary"
-              className="bg-white/10 text-xs uppercase tracking-[0.4em] text-white"
-            >
-              Lovedate onboarding ritual
-            </Badge>
-            <h1 className="font-display text-4xl leading-tight sm:text-5xl">
-              Finish onboarding to unlock the Trust Center + discovery orbit
-            </h1>
-            <p className="max-w-3xl text-white/80">
-              Complete six guided steps covering identity, preferences, devices, and privacy. Once
-              finished, you&apos;ll jump straight into the dashboard with a live trust snapshot,
-              discovery feed, and messaging inbox.
-            </p>
-            <div className="flex flex-wrap gap-4">
-              <PillButton asChild>
-                <OpenOnboardingButton className="bg-white text-[#050616] hover:bg-white/90">
-                  Open onboarding flow
-                </OpenOnboardingButton>
-              </PillButton>
-              <PillButton variant="outline" asChild>
-                <Link href="/trust-center">Preview trust center</Link>
-              </PillButton>
-            </div>
-          </div>
-        </header>
+  const router = useRouter();
 
+  const handleComplete = () => {
+    // Redirect to dashboard after successful onboarding
+    router.push('/dashboard');
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+      <div className="container mx-auto px-4 py-8">
+        <Link
+          href="/"
+          className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 mb-8"
+        >
+          <ArrowLeft className="h-4 w-4" /> Back to home
+        </Link>
+        <div className="space-y-4">
+          <Badge
+            tone="primary"
+            className="bg-white/10 text-xs uppercase tracking-[0.4em] text-white"
+          >
+            Lovedate onboarding ritual
+          </Badge>
+          <h1 className="font-display text-4xl leading-tight sm:text-5xl">
+            Finish onboarding to unlock the Trust Center + discovery orbit
+          </h1>
+          <p className="max-w-3xl text-white/80">
+            Complete six guided steps covering identity, preferences, devices, and privacy. Once
+            finished, you&apos;ll jump straight into the dashboard with a live trust snapshot,
+            discovery feed, and messaging inbox.
+          </p>
+          <div className="flex flex-wrap gap-4">
+            <PillButton asChild>
+              <OpenOnboardingButton className="bg-white text-[#050616] hover:bg-white/90">
+                Open onboarding flow
+              </OpenOnboardingButton>
+            </PillButton>
+            <PillButton variant="outline" asChild>
+              <Link href="/trust-center">Preview trust center</Link>
+            </PillButton>
+          </div>
+        </div>
         <section className="grid gap-8 lg:grid-cols-[1.2fr,0.8fr]">
           <Card className="space-y-6 border border-white/10 bg-white/5 p-8 backdrop-blur">
             <h2 className="text-2xl font-semibold">Why we route everyone through onboarding</h2>
@@ -144,6 +114,6 @@ export default function OnboardingPage() {
 
         <Onboarding />
       </div>
-    </main>
+    </div>
   );
 }
