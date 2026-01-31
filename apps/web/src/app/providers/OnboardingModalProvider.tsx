@@ -2,6 +2,7 @@
 
 import { createContext, useCallback, useContext, useState } from 'react';
 import { OnboardingModal } from '@/app/components/OnboardingModal';
+import { OnboardingProvider } from '@/lib/onboarding-context';
 
 interface OnboardingModalContextValue {
   openModal: () => void;
@@ -17,10 +18,12 @@ export function OnboardingModalProvider({ children }: { children: React.ReactNod
   const closeModal = useCallback(() => setIsOpen(false), []);
 
   return (
-    <OnboardingModalContext.Provider value={{ openModal, closeModal }}>
-      {children}
-      <OnboardingModal isOpen={isOpen} onClose={closeModal} />
-    </OnboardingModalContext.Provider>
+    <OnboardingProvider>
+      <OnboardingModalContext.Provider value={{ openModal, closeModal }}>
+        {children}
+        <OnboardingModal isOpen={isOpen} onClose={closeModal} />
+      </OnboardingModalContext.Provider>
+    </OnboardingProvider>
   );
 }
 

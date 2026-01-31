@@ -35,7 +35,7 @@ import type {
   Orientation,
   VerificationIntent,
 } from '@lovedate/api';
-import { lovedateApi } from '@/lib/api';
+import { useOnboarding } from '@/lib/onboarding-context';
 
 const TOTAL_STEPS = 6;
 
@@ -391,90 +391,38 @@ export function OnboardingModal({ isOpen, onClose }: OnboardingModalProps) {
     setCurrentStep((prev) => Math.max(prev - 1, 0));
   };
 
+  const onboardingContext = useOnboarding();
+
   const handleSubmit = async (event?: FormEvent) => {
     event?.preventDefault();
     if (!stepValid || pending) return;
     setPending(true);
     setError(null);
     try {
-      const payload = {
-        legalName: formData.firstName,
-        legalLastName: formData.lastName,
-        displayName: formData.displayName || formData.firstName,
-        dateOfBirth: formData.dateOfBirth,
-        email: formData.email || undefined,
-        phone: formData.phone || undefined,
-        password: formData.password,
-        gender: formData.gender as Gender,
-        orientation: formData.orientation as Orientation,
-        orientationPreferences: (formData.orientationPreferences.length
-          ? formData.orientationPreferences
-          : [formData.orientation]) as Orientation[],
-        discoverySpace: (formData.discoverySpace || 'straight') as DiscoverySpace,
-        matchPreferences: (formData.matchPreferences.length
-          ? formData.matchPreferences
-          : ['everyone']) as MatchPreference[],
+      // Generate a mock user ID
+      const userId = 'user-' + Math.random().toString(36).slice(2, 11);
+      const displayName = formData.displayName || formData.firstName;
+
+      // Save onboarding data to local context (localStorage)
+      onboardingContext.saveOnboarding({
+        userId,
+        displayName,
+        email: formData.email,
+        gender: formData.gender,
+        orientation: formData.orientation,
         city: formData.city,
-        cityPlaceId: formData.cityPlaceId || undefined,
-        cityCountry: formData.cityCountry || undefined,
-        cityCountryCode: formData.cityCountryCode || undefined,
-        cityRegion: formData.cityRegion || undefined,
-        cityRegionCode: formData.cityRegionCode || undefined,
-        cityTimezone: formData.cityTimezone || undefined,
-        cityLat: formData.cityLat ?? undefined,
-        cityLng: formData.cityLng ?? undefined,
-        locationAccuracyMeters: formData.locationAccuracyMeters ?? undefined,
-        locationUpdatedAt: formData.locationUpdatedAt || undefined,
         bio: formData.bio,
         photos: formData.photos.filter((url) => url.trim().length > 0),
-        verificationIntent: formData.verificationIntent,
-      };
-      const response = await lovedateApi.submitOnboarding(payload);
+        completedAt: Date.now(),
+      });
 
-      // Persist session with exponential backoff retry (3 attempts max)
-      let sessionPersisted = false;
-      for (let attempt = 0; attempt < 3; attempt++) {
-        try {
-          const sessionResponse = await fetch('/api/session', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId: response.user.id }),
-          });
-          if (sessionResponse.ok) {
-            sessionPersisted = true;
-            break;
-          }
-          const errorBody = await sessionResponse.json().catch(() => ({}));
-          console.warn(
-            `Session persistence failed (attempt ${attempt + 1}/3):`,
-            sessionResponse.status,
-            errorBody.message || 'Unknown error'
-          );
-        } catch (sessionError) {
-          console.warn(
-            `Session persistence network error (attempt ${attempt + 1}/3):`,
-            sessionError
-          );
-        }
-        // Wait before retry: 100ms, then 300ms
-        if (attempt < 2) {
-          await new Promise((resolve) => setTimeout(resolve, 100 * Math.pow(3, attempt)));
-        }
-      }
-
-      if (!sessionPersisted) {
-        console.error(
-          'Failed to persist session after 3 attempts; proceeding with redirect anyway'
-        );
-      }
-
-      setSuccess(`Welcome aboard, ${response.user.displayName}! Redirecting…`);
+      setSuccess(`Welcome aboard, ${displayName}! Redirecting…`);
       setTimeout(() => {
         setSuccess(null);
         onClose();
-        // Redirect first to the onboarding landing page which then routes to dashboard
-        const onboardingRoute = `/onboarding?userId=${encodeURIComponent(response.user.id)}`;
-        void router.push(onboardingRoute);
+        // Redirect to dashboard with userId param
+        const dashboardRoute = `/dashboard?userId=${encodeURIComponent(userId)}`;
+        void router.push(dashboardRoute);
       }, 1600);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
