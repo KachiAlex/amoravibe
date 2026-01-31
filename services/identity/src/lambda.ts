@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
 import 'reflect-metadata';
 import express from 'express';
-import serverless from 'serverless-http';
+const serverless = require('serverless-http');
 import { NestFactory } from '@nestjs/core';
 import { ExpressAdapter } from '@nestjs/platform-express';
 import { RequestMethod, ValidationPipe } from '@nestjs/common';
@@ -11,11 +12,9 @@ let handler: any;
 async function createHandler() {
   const app = express();
   const adapter = new ExpressAdapter(app);
-  const nestApp = await NestFactory.create(
-    AppModule,
-    { logger: ['log', 'warn', 'error'] },
-    adapter
-  );
+  const nestApp = await NestFactory.create(AppModule, adapter, {
+    logger: ['log', 'warn', 'error'],
+  });
   nestApp.setGlobalPrefix('api/v1', {
     exclude: [{ path: '/', method: RequestMethod.GET }],
   });
