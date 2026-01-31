@@ -6,10 +6,12 @@ export async function POST(request: Request) {
     const { userId } = await request.json();
 
     if (!userId || typeof userId !== 'string') {
+      console.warn('Session POST: userId validation failed', { userId });
       return NextResponse.json({ message: 'userId is required' }, { status: 400 });
     }
 
     setSession({ userId });
+    console.info('Session set successfully', { userId });
     return NextResponse.json({ status: 'ok' });
   } catch (error) {
     console.error('Failed to set Lovedate session', error);

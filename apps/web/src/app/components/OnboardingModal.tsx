@@ -431,14 +431,41 @@ export function OnboardingModal({ isOpen, onClose }: OnboardingModalProps) {
       };
       const response = await lovedateApi.submitOnboarding(payload);
 
-      try {
-        await fetch('/api/session', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId: response.user.id }),
-        });
-      } catch (sessionError) {
-        console.error('Failed to persist Lovedate session', sessionError);
+      // Persist session with exponential backoff retry (3 attempts max)
+      let sessionPersisted = false;
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+          const sessionResponse = await fetch('/api/session', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: response.user.id }),
+          });
+          if (sessionResponse.ok) {
+            sessionPersisted = true;
+            break;
+          }
+          const errorBody = await sessionResponse.json().catch(() => ({}));
+          console.warn(
+            `Session persistence failed (attempt ${attempt + 1}/3):`,
+            sessionResponse.status,
+            errorBody.message || 'Unknown error'
+          );
+        } catch (sessionError) {
+          console.warn(
+            `Session persistence network error (attempt ${attempt + 1}/3):`,
+            sessionError
+          );
+        }
+        // Wait before retry: 100ms, then 300ms
+        if (attempt < 2) {
+          await new Promise((resolve) => setTimeout(resolve, 100 * Math.pow(3, attempt)));
+        }
+      }
+
+      if (!sessionPersisted) {
+        console.error(
+          'Failed to persist session after 3 attempts; proceeding with redirect anyway'
+        );
       }
 
       setSuccess(`Welcome aboard, ${response.user.displayName}! Redirecting…`);
