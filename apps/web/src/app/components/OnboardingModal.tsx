@@ -430,8 +430,6 @@ export function OnboardingModal({ isOpen, onClose }: OnboardingModalProps) {
         verificationIntent: formData.verificationIntent,
       };
       const response = await lovedateApi.submitOnboarding(payload);
-      const fallbackRoute = `/dashboard?userId=${encodeURIComponent(response.user.id)}`;
-      const nextRoute = response.nextRoute || fallbackRoute;
 
       try {
         await fetch('/api/session', {
@@ -447,11 +445,9 @@ export function OnboardingModal({ isOpen, onClose }: OnboardingModalProps) {
       setTimeout(() => {
         setSuccess(null);
         onClose();
-        // Ensure we always land on the dashboard view; the backend-provided route is retained
-        // in case we ever introduce deep links, but we force a dashboard redirect to avoid
-        // falling back to the landing page due to client-side race conditions.
-        void router.push('/dashboard');
-        void router.replace(nextRoute);
+        // Always redirect to dashboard after successful onboarding
+        const dashboardRoute = `/dashboard?userId=${encodeURIComponent(response.user.id)}`;
+        void router.push(dashboardRoute);
       }, 1600);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
