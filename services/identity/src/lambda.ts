@@ -8,6 +8,7 @@ import { RequestMethod, ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
 
 let handler: any;
+let initError: Error | null = null;
 
 async function createHandler() {
   const app = express();
@@ -30,8 +31,22 @@ async function createHandler() {
 }
 
 export default async function (req: any, res: any) {
-  if (!handler) {
-    handler = await createHandler();
+  try {
+    if (!handler) {
+      try {
+        handler = await createHandler();
+      } catch (error) {
+        initError = error as Error;
+        console.error('[Lambda Init Error]', error);
+        return res.status(500).json({
+          error: 'Lambda initialization failed',
+          message: initError?.message,
+        });
+      }
+    }
+    return handler(req, res);
+  } catch (error) {
+    console.error('[Lambda Handler Error]', error);
+    return res.status(500).json({ error: 'Request handler failed' });
   }
-  return handler(req, res);
 }
