@@ -1,11 +1,20 @@
 'use client';
 
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Heart, Shield, Lock } from 'lucide-react';
 
 export default function OnboardingPage() {
   const router = useRouter();
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const userId = params.get('userId');
+    if (userId) {
+      void router.push(`/dashboard?userId=${encodeURIComponent(userId)}`);
+    }
+  }, [router]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-gray-900 to-black">

@@ -1,17 +1,22 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { VerificationMethod } from '@prisma/client';
-import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class VerificationService {
   constructor(private prisma: PrismaService) {}
 
   private generateCode(length = 6): string {
-    return Math.floor(100000 + Math.random() * 900000).toString().substring(0, length);
+    return Math.floor(100000 + Math.random() * 900000)
+      .toString()
+      .substring(0, length);
   }
 
-  async createVerificationCode(email?: string, phone?: string, method: VerificationMethod = VerificationMethod.email) {
+  async createVerificationCode(
+    email?: string,
+    phone?: string,
+    method: VerificationMethod = VerificationMethod.email
+  ) {
     if (!email && !phone) {
       throw new Error('Either email or phone must be provided');
     }
@@ -49,10 +54,7 @@ export class VerificationService {
     const verification = await this.prisma.verificationCode.findFirst({
       where: {
         code,
-        OR: [
-          { email: email?.toLowerCase() },
-          { phone },
-        ],
+        OR: [{ email: email?.toLowerCase() }, { phone }],
         verified: false,
         expiresAt: { gt: new Date() },
       },

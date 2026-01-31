@@ -472,9 +472,9 @@ export function OnboardingModal({ isOpen, onClose }: OnboardingModalProps) {
       setTimeout(() => {
         setSuccess(null);
         onClose();
-        // Always redirect to dashboard after successful onboarding
-        const dashboardRoute = `/dashboard?userId=${encodeURIComponent(response.user.id)}`;
-        void router.push(dashboardRoute);
+        // Redirect first to the onboarding landing page which then routes to dashboard
+        const onboardingRoute = `/onboarding?userId=${encodeURIComponent(response.user.id)}`;
+        void router.push(onboardingRoute);
       }, 1600);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');

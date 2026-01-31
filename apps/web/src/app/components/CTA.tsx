@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import { PillButton } from '@lovedate/ui';
 export function CTA() {
-
   return (
     <section className="bg-gradient-to-r from-purple-600 to-pink-600 px-6 py-20 text-white sm:px-12">
       <div className="mx-auto flex max-w-5xl flex-col gap-10 text-center">
@@ -15,10 +14,7 @@ export function CTA() {
           Join over 2 million singles who&apos;ve found love on AmoraVibe. Your story could be next!
         </p>
         <div className="flex flex-wrap justify-center gap-4">
-          <PillButton
-            asChild
-            className="bg-white text-purple-600 hover:bg-gray-100 font-semibold"
-          >
+          <PillButton asChild className="bg-white text-purple-600 hover:bg-gray-100 font-semibold">
             <Link href="/onboarding">Get Started Free</Link>
           </PillButton>
           <PillButton

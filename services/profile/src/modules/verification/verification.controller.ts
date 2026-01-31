@@ -19,7 +19,7 @@ class VerifyCodeDto {
 export class VerificationController {
   constructor(
     private readonly verificationService: VerificationService,
-    private readonly emailService: EmailService,
+    private readonly emailService: EmailService
   ) {}
 
   @Post('send')
@@ -32,7 +32,7 @@ export class VerificationController {
     const verification = await this.verificationService.createVerificationCode(
       email,
       phone,
-      method as VerificationMethod,
+      method as VerificationMethod
     );
 
     // Send the code via the selected method
@@ -54,18 +54,18 @@ export class VerificationController {
     }
 
     const isValid = await this.verificationService.verifyCode(code, email, phone);
-    
+
     if (!isValid) {
-      return { 
-        success: false, 
-        message: 'Invalid or expired verification code' 
+      return {
+        success: false,
+        message: 'Invalid or expired verification code',
       };
     }
 
-    return { 
-      success: true, 
+    return {
+      success: true,
       message: 'Verification successful',
-      verified: true 
+      verified: true,
     };
   }
 
