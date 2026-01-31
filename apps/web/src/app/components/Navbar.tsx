@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
+import { OpenOnboardingButton } from '@/app/onboarding/OpenOnboardingButton';
 import { useState } from 'react';
 import { Menu, X } from 'lucide-react';
 import { useOnboardingModal } from '@/app/providers/OnboardingModalProvider';
@@ -60,12 +61,9 @@ export function Navbar() {
             >
               Sign In
             </button>
-            <Link
-              href="/onboarding"
-              className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-6 py-2 rounded-full font-medium transition-all"
-            >
+            <OpenOnboardingButton className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-6 py-2 rounded-full font-medium transition-all">
               Get Started
-            </Link>
+            </OpenOnboardingButton>
           </div>
 
           {/* Mobile Menu Button */}
@@ -107,13 +105,12 @@ export function Navbar() {
               >
                 Sign In
               </button>
-              <Link
-                href="/onboarding"
+              <OpenOnboardingButton
                 onClick={() => setMobileMenuOpen(false)}
                 className="block w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-6 py-2 rounded-full font-medium transition-all text-center"
               >
                 Get Started
-              </Link>
+              </OpenOnboardingButton>
             </div>
           </div>
         </div>

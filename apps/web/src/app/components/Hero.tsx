@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
+import { OpenOnboardingButton } from '@/app/onboarding/OpenOnboardingButton';
 import { Heart, Sparkles, ArrowRight } from 'lucide-react';
 import { useOnboardingModal } from '@/app/providers/OnboardingModalProvider';
 
@@ -51,13 +52,15 @@ export function Hero() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-12">
-              <Link
-                href="/onboarding"
+              <a
+                role="button"
                 className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8 py-3 rounded-full font-medium transition-all inline-flex items-center justify-center gap-2"
               >
-                Start Free Trial
-                <ArrowRight className="w-5 h-5" />
-              </Link>
+                <OpenOnboardingButton className="inline-flex items-center gap-2">
+                  Start Free Trial
+                  <ArrowRight className="w-5 h-5" />
+                </OpenOnboardingButton>
+              </a>
               <Link
                 href="#how-it-works"
                 className="border-2 border-gray-300 hover:border-gray-400 text-gray-900 px-8 py-3 rounded-full font-medium transition-all inline-flex items-center justify-center"

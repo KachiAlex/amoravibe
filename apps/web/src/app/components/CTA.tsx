@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { PillButton } from '@lovedate/ui';
+import { OpenOnboardingButton } from '@/app/onboarding/OpenOnboardingButton';
 export function CTA() {
   return (
     <section className="bg-gradient-to-r from-purple-600 to-pink-600 px-6 py-20 text-white sm:px-12">
@@ -15,7 +16,7 @@ export function CTA() {
         </p>
         <div className="flex flex-wrap justify-center gap-4">
           <PillButton asChild className="bg-white text-purple-600 hover:bg-gray-100 font-semibold">
-            <Link href="/onboarding">Get Started Free</Link>
+            <OpenOnboardingButton className="inline-block">Get Started Free</OpenOnboardingButton>
           </PillButton>
           <PillButton
             variant="outline"

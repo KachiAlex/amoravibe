@@ -1,7 +1,7 @@
 'use client';
 
 import { Check, Sparkles } from 'lucide-react';
-import Link from 'next/link';
+import { OpenOnboardingButton } from '@/app/onboarding/OpenOnboardingButton';
 
 const plans = [
   {
@@ -128,8 +128,7 @@ export function Pricing() {
 
                 {/* CTA Button */}
                 <div className="p-8 pt-0">
-                  <Link
-                    href="/onboarding"
+                  <OpenOnboardingButton
                     className={`w-full inline-block py-3 px-6 rounded-full font-medium transition-all text-center ${
                       plan.popular
                         ? 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white'
@@ -137,7 +136,7 @@ export function Pricing() {
                     }`}
                   >
                     {plan.name === 'Free' ? 'Get Started Free' : `Choose ${plan.name}`}
-                  </Link>
+                  </OpenOnboardingButton>
                 </div>
               </div>
             </div>
