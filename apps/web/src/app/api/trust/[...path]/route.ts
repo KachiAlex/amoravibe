@@ -11,7 +11,7 @@ const upstreamBase = (
  * Proxy all /api/trust/* requests to the upstream trust/identity API
  * Handles nested paths like /api/trust/onboarding, /api/trust/onboarding/status, etc.
  */
-export async function handler(request: NextRequest) {
+async function handler(request: NextRequest) {
   try {
     // Extract the full path after /api/trust and include query params
     const pathname = request.nextUrl.pathname;

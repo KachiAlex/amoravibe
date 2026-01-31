@@ -12,10 +12,8 @@
     "clean": "turbo run clean",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "prepare": "node scripts/prepare-husky.mjs"
-  },
-  "scripts": {
-    "deploy:web": "vercel deploy --prod --cwd=apps/web --confirm",
+    "prepare": "node scripts/prepare-husky.mjs",
+    "deploy:web": "vercel deploy --prod --confirm --local-config=D:\\lovedate\\apps\\web\\vercel.json --cwd=apps/web",
     "deploy:identity": "vercel deploy --prod --cwd=services/identity --confirm",
     "deploy:all": "npm run deploy:identity && npm run deploy:web"
   },

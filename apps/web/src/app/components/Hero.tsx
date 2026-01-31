@@ -12,7 +12,7 @@ const heroStats = [
 ];
 
 export function Hero() {
-  const { openModal } = useOnboardingModal();
+  useOnboardingModal();
 
   return (
     <section className="relative pt-24 pb-16 md:pt-32 md:pb-24 overflow-hidden">

@@ -16,7 +16,7 @@ const navLinks = [
 
 export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { openModal } = useOnboardingModal();
+  useOnboardingModal();
   const { openModal: openSignInModal } = useSignInModal();
 
   return (
