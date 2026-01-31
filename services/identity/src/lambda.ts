@@ -13,21 +13,35 @@ let initError: Error | null = null;
 async function createHandler() {
   const app = express();
   const adapter = new ExpressAdapter(app);
-  const nestApp = await NestFactory.create(AppModule, adapter, {
-    logger: ['log', 'warn', 'error'],
-  });
-  nestApp.setGlobalPrefix('api/v1', {
-    exclude: [{ path: '/', method: RequestMethod.GET }],
-  });
-  nestApp.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      transform: true,
-    })
+  
+  // Add timeout to prevent hanging during init
+  const initTimeout = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error('Lambda init timeout after 25s')), 25000)
   );
-  await nestApp.init();
-  return serverless(app);
+
+  try {
+    const nestAppPromise = NestFactory.create(AppModule, adapter, {
+      logger: ['log', 'warn', 'error'],
+    });
+    
+    const nestApp = await Promise.race([nestAppPromise, initTimeout as any]);
+
+    (nestApp as any).setGlobalPrefix('api/v1', {
+      exclude: [{ path: '/', method: RequestMethod.GET }],
+    });
+    (nestApp as any).useGlobalPipes(
+      new ValidationPipe({
+        whitelist: true,
+        forbidNonWhitelisted: true,
+        transform: true,
+      })
+    );
+    await (nestApp as any).init();
+    return serverless(app);
+  } catch (error) {
+    console.error('[Lambda Create Handler Error]', error);
+    throw error;
+  }
 }
 
 export default async function (req: any, res: any) {
