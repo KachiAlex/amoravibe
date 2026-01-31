@@ -166,6 +166,10 @@ export interface OnboardingModalProps {
   onClose: () => void;
 }
 
+const MAX_INLINE_PHOTO_BYTES = 450 * 1024; // ~450 KB cap per photo keeps payloads under serverless limits
+const MAX_PHOTO_DIMENSION = 1280;
+const PHOTO_JPEG_QUALITY = 0.72;
+
 const INITIAL_FORM: FormData = {
   firstName: '',
   lastName: '',
@@ -267,15 +271,70 @@ export function OnboardingModal({ isOpen, onClose }: OnboardingModalProps) {
     });
   };
 
-  const handlePhotoFileUpload = (index: number, file: File | null) => {
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (typeof reader.result === 'string') {
-        updatePhoto(index, reader.result);
+  const estimateDataUrlBytes = (value: string) => {
+    const commaIndex = value.indexOf(',');
+    const base64 = commaIndex >= 0 ? value.slice(commaIndex + 1) : value;
+    return Math.ceil((base64.length * 3) / 4);
+  };
+
+  const compressPhotoFile = async (file: File): Promise<string> => {
+    const readAsDataUrl = () =>
+      new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = () => reject(reader.error ?? new Error('Unable to read photo file.'));
+        reader.readAsDataURL(file);
+      });
+
+    const originalDataUrl = await readAsDataUrl();
+    if (file.size <= MAX_INLINE_PHOTO_BYTES || typeof window === 'undefined') {
+      return originalDataUrl;
+    }
+
+    try {
+      const image = await new Promise<HTMLImageElement>((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = () => reject(new Error('Failed to load image for compression.'));
+        img.src = originalDataUrl;
+      });
+
+      const longestSide = Math.max(image.width, image.height);
+      const scale = longestSide > MAX_PHOTO_DIMENSION ? MAX_PHOTO_DIMENSION / longestSide : 1;
+
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.max(1, Math.round(image.width * scale));
+      canvas.height = Math.max(1, Math.round(image.height * scale));
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        return originalDataUrl;
       }
-    };
-    reader.readAsDataURL(file);
+      ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+
+      const compressedDataUrl = canvas.toDataURL('image/jpeg', PHOTO_JPEG_QUALITY);
+      if (estimateDataUrlBytes(compressedDataUrl) <= MAX_INLINE_PHOTO_BYTES) {
+        return compressedDataUrl;
+      }
+      return compressedDataUrl;
+    } catch (error) {
+      console.warn('Photo compression failed, falling back to original photo payload.', error);
+      return originalDataUrl;
+    }
+  };
+
+  const handlePhotoFileUpload = async (index: number, file: File | null) => {
+    if (!file) return;
+
+    try {
+      const dataUrl = await compressPhotoFile(file);
+      if (estimateDataUrlBytes(dataUrl) > MAX_INLINE_PHOTO_BYTES) {
+        throw new Error('Photo still exceeds inline size budget after compression.');
+      }
+      updatePhoto(index, dataUrl);
+    } catch (err) {
+      console.error('Unable to process uploaded photo', err);
+      setError('Please choose a smaller photo (under 450 KB) or reduce its resolution.');
+    }
   };
 
   const addPhotoField = () => {

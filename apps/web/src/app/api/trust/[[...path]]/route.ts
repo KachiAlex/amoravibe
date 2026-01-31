@@ -1,6 +1,16 @@
 import { NextResponse } from 'next/server';
 import { preflight, withCors } from '@/lib/cors';
 
+// Allow larger request bodies (photos embedded as data URLs) to flow through the proxy without
+// Next.js rejecting them before we can forward them to the identity service.
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '6mb',
+    },
+  },
+};
+
 const DEFAULT_UPSTREAM = 'http://localhost:4001/api/v1';
 const upstreamBase = (process.env.TRUST_API_PROXY_TARGET || DEFAULT_UPSTREAM).replace(/\/$/, '');
 
