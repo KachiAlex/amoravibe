@@ -12,22 +12,38 @@ describe('lovedateApi.fetchDiscoverFeed', () => {
     delete globalAny.fetch;
   });
 
-  it('calls the local /api/dashboard/home and returns parsed json', async () => {
+  it('calls the local /api/dashboard/discover and returns parsed json', async () => {
     const sample = {
-      hero: null,
+      hero: {
+        id: 'maya',
+        name: 'Maya',
+        age: 26,
+        city: 'Manhattan, NY',
+        distance: '0.5 mi',
+        tags: ['Art', 'Coffee'],
+        image: 'https://example.com/maya.jpg',
+        compatibility: 92,
+        verified: true,
+        receiverId: 'maya',
+        actionable: true,
+      },
       featured: [],
       grid: [],
       filters: [],
-      total: 0,
-      mode: 'default',
+      mode: 'verified',
+      total: 1,
       generatedAt: new Date().toISOString(),
     };
     (globalAny.fetch as any).mockResolvedValue({ ok: true, json: async () => sample });
 
-    const res = await lovedateApi.fetchDiscoverFeed({ userId: 'u1', mode: 'default', limit: 6 });
-    expect(globalAny.fetch).toHaveBeenCalled();
-    expect(res.mode).toBe('default');
-    expect(res.total).toBe(0);
+    const res = await lovedateApi.fetchDiscoverFeed({ userId: 'u1', mode: 'verified', limit: 6 });
+    expect(globalAny.fetch).toHaveBeenCalledWith(
+      '/api/dashboard/discover?userId=u1&mode=verified&limit=6',
+      expect.any(Object)
+    );
+    expect(res.mode).toBe('verified');
+    expect(res.total).toBe(1);
+    expect(res.hero).toBeDefined();
   });
 });
 

@@ -133,10 +133,20 @@ export async function GET(request: Request) {
   const filtered = filterCardsByMode(ALL_DISCOVER_CARDS, mode).slice(0, limit);
 
   const response: DiscoverFeedResponse = {
-    cards: filtered,
+    hero: filtered.length > 0 ? filtered[0] : null,
+    featured: filtered.slice(0, 2),
+    grid: filtered,
+    filters: [
+      { label: 'All', value: 'default' },
+      { label: 'Verified', value: 'verified' },
+      { label: 'Nearby', value: 'nearby' },
+      { label: 'Fresh', value: 'fresh' },
+      { label: 'Premium', value: 'premium' },
+      { label: 'Shared Interests', value: 'shared' },
+    ],
     mode: mode as any,
     total: filtered.length,
-    hasMore: filtered.length < ALL_DISCOVER_CARDS.length,
+    generatedAt: new Date().toISOString(),
   };
 
   return Response.json(response);
