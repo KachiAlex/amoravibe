@@ -59,7 +59,7 @@ export const lovedateApi: any = new Proxy(
         if (opts?.mode) params.set('mode', opts.mode);
         if (typeof opts?.limit === 'number') params.set('limit', String(opts.limit));
 
-        const url = `/api/dashboard/home?${params.toString()}`;
+        const url = `/api/dashboard/discover?${params.toString()}`;
         const res = await fetch(url, { cache: 'no-store' });
         if (!res.ok) {
           throw new Error(`Failed to fetch discover feed: ${res.status}`);
