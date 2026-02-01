@@ -8,7 +8,7 @@ export default defineConfig({
   reporter: [['list'], ['html', { open: 'never' }]],
   use: {
     actionTimeout: 5000,
-    baseURL: 'http://localhost:3001',
+    baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL || 'http://localhost:3002',
     trace: 'on-first-retry',
   },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
