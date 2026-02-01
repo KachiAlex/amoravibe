@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-// Mock API client for local onboarding
-// Real API calls disabled - all onboarding handled via localStorage
+// Mock API client for local onboarding with backend fallback
+// Real API calls enabled when NEXT_PUBLIC_ENABLE_REAL_* env vars are set
+
+import { BACKEND_CONFIG, getBackendUrl } from './backend-config';
 
 // Provide a flexible mock API client for local development.
 // Use a Proxy so any missing method resolves to a no-op async function,
@@ -22,15 +24,30 @@ export const lovedateApi: any = new Proxy(
       settingsShortcuts: [],
       discoverFilters: [],
     }),
-    fetchEngagementDashboard: async (userId: string) => ({
-      receivedLikes: [],
-      sentLikes: [],
-      notificationPreferences: [],
-      premiumPerks: [],
-      safetyResources: [],
-      settingsShortcuts: [],
-      discoverFilters: [],
-    }),
+    fetchEngagementDashboard: async (userId: string) => {
+      // Try real backend first
+      if (BACKEND_CONFIG.ENABLE_REAL_ENGAGEMENT && BACKEND_CONFIG.IDENTITY_SERVICE_URL) {
+        try {
+          const url = getBackendUrl(`/engagement/dashboard/${userId}`);
+          const res = await fetch(url, { cache: 'no-store' });
+          if (res.ok) {
+            return await res.json();
+          }
+        } catch (error) {
+          console.error('Failed to fetch from identity service, falling back to stubs:', error);
+        }
+      }
+      // Fallback
+      return {
+        receivedLikes: [],
+        sentLikes: [],
+        notificationPreferences: [],
+        premiumPerks: [],
+        safetyResources: [],
+        settingsShortcuts: [],
+        discoverFilters: [],
+      };
+    },
     getTrustSnapshot: async () => ({
       devices: [],
       user: {
@@ -41,16 +58,31 @@ export const lovedateApi: any = new Proxy(
         photos: [],
       },
     }),
-    fetchTrustSnapshot: async (userId: string) => ({
-      devices: [],
-      user: {
-        id: userId || 'local-user',
-        displayName: 'You',
-        isVerified: false,
-        trustScore: 0,
-        photos: [],
-      },
-    }),
+    fetchTrustSnapshot: async (userId: string) => {
+      // Try real backend first
+      if (BACKEND_CONFIG.ENABLE_REAL_TRUST && BACKEND_CONFIG.IDENTITY_SERVICE_URL) {
+        try {
+          const url = getBackendUrl(`/trust/center/${userId}`);
+          const res = await fetch(url, { cache: 'no-store' });
+          if (res.ok) {
+            return await res.json();
+          }
+        } catch (error) {
+          console.error('Failed to fetch from identity service, falling back to stubs:', error);
+        }
+      }
+      // Fallback
+      return {
+        devices: [],
+        user: {
+          id: userId || 'local-user',
+          displayName: 'You',
+          isVerified: false,
+          trustScore: 0,
+          photos: [],
+        },
+      };
+    },
     fetchMatches: async (query: any) => [],
     fetchDiscoverFeed: async (opts: { userId?: string; mode?: string; limit?: number }) => {
       try {

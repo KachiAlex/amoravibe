@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { MessagingThread, MessagingStatusTone } from '@/lib/api-types';
+import { BACKEND_CONFIG, getBackendUrl } from '@/lib/backend-config';
 
 // Sample messaging threads with diverse personas and statuses
 const ALL_MESSAGE_THREADS: MessagingThread[] = [
@@ -87,10 +88,30 @@ const ALL_MESSAGE_THREADS: MessagingThread[] = [
  */
 export async function GET(request: Request) {
   const url = new URL(request.url);
+  const userId = url.searchParams.get('userId');
   const limit = parseInt(url.searchParams.get('limit') ?? '6', 10);
   const sort = url.searchParams.get('sort') ?? 'recent';
 
-  // Filter and sort threads
+  // Try to fetch from real backend first
+  if (BACKEND_CONFIG.ENABLE_REAL_MESSAGING && userId && BACKEND_CONFIG.IDENTITY_SERVICE_URL) {
+    try {
+      const backendUrl = getBackendUrl(`/messaging/threads/${userId}?limit=${limit}`);
+      const res = await fetch(backendUrl, { cache: 'no-store' });
+      if (res.ok) {
+        const backendData = await res.json();
+        return Response.json({
+          threads: backendData.threads ?? backendData ?? [],
+          total: backendData.total ?? backendData?.length ?? 0,
+          hasMore: backendData.hasMore ?? false,
+          generatedAt: backendData.generatedAt ?? new Date().toISOString(),
+        });
+      }
+    } catch (error) {
+      console.error('Failed to fetch from identity service, falling back to stubs:', error);
+    }
+  }
+
+  // Fallback to stub data
   let threads = [...ALL_MESSAGE_THREADS];
 
   if (sort === 'unread') {
