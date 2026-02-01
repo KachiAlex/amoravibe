@@ -1,4 +1,4 @@
-import type { MessagingThread, MessagingStatusTone } from '@lovedate/api';
+import type { MessagingThread, MessagingStatusTone } from '@/lib/api-types';
 
 interface ThreadPersona {
   id: string;

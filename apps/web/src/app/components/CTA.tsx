@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { PillButton } from '@lovedate/ui';
+import { PillButton } from '@/lib/ui-components';
 import { OpenOnboardingButton } from '@/app/onboarding/OpenOnboardingButton';
 export function CTA() {
   return (

@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
-import { PillButton, Card } from '@lovedate/ui';
+import { PillButton, Card } from '@/lib/ui-components';
 import {
   requestAuditExportAction,
   requestAuditPurgeAction,

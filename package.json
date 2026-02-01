@@ -9,6 +9,7 @@
     "lint": "turbo run lint",
     "test": "turbo run test",
     "test:unit": "vitest run",
+    "test:e2e": "playwright test",
     "clean": "turbo run clean",
     "format": "prettier --write .",
     "format:check": "prettier --check .",

@@ -1,6 +1,6 @@
 import Link from 'next/link';
-import { Badge, Card, PillButton } from '@lovedate/ui';
-import type { TrustPreviewResponse } from '@lovedate/api';
+import { Badge, Card, PillButton } from '@/lib/ui-components';
+import type { TrustPreviewResponse } from '@/lib/api-types';
 import { lovedateApi } from '@/lib/api';
 import PrivacyActionsPanel from './privacy-actions-panel';
 

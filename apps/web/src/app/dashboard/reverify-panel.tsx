@@ -2,8 +2,8 @@
 
 import { useMemo } from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
-import type { VerificationStatus } from '@lovedate/api';
-import { PillButton } from '@lovedate/ui';
+import type { VerificationStatus } from '@/lib/api-types';
+import { PillButton } from '@/lib/ui-components';
 import {
   reverifyActionInitialState,
   requestReverificationAction,
@@ -17,7 +17,7 @@ interface ReverifyPanelProps {
   updatedAt?: string | null;
 }
 
-const statusCopy: Record<VerificationStatus, { tone: string; note: string }> = {
+const statusCopy: Record<string, { tone: string; note: string }> = {
   unverified: {
     tone: 'text-rose-500',
     note: 'You have not completed identity verification yet.',
@@ -64,7 +64,7 @@ export default function ReverifyPanel({
   updatedAt,
 }: ReverifyPanelProps) {
   const [state, action] = useFormState(requestReverificationAction, reverifyActionInitialState);
-  const statusKey: VerificationStatus = verificationStatus ?? 'unverified';
+  const statusKey = (verificationStatus ?? 'unverified') as string;
   const statusMeta = statusCopy[statusKey];
   const disabled = statusKey === 'pending' || statusKey === 'verified';
   const timestamp = useMemo(

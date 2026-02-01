@@ -1,4 +1,4 @@
-import { Card, PillButton } from '@lovedate/ui';
+import { Card, PillButton } from '@/lib/ui-components';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Space_Grotesk } from 'next/font/google';
@@ -15,7 +15,7 @@ import {
   Star,
   Users,
 } from 'lucide-react';
-import type { ComponentType, ReactNode } from 'react';
+import type { ComponentType } from 'react';
 import type {
   EngagementDashboardResponse,
   DiscoverFeedMode,
@@ -28,8 +28,9 @@ import type {
   MatchCandidate,
   TrustCenterSnapshotResponse,
   MessagingThread,
-} from '@lovedate/api';
+} from '@/lib/api-types';
 import { lovedateApi } from '@/lib/api';
+import LikeActionClient from '@/components/LikeActionClient';
 import { getSession } from '@/lib/session';
 import { buildMessagingFallback } from '@/lib/messaging';
 import { LikeActionSubmitButton } from './like-action-submit-button';
@@ -452,7 +453,7 @@ function MessagesInbox({ threads }: { threads: MessagingThread[] }) {
                 </div>
               </Link>
               <div className="mt-3 flex flex-wrap gap-2">
-                {thread.quickReplies.map((reply) => (
+                {thread.quickReplies.map((reply: any) => (
                   <button
                     type="button"
                     key={`${thread.id}-${reply}`}
@@ -714,7 +715,7 @@ function FeedCard({ profile, senderId }: { profile: FeedProfile; senderId?: stri
         </div>
       </div>
       <div className="flex flex-wrap gap-3 pt-2">
-        <LikeActionButton
+        <LikeActionClient
           senderId={senderId}
           receiverId={profile.receiverId}
           action="like"
@@ -723,8 +724,8 @@ function FeedCard({ profile, senderId }: { profile: FeedProfile; senderId?: stri
           disabled={!profile.actionable}
         >
           Like
-        </LikeActionButton>
-        <LikeActionButton
+        </LikeActionClient>
+        <LikeActionClient
           senderId={senderId}
           receiverId={profile.receiverId}
           action="pass"
@@ -733,8 +734,8 @@ function FeedCard({ profile, senderId }: { profile: FeedProfile; senderId?: stri
           disabled={!profile.actionable}
         >
           Pass
-        </LikeActionButton>
-        <LikeActionButton
+        </LikeActionClient>
+        <LikeActionClient
           senderId={senderId}
           receiverId={profile.receiverId}
           action="save"
@@ -743,17 +744,17 @@ function FeedCard({ profile, senderId }: { profile: FeedProfile; senderId?: stri
           disabled={!profile.actionable}
         >
           Save
-        </LikeActionButton>
-        <LikeActionButton
+        </LikeActionClient>
+        <LikeActionClient
           senderId={senderId}
           receiverId={profile.receiverId}
-          action="like"
+          action="superlike"
           highlight={`Super-like sent to ${profile.name}`}
           className="rounded-full bg-[#f43f5e] px-4 py-2 text-sm font-semibold text-white"
           disabled={!profile.actionable}
         >
           Super-like
-        </LikeActionButton>
+        </LikeActionClient>
       </div>
     </Card>
   );
@@ -829,74 +830,7 @@ interface DiscoverPerson {
   mode?: DiscoverFeedMode;
 }
 
-function LikeActionButton({
-  senderId,
-  receiverId,
-  action,
-  highlight,
-  children,
-  className,
-  disabled,
-  telemetry,
-  pendingLabel,
-}: {
-  senderId?: string | null;
-  receiverId?: string;
-  action: LikeActionType;
-  highlight?: string;
-  children: ReactNode;
-  className?: string;
-  disabled?: boolean;
-  telemetry?: {
-    action: DiscoverEventAction;
-    cardUserId?: string;
-    filter?: DiscoverFeedMode;
-    surface?: string;
-  };
-  pendingLabel?: string;
-}) {
-  if (!senderId || !receiverId) {
-    return (
-      <button type="button" className={className} disabled>
-        {children}
-      </button>
-    );
-  }
-
-  const defaultPendingLabel =
-    action === 'pass' ? 'Passing…' : action === 'save' ? 'Saving…' : 'Sending…';
-  const resolvedPendingLabel = pendingLabel ?? defaultPendingLabel;
-
-  return (
-    <form action={applyLikeAction} className="flex-1">
-      <input type="hidden" name="senderId" value={senderId} />
-      <input type="hidden" name="receiverId" value={receiverId} />
-      <input type="hidden" name="action" value={action} />
-      {highlight ? <input type="hidden" name="highlight" value={highlight} /> : null}
-      {telemetry ? (
-        <>
-          <input type="hidden" name="telemetryAction" value={telemetry.action} />
-          {telemetry.cardUserId ? (
-            <input type="hidden" name="telemetryCardUserId" value={telemetry.cardUserId} />
-          ) : null}
-          {telemetry.filter ? (
-            <input type="hidden" name="telemetryFilter" value={telemetry.filter} />
-          ) : null}
-          {telemetry.surface ? (
-            <input type="hidden" name="telemetrySurface" value={telemetry.surface} />
-          ) : null}
-        </>
-      ) : null}
-      <LikeActionSubmitButton
-        className={className}
-        disabled={disabled}
-        pendingLabel={resolvedPendingLabel}
-      >
-        {children}
-      </LikeActionSubmitButton>
-    </form>
-  );
-}
+/* Removed unused LikeActionButton component (replaced by client-side optimistic LikeActionClient) */
 
 interface LikePerson extends DiscoverPerson {
   highlight: string;
@@ -1291,13 +1225,16 @@ export default async function DashboardPage(props: DashboardPageProps) {
     distance: formatDistance(match.distanceKm),
     location: match.cityRegion ? `${match.city} · ${match.cityRegion}` : match.city,
     orientation: formatOrientation(match.orientation),
-    intent: match.matchPreferences.includes('everyone')
+    intent: (match.matchPreferences ?? []).includes('everyone')
       ? 'Open to everyone'
-      : match.matchPreferences.includes('women')
+      : (match.matchPreferences ?? []).includes('women')
         ? 'Prefers women'
         : 'Prefers men',
     bio: match.bio ?? 'Prefers to reveal more in chat.',
-    photo: match.photos[0] ?? fallbackProfilePhoto,
+    photo:
+      Array.isArray(match.photos) && match.photos.length > 0
+        ? match.photos[0]
+        : fallbackProfilePhoto,
     verified: match.isVerified,
     premiumOnly: false,
     interests: [
@@ -1643,134 +1580,153 @@ export default async function DashboardPage(props: DashboardPageProps) {
         <SidebarNav items={navItems} activeSection={activeSection} />
 
         <div className="flex-1 space-y-8">
-          <section className="space-y-6" id="home">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <p className="text-sm font-medium text-[#6b7280]">Home feed</p>
-                <h2 className="text-2xl font-semibold text-[#0f172a]">Curated for your orbit</h2>
-                <p className="text-sm text-[#94a3b8]">
-                  Discovery respects your orientation, intent, and privacy preferences.
-                </p>
-              </div>
-              <div className="flex gap-2 text-xs">
-                <span className="rounded-full bg-white/80 px-3 py-1 text-[#475569]">
-                  Verified orbit
-                </span>
-                <span className="rounded-full bg-white/80 px-3 py-1 text-[#475569]">
-                  Trust score {snapshot.user.trustScore}
-                </span>
-              </div>
-            </div>
-            <HomeFeed profiles={feedProfiles} senderId={userId} />
-          </section>
-
-          <section className="grid gap-6 xl:grid-cols-[1.8fr,1fr]" id="overview">
-            <Card className="space-y-6 border border-white/70 bg-white/90 p-6 shadow-[0_20px_60px_rgba(21,33,76,0.08)]">
-              <div className="flex flex-wrap items-center justify-between gap-4">
-                <div>
-                  <p className="text-sm font-medium text-[#6b7280]">Welcome back</p>
-                  <h1 className="mt-1 text-3xl font-semibold text-[#0f172a]">
-                    {snapshot.user.displayName}, explore your orbit
-                  </h1>
-                  <p className="text-sm text-[#94a3b8]">
-                    Profile strength {profileCompletion}% complete
-                  </p>
+          {activeSection === 'home' && (
+            <>
+              <section className="space-y-6" id="home">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-medium text-[#6b7280]">Home feed</p>
+                    <h2 className="text-2xl font-semibold text-[#0f172a]">
+                      Curated for your orbit
+                    </h2>
+                    <p className="text-sm text-[#94a3b8]">
+                      Discovery respects your orientation, intent, and privacy preferences.
+                    </p>
+                  </div>
+                  <div className="flex gap-2 text-xs">
+                    <span className="rounded-full bg-white/80 px-3 py-1 text-[#475569]">
+                      Verified orbit
+                    </span>
+                    <span className="rounded-full bg-white/80 px-3 py-1 text-[#475569]">
+                      Trust score {snapshot.user.trustScore}
+                    </span>
+                  </div>
                 </div>
-                <Link
-                  href="/settings/profile"
-                  className="rounded-full bg-[#eef2ff] px-4 py-2 text-sm font-medium text-[#4338ca] shadow-sm"
-                >
-                  Edit profile
-                </Link>
-              </div>
+                <HomeFeed profiles={feedProfiles} senderId={userId} />
+              </section>
 
-              <div className="space-y-3 rounded-2xl bg-[#f8fafc] p-4">
-                <div className="flex items-center justify-between text-sm text-[#475569]">
-                  <span>Profile progress</span>
-                  <span className="font-semibold text-[#0f172a]">{profileCompletion}%</span>
+              <section className="grid gap-6 xl:grid-cols-[1.8fr,1fr]" id="overview">
+                <Card className="space-y-6 border border-white/70 bg-white/90 p-6 shadow-[0_20px_60px_rgba(21,33,76,0.08)]">
+                  <div className="flex flex-wrap items-center justify-between gap-4">
+                    <div>
+                      <p className="text-sm font-medium text-[#6b7280]">Welcome back</p>
+                      <h1 className="mt-1 text-3xl font-semibold text-[#0f172a]">
+                        {snapshot.user.displayName}, explore your orbit
+                      </h1>
+                      <p className="text-sm text-[#94a3b8]">
+                        Profile strength {profileCompletion}% complete
+                      </p>
+                    </div>
+                    <Link
+                      href="/settings/profile"
+                      className="rounded-full bg-[#eef2ff] px-4 py-2 text-sm font-medium text-[#4338ca] shadow-sm"
+                    >
+                      Edit profile
+                    </Link>
+                  </div>
+
+                  <div className="space-y-3 rounded-2xl bg-[#f8fafc] p-4">
+                    <div className="flex items-center justify-between text-sm text-[#475569]">
+                      <span>Profile progress</span>
+                      <span className="font-semibold text-[#0f172a]">{profileCompletion}%</span>
+                    </div>
+                    <div className="h-2 rounded-full bg-[#e2e8f0]">
+                      <div
+                        className="h-full rounded-full bg-gradient-to-r from-[#8f63ff] via-[#ff79c6] to-[#ffb347]"
+                        style={{ width: `${profileCompletion}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="rounded-2xl border border-[#f1f5f9] bg-white p-4">
+                      <p className="text-sm font-medium text-[#475569]">Next experience</p>
+                      <p className="text-lg font-semibold text-[#0f172a]">Gallery crawl tonight</p>
+                      <p className="text-sm text-[#94a3b8]">Invite your best matches</p>
+                      <Link
+                        href="/matches?view=events"
+                        className="mt-3 inline-flex rounded-full bg-[#4338ca] px-4 py-2 text-sm font-semibold text-white"
+                      >
+                        Plan outing
+                      </Link>
+                    </div>
+                    <div className="rounded-2xl border border-[#f1f5f9] bg-white p-4">
+                      <p className="text-sm font-medium text-[#475569]">Safety pulse</p>
+                      <p className="text-lg font-semibold text-[#0f172a]">
+                        Verification {verifiedLabel.toLowerCase()}
+                      </p>
+                      <Link
+                        href="/trust-center"
+                        className="mt-3 inline-flex rounded-full border border-[#d0d7ff] px-4 py-2 text-sm font-medium text-[#4338ca]"
+                      >
+                        Review status
+                      </Link>
+                    </div>
+                  </div>
+                </Card>
+
+                <div id="messages">
+                  <RightRail matches={matchPreviews} messages={messageThreads} />
                 </div>
-                <div className="h-2 rounded-full bg-[#e2e8f0]">
-                  <div
-                    className="h-full rounded-full bg-gradient-to-r from-[#8f63ff] via-[#ff79c6] to-[#ffb347]"
-                    style={{ width: `${profileCompletion}%` }}
+              </section>
+            </>
+          )}
+
+          {activeSection === 'discover' && (
+            <section className="grid gap-6 xl:grid-cols-[1.7fr,1fr]">
+              <div id="discover" className="space-y-5">
+                <DiscoverFilters
+                  filters={discoverFilters}
+                  activeMode={discoverFeed.mode}
+                  userId={userId}
+                />
+                <DiscoverGrid people={discoverPeople} senderId={userId} mode={discoverFeed.mode} />
+              </div>
+              <div id="likes">
+                <LikesPanel likes={likesYou} />
+              </div>
+            </section>
+          )}
+
+          {activeSection === 'messages' && (
+            <section className="grid gap-6 xl:grid-cols-2" id="likes-inbox">
+              <LikesSplitPanel received={likesYou} sent={likesGiven} />
+              <MessagesInbox threads={messageThreads} />
+            </section>
+          )}
+
+          {activeSection !== 'home' &&
+            activeSection !== 'discover' &&
+            activeSection !== 'messages' && (
+              <>
+                <section className="grid gap-6 xl:grid-cols-2" id="profile">
+                  <ProfileManager
+                    completion={profileCompletion}
+                    photos={profilePhotos}
+                    trustScore={snapshot.user.trustScore ?? 0}
+                    verified={snapshot.user.isVerified ?? false}
                   />
-                </div>
-              </div>
+                  <VerificationPanel
+                    timeline={verificationTimeline}
+                    verifiedLabel={verifiedLabel}
+                  />
+                </section>
 
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="rounded-2xl border border-[#f1f5f9] bg-white p-4">
-                  <p className="text-sm font-medium text-[#475569]">Next experience</p>
-                  <p className="text-lg font-semibold text-[#0f172a]">Gallery crawl tonight</p>
-                  <p className="text-sm text-[#94a3b8]">Invite your best matches</p>
-                  <Link
-                    href="/matches?view=events"
-                    className="mt-3 inline-flex rounded-full bg-[#4338ca] px-4 py-2 text-sm font-semibold text-white"
-                  >
-                    Plan outing
-                  </Link>
-                </div>
-                <div className="rounded-2xl border border-[#f1f5f9] bg-white p-4">
-                  <p className="text-sm font-medium text-[#475569]">Safety pulse</p>
-                  <p className="text-lg font-semibold text-[#0f172a]">
-                    Verification {verifiedLabel.toLowerCase()}
-                  </p>
-                  <Link
-                    href="/trust-center"
-                    className="mt-3 inline-flex rounded-full border border-[#d0d7ff] px-4 py-2 text-sm font-medium text-[#4338ca]"
-                  >
-                    Review status
-                  </Link>
-                </div>
-              </div>
-            </Card>
+                <section className="grid gap-6 xl:grid-cols-2" id="matches">
+                  <MatchesPanel candidates={matchCandidates} />
+                  <NotificationsPanel toggles={notificationToggles} />
+                </section>
 
-            <div id="messages">
-              <RightRail matches={matchPreviews} messages={messageThreads} />
-            </div>
-          </section>
+                <section className="grid gap-6 xl:grid-cols-2" id="premium">
+                  <PremiumPanel perks={premiumPerks} />
+                  <SafetySupportPanel resources={safetyResources} />
+                </section>
 
-          <section className="grid gap-6 xl:grid-cols-[1.7fr,1fr]">
-            <div id="discover" className="space-y-5">
-              <DiscoverFilters
-                filters={discoverFilters}
-                activeMode={discoverFeed.mode}
-                userId={userId}
-              />
-              <DiscoverGrid people={discoverPeople} senderId={userId} mode={discoverFeed.mode} />
-            </div>
-            <div id="likes">
-              <LikesPanel likes={likesYou} />
-            </div>
-          </section>
-
-          <section className="grid gap-6 xl:grid-cols-2" id="profile">
-            <ProfileManager
-              completion={profileCompletion}
-              photos={profilePhotos}
-              trustScore={snapshot.user.trustScore ?? 0}
-              verified={snapshot.user.isVerified ?? false}
-            />
-            <VerificationPanel timeline={verificationTimeline} verifiedLabel={verifiedLabel} />
-          </section>
-
-          <section className="grid gap-6 xl:grid-cols-2" id="likes-inbox">
-            <LikesSplitPanel received={likesYou} sent={likesGiven} />
-            <MessagesInbox threads={messageThreads} />
-          </section>
-
-          <section className="grid gap-6 xl:grid-cols-2" id="matches">
-            <MatchesPanel candidates={matchCandidates} />
-            <NotificationsPanel toggles={notificationToggles} />
-          </section>
-
-          <section className="grid gap-6 xl:grid-cols-2" id="premium">
-            <PremiumPanel perks={premiumPerks} />
-            <SafetySupportPanel resources={safetyResources} />
-          </section>
-
-          <section id="settings">
-            <SettingsPanel items={settingItems} />
-          </section>
+                <section id="settings">
+                  <SettingsPanel items={settingItems} />
+                </section>
+              </>
+            )}
         </div>
       </div>
     </main>
@@ -1946,55 +1902,40 @@ function DiscoverCard({
           ))}
         </div>
         <div className="flex flex-wrap gap-2 pt-3">
-          <LikeActionButton
+          <LikeActionClient
             senderId={senderId}
             receiverId={person.receiverId}
             action="like"
             highlight={`Discovery hi to ${person.name}`}
             className="flex-1 rounded-full bg-[#4338ca] px-4 py-2 text-center text-sm font-semibold text-white"
             disabled={!person.actionable}
-            telemetry={{
-              action: 'like',
-              cardUserId,
-              filter: filterMode,
-              surface: 'discover_grid',
-            }}
+            telemetry={{ action: 'like', cardUserId, filter: filterMode, surface: 'discover_grid' }}
           >
             Say hi
-          </LikeActionButton>
-          <LikeActionButton
+          </LikeActionClient>
+          <LikeActionClient
             senderId={senderId}
             receiverId={person.receiverId}
             action="save"
             highlight={`Saved discovery profile ${person.name}`}
             className="rounded-full border border-[#e2e8f0] px-4 py-2 text-sm font-semibold text-[#4338ca]"
             disabled={!person.actionable}
-            telemetry={{
-              action: 'save',
-              cardUserId,
-              filter: filterMode,
-              surface: 'discover_grid',
-            }}
+            telemetry={{ action: 'save', cardUserId, filter: filterMode, surface: 'discover_grid' }}
           >
             Save
-          </LikeActionButton>
-          <LikeActionButton
+          </LikeActionClient>
+          <LikeActionClient
             senderId={senderId}
             receiverId={person.receiverId}
             action="pass"
             highlight={`Passed on ${person.name}`}
             className="rounded-full border border-[#fee2e2] px-4 py-2 text-sm font-semibold text-[#b91c1c]"
             disabled={!person.actionable}
-            telemetry={{
-              action: 'pass',
-              cardUserId,
-              filter: filterMode,
-              surface: 'discover_grid',
-            }}
+            telemetry={{ action: 'pass', cardUserId, filter: filterMode, surface: 'discover_grid' }}
             pendingLabel="Passing…"
           >
             Pass
-          </LikeActionButton>
+          </LikeActionClient>
         </div>
         {senderId ? (
           <div className="flex flex-wrap gap-2 pt-3 text-sm">

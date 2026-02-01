@@ -13,7 +13,7 @@ let initError: Error | null = null;
 async function createHandler() {
   const app = express();
   const adapter = new ExpressAdapter(app);
-  
+
   // Add timeout to prevent hanging during init
   const initTimeout = new Promise((_, reject) =>
     setTimeout(() => reject(new Error('Lambda init timeout after 25s')), 25000)
@@ -23,7 +23,7 @@ async function createHandler() {
     const nestAppPromise = NestFactory.create(AppModule, adapter, {
       logger: ['log', 'warn', 'error'],
     });
-    
+
     const nestApp = await Promise.race([nestAppPromise, initTimeout as any]);
 
     (nestApp as any).setGlobalPrefix('api/v1', {

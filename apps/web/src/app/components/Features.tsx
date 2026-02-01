@@ -1,4 +1,4 @@
-import { Card } from '@lovedate/ui';
+import { Card } from '@/lib/ui-components';
 
 const features = [
   {

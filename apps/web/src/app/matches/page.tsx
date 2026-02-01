@@ -1,5 +1,5 @@
-import type { MatchCandidate } from '@lovedate/api';
-import { Badge, Card, PillButton } from '@lovedate/ui';
+import type { MatchCandidate } from '@/lib/api-types';
+import { Badge, Card, PillButton } from '@/lib/ui-components';
 import Image from 'next/image';
 import Link from 'next/link';
 import { lovedateApi } from '@/lib/api';

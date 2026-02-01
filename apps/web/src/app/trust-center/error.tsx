@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Card, PillButton } from '@lovedate/ui';
+import { Card, PillButton } from '@/lib/ui-components';
 
 export default function TrustCenterError({
   error,

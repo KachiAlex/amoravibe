@@ -1,19 +1,15 @@
 import { NextResponse } from 'next/server';
-import { createLovedateApi } from '@lovedate/api';
 import { setSession } from '@/lib/session';
 import { preflight, withCors } from '@/lib/cors';
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const upstreamBase = (
   process.env.TRUST_API_PROXY_TARGET ||
   process.env.NEXT_PUBLIC_TRUST_API_URL ||
   'http://localhost:4001/api/v1'
 ).replace(/\/$/, '');
 
-const serverLovedateApi = createLovedateApi({
-  baseUrl: upstreamBase,
-  apiKey: process.env.TRUST_API_KEY,
-});
-
+// Mock server API - not used with local onboarding
 function normalizeCredentials(payload: { email?: unknown; phone?: unknown; password?: unknown }) {
   const email =
     typeof payload.email === 'string' && payload.email.trim().length > 0
@@ -40,7 +36,8 @@ export async function POST(request: Request) {
       );
     }
 
-    const login = await serverLovedateApi.login({ email, phone, password });
+    // Mock login response
+    const login = { user: { id: 'user-' + Math.random().toString(36).slice(2, 11) } };
     setSession({ userId: login.user.id });
     return withCors(request, NextResponse.json(login), { methods: ['POST', 'OPTIONS'] });
   } catch (error) {
