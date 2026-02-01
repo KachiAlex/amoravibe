@@ -24,8 +24,12 @@ jobs:
       - name: Build web workspace
         run: npm run build --workspace=web
 
-      - name: Deploy to Vercel
+      - name: Trigger Vercel Deploy Hook
         env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_DEPLOY_HOOK: ${{ secrets.VERCEL_DEPLOY_HOOK }}
         run: |
-          npx vercel --prod --confirm --cwd=apps/web --token $VERCEL_TOKEN
+          if [ -z "$VERCEL_DEPLOY_HOOK" ]; then
+            echo "VERCEL_DEPLOY_HOOK secret is not set. Skipping deploy.";
+            exit 1;
+          fi
+          curl -X POST "$VERCEL_DEPLOY_HOOK"
