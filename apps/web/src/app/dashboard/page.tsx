@@ -1879,7 +1879,7 @@ function DiscoverCard({
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
         <div className="absolute bottom-3 left-3 flex gap-1 text-[11px] font-semibold uppercase tracking-wide text-white">
-          {person.tags.slice(0, 2).map((tag) => (
+          {(person.tags || []).filter(Boolean).slice(0, 2).map((tag) => (
             <span key={tag} className="rounded-full bg-white/30 px-2 py-1">
               {tag}
             </span>
@@ -1895,7 +1895,7 @@ function DiscoverCard({
         </div>
         <p className="text-sm text-[#64748b]">{person.city}</p>
         <div className="flex flex-wrap gap-2 text-xs text-[#6366f1]">
-          {person.tags.map((tag) => (
+          {(person.tags || []).filter(Boolean).map((tag) => (
             <span key={tag} className="rounded-full bg-[#eef2ff] px-2 py-1">
               #{tag.toLowerCase()}
             </span>
