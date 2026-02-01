@@ -112,7 +112,24 @@ export const lovedateApi: any = new Proxy(
         return { success: false };
       }
     },
-    fetchMessagingThreads: async (userId: string, limit?: number) => [],
+    fetchMessagingThreads: async (userId: string, limit?: number) => {
+      try {
+        const params = new URLSearchParams();
+        if (userId) params.set('userId', userId);
+        if (typeof limit === 'number') params.set('limit', String(limit));
+
+        const url = `/api/dashboard/messages?${params.toString()}`;
+        const res = await fetch(url, { cache: 'no-store' });
+        if (!res.ok) {
+          throw new Error(`Failed to fetch messaging threads: ${res.status}`);
+        }
+        const json = await res.json();
+        return json.threads || [];
+      } catch (error) {
+        console.error('Failed to fetch messaging threads', error);
+        return [];
+      }
+    },
     fetchDiscoverFeedPaginated: async (opts: any) => ({ items: [], total: 0 }),
     requestVerification: async (data: any) => ({ success: true }),
     requestReverification: async (data: any) => ({ success: true }),

@@ -65,3 +65,52 @@ describe('lovedateApi.likeUser', () => {
     expect(res.success).toBe(true);
   });
 });
+
+describe('lovedateApi.fetchMessagingThreads', () => {
+  const globalAny: any = global;
+
+  beforeEach(() => {
+    globalAny.fetch = vi.fn();
+  });
+  afterEach(() => {
+    vi.resetAllMocks();
+    delete globalAny.fetch;
+  });
+
+  it('calls /api/dashboard/messages and returns threads array', async () => {
+    const sample = {
+      threads: [
+        {
+          id: 'thread-1',
+          name: 'Sarah',
+          snippet: 'Loved your take on rooftop vinyl nights.',
+          vibeLine: 'Gallery crawl invites pending.',
+          lastActive: new Date().toISOString(),
+          unread: 2,
+          avatar: 'https://example.com/sarah.jpg',
+          route: '/messages/sarah',
+          status: { label: 'Waiting for reply', tone: 'active' },
+          quickReplies: ['Absolutely!', 'Tell me more'],
+        },
+      ],
+      total: 1,
+      hasMore: false,
+    };
+    (globalAny.fetch as any).mockResolvedValue({ ok: true, json: async () => sample });
+
+    const res = await lovedateApi.fetchMessagingThreads('user-123', 6);
+    expect(globalAny.fetch).toHaveBeenCalledWith(
+      '/api/dashboard/messages?userId=user-123&limit=6',
+      expect.any(Object)
+    );
+    expect(res).toHaveLength(1);
+    expect(res[0].name).toBe('Sarah');
+  });
+
+  it('returns empty array on error', async () => {
+    (globalAny.fetch as any).mockRejectedValue(new Error('Network error'));
+
+    const res = await lovedateApi.fetchMessagingThreads('user-123');
+    expect(res).toEqual([]);
+  });
+});
