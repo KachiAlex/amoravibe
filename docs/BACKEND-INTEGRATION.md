@@ -104,6 +104,35 @@ NEXT_PUBLIC_ENABLE_REAL_TRUST=true \
 npx next dev
 ```
 
+## Local identity mock
+
+The repository includes a simple express-style mock for the identity verification endpoints used during development. It listens on port 4002 by default and implements:
+
+- POST /verifications -> create pending verification
+- PATCH /verifications/:id/complete -> mark verified
+- GET /verifications/:id -> fetch status
+
+Quick start (Windows PowerShell):
+
+```powershell
+# start the mock (foreground)
+npx ts-node services/identity/scripts/start-express-verification-mock.ts
+
+# in a separate shell, start the web app pointed at the mock
+powershell -ExecutionPolicy Bypass -File scripts/start-web-with-mock.ps1
+
+# optionally run the integration script to validate flow
+npx ts-node services/identity/scripts/integration-verification-flow-express.ts
+```
+
+If you prefer to avoid the helper script, set the following env variables before starting the web app:
+
+```
+NEXT_PUBLIC_IDENTITY_SERVICE_URL=http://localhost:4002
+NEXT_PUBLIC_ENABLE_REAL_TRUST=true
+```
+
+
 ## Deployed Environment Setup (Vercel)
 
 Set environment variables in Vercel dashboard:
