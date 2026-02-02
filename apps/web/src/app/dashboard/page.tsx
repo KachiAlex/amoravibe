@@ -47,6 +47,9 @@ const DISCOVER_MODES: DiscoverFeedMode[] = [
 ];
 const DISCOVER_FEED_LIMIT = 12;
 
+const FALLBACK_PROFILE_PHOTO =
+  'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=900&q=80';
+
 const DEFAULT_DISCOVER_FILTERS: DiscoverFilterOption[] = [
   { label: 'Curated for you', helper: 'Compatibility weighted', value: 'default' },
   { label: 'Verified orbit', helper: 'Photo / ID verified', value: 'verified' },
@@ -191,9 +194,9 @@ const mapCardToDiscoverPerson = (card: DiscoverCard, mode: DiscoverFeedMode): Di
   cityRegion: card.cityRegion ?? null,
   distance: card.distance ?? null,
   tags: card.tags ?? [],
-  image: card.image,
+  image: card.image || 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=900&q=80',
   compatibility: card.compatibility,
-  verified: card.verified,
+  verified: card.verified ?? false,
   premiumOnly: card.premiumOnly,
   receiverId: card.receiverId,
   actionable: card.actionable,
@@ -350,8 +353,8 @@ function LikesSplitPanel({ received, sent }: { received: LikePerson[]; sent: Lik
             {received.map((like) => (
               <div key={like.id} className="flex items-center gap-3">
                 <Image
-                  src={like.image}
-                  alt={like.name}
+                  src={like.image || FALLBACK_PROFILE_PHOTO}
+                  alt={like.name || 'Profile'}
                   width={44}
                   height={44}
                   className="h-11 w-11 rounded-2xl object-cover"
@@ -374,8 +377,8 @@ function LikesSplitPanel({ received, sent }: { received: LikePerson[]; sent: Lik
             {sent.map((like) => (
               <div key={like.id} className="flex items-center gap-3">
                 <Image
-                  src={like.image}
-                  alt={like.name}
+                  src={like.image || FALLBACK_PROFILE_PHOTO}
+                  alt={like.name || 'Profile'}
                   width={44}
                   height={44}
                   className="h-11 w-11 rounded-2xl object-cover"
@@ -603,8 +606,8 @@ function SafetySupportPanel({ resources }: { resources: SafetyResource[] }) {
       <div className="space-y-3">
         {resources.map((resource) => (
           <Link
-            key={resource.href}
-            href={resource.href}
+            key={resource.href || resource.title}
+            href={resource.href || '#'}
             className="flex items-center justify-between rounded-2xl border border-[#e2e8f0] px-4 py-3 text-[#0f172a] hover:border-[#cbd5f5]"
           >
             <span>
@@ -637,8 +640,8 @@ function SettingsPanel({ items }: { items: SettingItem[] }) {
       <div className="grid gap-3 md:grid-cols-2">
         {items.map((item) => (
           <Link
-            key={item.href}
-            href={item.href}
+            key={item.href || item.label}
+            href={item.href || '#'}
             className={`rounded-2xl border px-4 py-3 transition ${
               item.tone === 'danger'
                 ? 'border-[#fecdd3] bg-[#fff1f2] text-[#b91c1c]'
@@ -815,15 +818,15 @@ function DiscoverFilters({
 
 interface DiscoverPerson {
   id: string;
-  name: string;
+  name?: string;
   age?: number | null;
   city?: string | null;
   cityRegion?: string | null;
   distance?: string | null;
-  tags: string[];
-  image: string;
+  tags?: string[];
+  image?: string;
   compatibility?: number;
-  verified: boolean;
+  verified?: boolean;
   premiumOnly?: boolean;
   receiverId?: string;
   actionable?: boolean;
@@ -833,7 +836,7 @@ interface DiscoverPerson {
 /* Removed unused LikeActionButton component (replaced by client-side optimistic LikeActionClient) */
 
 interface LikePerson extends DiscoverPerson {
-  highlight: string;
+  highlight?: string;
   likeEdgeId?: string;
   premiumOnly?: boolean;
 }
@@ -878,26 +881,26 @@ interface MatchCandidatePreview {
 interface NotificationToggle {
   channel: string;
   label: string;
-  helper: string;
+  helper?: string;
   enabled: boolean;
 }
 
 interface PremiumPerk {
   title: string;
-  helper: string;
-  cta: string;
+  helper?: string;
+  cta?: string;
 }
 
 interface SafetyResource {
   title: string;
-  helper: string;
-  href: string;
+  helper?: string;
+  href?: string;
 }
 
 interface SettingItem {
   label: string;
-  helper: string;
-  href: string;
+  helper?: string;
+  href?: string;
   tone?: 'default' | 'danger';
 }
 
@@ -1202,9 +1205,6 @@ export default async function DashboardPage(props: DashboardPageProps) {
   );
   const discoverFilters = discoverFeed.filters;
 
-  const fallbackProfilePhoto =
-    'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=900&q=80';
-
   const formatOrientation = (orientation: string | undefined) =>
     orientation ? orientation.replace(/_/g, ' ') : 'Private';
 
@@ -1220,10 +1220,10 @@ export default async function DashboardPage(props: DashboardPageProps) {
 
   const mapMatchToFeedProfile = (match: MatchCandidate): FeedProfile => ({
     id: match.id,
-    name: match.displayName,
+    name: match.displayName || 'Someone',
     age: undefined,
     distance: formatDistance(match.distanceKm),
-    location: match.cityRegion ? `${match.city} · ${match.cityRegion}` : match.city,
+    location: match.cityRegion ? `${match.city || 'Unknown'} · ${match.cityRegion}` : (match.city || 'Unknown'),
     orientation: formatOrientation(match.orientation),
     intent: (match.matchPreferences ?? []).includes('everyone')
       ? 'Open to everyone'
@@ -1234,8 +1234,8 @@ export default async function DashboardPage(props: DashboardPageProps) {
     photo:
       Array.isArray(match.photos) && match.photos.length > 0
         ? match.photos[0]
-        : fallbackProfilePhoto,
-    verified: match.isVerified,
+        : FALLBACK_PROFILE_PHOTO,
+    verified: match.isVerified ?? false,
     premiumOnly: false,
     interests: [
       match.discoverySpace === 'both'
@@ -1262,17 +1262,9 @@ export default async function DashboardPage(props: DashboardPageProps) {
   };
 
   const likesGiven: LikePerson[] = engagementFallback.sentLikes.map((like) => ({
-    id: like.id,
-    likeEdgeId: like.id,
-    name: like.name,
-    age: like.age,
-    city: like.city,
-    distance: like.distance,
-    tags: like.tags,
-    highlight: like.highlight,
-    image: like.image,
-    premiumOnly: like.premiumOnly,
-    verified: like.verified ?? false,
+    ...like,
+    image: like.image || undefined,
+    highlight: like.highlight || 'Interested in you',
   }));
 
   const profilePhotos = Array.isArray((snapshot as any)?.user?.photos)
@@ -1360,17 +1352,9 @@ export default async function DashboardPage(props: DashboardPageProps) {
 
   const likesYou: LikePerson[] = engagementFallback.receivedLikes.length
     ? engagementFallback.receivedLikes.map((like) => ({
-        id: like.id,
-        likeEdgeId: like.id,
-        name: like.name,
-        age: like.age,
-        city: like.city,
-        distance: like.distance,
-        tags: like.tags,
-        highlight: like.highlight,
-        image: like.image,
-        premiumOnly: like.premiumOnly,
-        verified: like.verified ?? false,
+        ...like,
+        image: like.image || undefined,
+        highlight: like.highlight || 'Interested in you',
       }))
     : [
         {
@@ -1458,14 +1442,14 @@ export default async function DashboardPage(props: DashboardPageProps) {
   const matchCandidates: MatchCandidatePreview[] = matches.length
     ? matches.slice(0, 4).map((match, index) => ({
         id: match.id,
-        name: match.displayName,
+        name: match.displayName || 'Someone',
         status: index === 0 ? 'new' : index === 1 ? 'active' : 'expiring',
         highlight: match.city ?? 'Ready to connect',
-        compatibility: match.compatibilityScore,
+        compatibility: match.compatibilityScore ?? 0,
         avatar:
-          match.photos[0] ??
+          (Array.isArray(match.photos) ? match.photos[0] : null) ||
           'https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=crop&w=200&q=80',
-        verified: match.isVerified,
+        verified: match.isVerified ?? false,
       }))
     : [
         {
@@ -1870,8 +1854,8 @@ function DiscoverCard({
     <div className="rounded-3xl border border-[#eef2ff] bg-white shadow-[0_15px_40px_rgba(15,23,42,0.05)]">
       <div className="relative aspect-[4/3] overflow-hidden rounded-3xl">
         <Image
-          src={person.image}
-          alt={person.name}
+          src={person.image || FALLBACK_PROFILE_PHOTO}
+          alt={person.name || 'Profile'}
           fill
           sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
           className="object-cover"
@@ -1994,8 +1978,8 @@ function LikeCard({ like }: { like: LikePerson }) {
   return (
     <div className="flex items-center gap-4 rounded-2xl border border-[#eef2ff] p-3">
       <Image
-        src={like.image}
-        alt={like.name}
+        src={like.image || FALLBACK_PROFILE_PHOTO}
+        alt={like.name || 'Profile'}
         width={56}
         height={56}
         loading="lazy"
@@ -2011,7 +1995,7 @@ function LikeCard({ like }: { like: LikePerson }) {
           </span>
         ) : null}
         <p className="text-sm text-[#94a3b8]">{like.highlight}</p>
-        <div className="text-xs text-[#6366f1]">{like.tags.join(' • ')}</div>
+        <div className="text-xs text-[#6366f1]">{(like.tags || []).join(' • ')}</div>
       </div>
       <Link
         href={`/matches?highlight=${encodeURIComponent(like.id)}`}

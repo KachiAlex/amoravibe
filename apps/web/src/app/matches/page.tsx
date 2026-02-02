@@ -124,8 +124,8 @@ export default async function MatchesPage(props: MatchesPageProps) {
 }
 
 function MatchCard({ match }: { match: MatchCandidate }) {
-  const primaryPhoto = match.photos[0];
-  const compatibilityTone = match.compatibilityScore >= 75 ? 'text-emerald-600' : 'text-ink-700';
+  const primaryPhoto = match.photos?.[0];
+  const compatibilityTone = (match.compatibilityScore ?? 0) >= 75 ? 'text-emerald-600' : 'text-ink-700';
 
   return (
     <Card className="flex flex-col">
@@ -149,7 +149,7 @@ function MatchCard({ match }: { match: MatchCandidate }) {
             <p className="text-sm text-ink-600">{match.city}</p>
           </div>
           <span className={`text-sm font-semibold ${compatibilityTone}`}>
-            {match.compatibilityScore}% vibe match
+            {match.compatibilityScore ?? 0}% vibe match
           </span>
         </div>
         <p className="mt-3 flex-1 text-sm text-ink-700">

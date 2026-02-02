@@ -54,8 +54,8 @@ export class EmailService {
       return true;
     } catch (error) {
       console.error('Error sending email:', error);
-      if (error.response) {
-        console.error('SendGrid error response:', error.response.body);
+      if (error instanceof Error && 'response' in error) {
+        console.error('SendGrid error response:', (error as any).response.body);
       }
       throw new Error('Failed to send email');
     }

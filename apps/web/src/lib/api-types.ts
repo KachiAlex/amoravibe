@@ -111,8 +111,32 @@ export interface MatchCandidate {
 
 export type DiscoverEventPayload = Record<string, unknown>;
 export type MessagingStatusTone = string;
+
+export interface MessagingThreadStatus {
+  label: string;
+  tone: MessagingStatusTone;
+}
+
+export interface MessagingThread {
+  id: string;
+  name: string;
+  snippet: string;
+  vibeLine: string;
+  lastActive: string;
+  unread: number;
+  avatar: string;
+  route: string;
+  status: MessagingThreadStatus;
+  quickReplies: string[];
+  [key: string]: any;
+}
+
 export type Gender = 'male' | 'female' | 'non-binary' | 'prefer-not-to-say';
 export type Orientation = 'straight' | 'gay' | 'lesbian' | 'bisexual' | 'asexual';
 export type MatchPreference = 'men' | 'women' | 'everyone';
 export type DiscoverySpace = 'nearby' | 'global';
 export type VerificationIntent = 'profile' | 'payment' | 'identity';
+export type VerificationStatus = 'unverified' | 'pending' | 'verified' | 'flagged';
+
+// Re-export shared API types from the `@lovedate/api` package when needed
+export type { TrustPreviewResponse } from '@lovedate/api';

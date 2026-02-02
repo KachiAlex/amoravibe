@@ -1,18 +1,18 @@
 import { Body, Controller, Post, HttpCode, HttpStatus } from '@nestjs/common';
 import { VerificationService } from './verification.service';
 import { EmailService } from '../email/email.service';
-import { VerificationMethod } from '@prisma/client';
+import { VerificationMethod } from '../../prisma/client';
 
 class SendCodeDto {
   email?: string;
   phone?: string;
-  method: 'email' | 'sms';
+  method: 'email' | 'sms' = 'email';
 }
 
 class VerifyCodeDto {
   email?: string;
   phone?: string;
-  code: string;
+  code: string = '';
 }
 
 @Controller('verification')
