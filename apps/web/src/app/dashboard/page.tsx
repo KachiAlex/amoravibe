@@ -327,7 +327,7 @@ function VerificationPanel({
       </div>
       <div className="rounded-2xl bg-white/10 p-4 text-sm">
         Add ID verification to boost visibility.{' '}
-        <Link href="/trust-center" className="font-semibold underline">
+        <Link href="/dashboard" className="font-semibold underline">
           Start verification
         </Link>
       </div>
@@ -1182,7 +1182,7 @@ export default async function DashboardPage(props: DashboardPageProps) {
               <Link href="/onboarding">Retry onboarding</Link>
             </PillButton>
             <PillButton variant="outline" asChild>
-              <Link href="/trust-center">View trust preview</Link>
+              <Link href="/dashboard">View trust preview</Link>
             </PillButton>
           </div>
         </Card>
@@ -1407,7 +1407,7 @@ export default async function DashboardPage(props: DashboardPageProps) {
       section: 'messages',
     },
     { label: 'Communities', icon: Users, href: '/dashboard?section=discover#discover' },
-    { label: 'Safety Center', icon: ShieldCheck, href: '/trust-center' },
+    { label: 'Safety Center', icon: ShieldCheck, href: '/dashboard' },
     { label: 'Settings', icon: Settings, href: '/settings/profile' },
   ];
 
@@ -1642,7 +1642,7 @@ export default async function DashboardPage(props: DashboardPageProps) {
                         Verification {verifiedLabel.toLowerCase()}
                       </p>
                       <Link
-                        href="/trust-center"
+                        href="/dashboard"
                         className="mt-3 inline-flex rounded-full border border-[#d0d7ff] px-4 py-2 text-sm font-medium text-[#4338ca]"
                       >
                         Review status
@@ -1777,7 +1777,7 @@ function SidebarNav({
               Verification & trust
             </p>
             <Link
-              href="/trust-center"
+              href="/dashboard"
               className="mt-3 inline-flex items-center text-xs font-semibold uppercase tracking-[0.25em] text-[#4338ca]"
             >
               Open trust hub →
