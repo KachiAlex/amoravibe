@@ -223,6 +223,8 @@ interface NavItem {
   section?: DashboardSection;
 }
 
+// (helpers moved to `apps/web/src/lib/dashboard-mappers.ts`)
+
 function ProfileManager({
   completion,
   photos,

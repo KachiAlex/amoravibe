@@ -163,8 +163,77 @@ export const lovedateApi: any = new Proxy(
       }
     },
     fetchDiscoverFeedPaginated: async (opts: any) => ({ items: [], total: 0 }),
-    requestVerification: async (data: any) => ({ success: true }),
-    requestReverification: async (data: any) => ({ success: true }),
+    requestVerification: async (data: any) => {
+      // POST to identity service /verifications when trust endpoints enabled
+      if (BACKEND_CONFIG.ENABLE_REAL_TRUST && BACKEND_CONFIG.IDENTITY_SERVICE_URL) {
+        try {
+          const url = getBackendUrl('/verifications');
+          const res = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data),
+          });
+          if (!res.ok) throw new Error(`requestVerification ${res.status}`);
+          return await res.json();
+        } catch (err) {
+          console.error('Failed to request verification', err);
+          return { success: false };
+        }
+      }
+
+      return { success: true };
+    },
+    requestReverification: async (data: any) => {
+      // For re-verification, backend may accept a POST to /verifications as well
+      if (BACKEND_CONFIG.ENABLE_REAL_TRUST && BACKEND_CONFIG.IDENTITY_SERVICE_URL) {
+        try {
+          const url = getBackendUrl('/verifications');
+          const res = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data),
+          });
+          if (!res.ok) throw new Error(`requestReverification ${res.status}`);
+          return await res.json();
+        } catch (err) {
+          console.error('Failed to request reverification', err);
+          return { success: false };
+        }
+      }
+
+      return { success: true };
+    },
+    // Additional helpers for verification lifecycle against the mock
+    completeVerification: async (id: string) => {
+      if (BACKEND_CONFIG.ENABLE_REAL_TRUST && BACKEND_CONFIG.IDENTITY_SERVICE_URL) {
+        try {
+          const url = getBackendUrl(`/verifications/${encodeURIComponent(id)}/complete`);
+          const res = await fetch(url, { method: 'PATCH' });
+          if (!res.ok) throw new Error(`completeVerification ${res.status}`);
+          return await res.json();
+        } catch (err) {
+          console.error('Failed to complete verification', err);
+          return { success: false };
+        }
+      }
+
+      return { success: true };
+    },
+    fetchVerification: async (id: string) => {
+      if (BACKEND_CONFIG.ENABLE_REAL_TRUST && BACKEND_CONFIG.IDENTITY_SERVICE_URL) {
+        try {
+          const url = getBackendUrl(`/verifications/${encodeURIComponent(id)}`);
+          const res = await fetch(url);
+          if (!res.ok) throw new Error(`fetchVerification ${res.status}`);
+          return await res.json();
+        } catch (err) {
+          console.error('Failed to fetch verification', err);
+          return null;
+        }
+      }
+
+      return null;
+    },
     sendMessage: async (data: any) => ({ success: true }),
     getMessagingThreads: async () => ({ threads: [] }),
   },
