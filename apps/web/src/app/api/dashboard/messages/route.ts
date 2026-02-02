@@ -1,6 +1,8 @@
-import { NextResponse } from 'next/server';
 import type { MessagingThread, MessagingStatusTone } from '@/lib/api-types';
 import { BACKEND_CONFIG, getBackendUrl } from '@/lib/backend-config';
+
+// NOTE: Minimal lint fix commit - ensures this file differs from older commits
+// that contained an unused `NextResponse` import. Safe no-op comment.
 
 // Sample messaging threads with diverse personas and statuses
 const ALL_MESSAGE_THREADS: MessagingThread[] = [
@@ -112,7 +114,7 @@ export async function GET(request: Request) {
   }
 
   // Fallback to stub data
-  let threads = [...ALL_MESSAGE_THREADS];
+  const threads = [...ALL_MESSAGE_THREADS];
 
   if (sort === 'unread') {
     threads.sort((a, b) => b.unread - a.unread);

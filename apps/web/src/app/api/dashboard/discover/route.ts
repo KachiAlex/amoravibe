@@ -1,6 +1,8 @@
-import { NextResponse } from 'next/server';
 import type { DiscoverCard, DiscoverFeedResponse } from '@/lib/api-types';
 import { BACKEND_CONFIG, getBackendUrl } from '@/lib/backend-config';
+
+// NOTE: Minimal lint fix commit - ensures this file differs from older commits
+// that contained an unused `NextResponse` import. Safe no-op comment.
 
 // Sample discover cards with mode-specific filtering
 const ALL_DISCOVER_CARDS: DiscoverCard[] = [
