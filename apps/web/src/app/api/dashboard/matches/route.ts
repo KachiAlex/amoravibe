@@ -1,5 +1,7 @@
 import type { Match } from '@/lib/api-types';
 
+const IDENTITY_SERVICE_URL = process.env.IDENTITY_SERVICE_URL || 'http://localhost:4001';
+
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const userId = url.searchParams.get('userId');
@@ -15,31 +17,73 @@ export async function GET(request: Request) {
     );
   }
 
-  // For now, return empty matches
-  // In the future, call identity service at:
-  // const backendUrl = `http://localhost:4001/api/v1/matches/${userId}?status=${status}&limit=${limit}`;
-  
-  return Response.json({
-    matches: [],
-    total: 0,
-    status,
-    generatedAt: new Date().toISOString(),
-  });
+  try {
+    const identityUrl = new URL(`${IDENTITY_SERVICE_URL}/api/v1/matches/${userId}`);
+    identityUrl.searchParams.set('status', status);
+    identityUrl.searchParams.set('limit', limit.toString());
+
+    const response = await fetch(identityUrl.toString(), {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+      cache: 'no-store',
+    });
+
+    if (!response.ok) {
+      throw new Error(`Identity service returned ${response.status}`);\n    }
+
+    const data = await response.json();
+    return Response.json(data);
+  } catch (error) {
+    console.error('[Matches API] Error fetching matches:', error);
+    // Fallback to empty matches if service unavailable
+    return Response.json({
+      matches: [],
+      total: 0,
+      status,
+      generatedAt: new Date().toISOString(),
+    });
+  }
 }
 
 export async function POST(request: Request) {
   const url = new URL(request.url);
   const path = url.pathname;
+  const userId = url.searchParams.get('userId');
   
   // POST /api/dashboard/matches/:matchId/unmatch
   if (path.includes('/unmatch')) {
     const matchId = path.split('/').slice(-2, -1)[0];
     const body = await request.json();
     
-    console.log('[Matches API] Unmatch called for:', { matchId, userId: body.userId });
-    
-    // TODO: Call backend unmatch endpoint
-    return Response.json({ success: true, message: 'Unmatched' });
+    console.log('[Matches API] Unmatch called for:', { matchId, userId });
+
+    if (!userId) {
+      return Response.json({ error: 'userId required' }, { status: 400 });
+    }
+
+    try {
+      const response = await fetch(
+        `${IDENTITY_SERVICE_URL}/api/v1/matches/${userId}/unmatch`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ matchId }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Identity service returned ${response.status}`);
+      }
+
+      const data = await response.json();
+      return Response.json(data);
+    } catch (error) {
+      console.error('[Matches API] Error unmatching:', error);
+      return Response.json(
+        { error: 'Failed to unmatch' },
+        { status: 500 }
+      );
+    }
   }
 
   return Response.json({ error: 'Unknown action' }, { status: 400 });
@@ -48,16 +92,42 @@ export async function POST(request: Request) {
 export async function DELETE(request: Request) {
   const url = new URL(request.url);
   const path = url.pathname;
+  const userId = url.searchParams.get('userId');
   
   // DELETE /api/dashboard/matches/:matchId/block
   if (path.includes('/block')) {
     const matchId = path.split('/').slice(-2, -1)[0];
     const body = await request.json();
     
-    console.log('[Matches API] Block called for:', { matchId, userId: body.userId, blockedUserId: body.blockedUserId });
-    
-    // TODO: Call backend block endpoint
-    return Response.json({ success: true, message: 'User blocked' });
+    console.log('[Matches API] Block called for:', { matchId, userId, blockedUserId: body.blockedUserId });
+
+    if (!userId) {
+      return Response.json({ error: 'userId required' }, { status: 400 });
+    }
+
+    try {
+      const response = await fetch(
+        `${IDENTITY_SERVICE_URL}/api/v1/matches/${userId}/block`,
+        {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ matchId, blockedUserId: body.blockedUserId }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Identity service returned ${response.status}`);
+      }
+
+      const data = await response.json();
+      return Response.json(data);
+    } catch (error) {
+      console.error('[Matches API] Error blocking user:', error);
+      return Response.json(
+        { error: 'Failed to block user' },
+        { status: 500 }
+      );
+    }
   }
 
   return Response.json({ error: 'Unknown action' }, { status: 400 });

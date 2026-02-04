@@ -193,6 +193,8 @@ model User {
   sentMessages            Message[]                @relation("UserSentMessages")
   discoverEvents          DiscoverEvent[]
   discoverCardEvents      DiscoverEvent[]          @relation("DiscoverEventCardUser")
+  matchesAsUser1          Match[]                  @relation("MatchUser1")
+  matchesAsUser2          Match[]                  @relation("MatchUser2")
 }
 
 model MessageThread {
@@ -543,4 +545,29 @@ model DiscoverEvent {
 
   @@index([userId, createdAt])
   @@index([cardUserId])
+}
+
+enum MatchStatus {
+  active
+  archived
+  expired
+}
+
+model Match {
+  id                 String      @id @default(uuid())
+  userId1            String
+  userId2            String
+  status             MatchStatus @default(active)
+  createdAt          DateTime    @default(now())
+  lastInteractionAt  DateTime    @default(now())
+  expiresAt          DateTime?
+  updatedAt          DateTime    @updatedAt
+
+  user1 User @relation("MatchUser1", fields: [userId1], references: [id], onDelete: Cascade)
+  user2 User @relation("MatchUser2", fields: [userId2], references: [id], onDelete: Cascade)
+
+  @@unique([userId1, userId2])
+  @@index([userId1, status])
+  @@index([userId2, status])
+  @@index([status, expiresAt])
 }
