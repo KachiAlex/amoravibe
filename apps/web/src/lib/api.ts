@@ -83,7 +83,24 @@ export const lovedateApi: any = new Proxy(
         },
       };
     },
-    fetchMatches: async (query: any) => [],
+    fetchMatches: async (query: any) => {
+      try {
+        const params = new URLSearchParams();
+        if (query?.userId) params.set('userId', query.userId);
+        if (typeof query?.limit === 'number') params.set('limit', String(query.limit));
+
+        const url = `/api/dashboard/matches?${params.toString()}`;
+        const res = await fetch(url, { cache: 'no-store' });
+        if (!res.ok) {
+          throw new Error(`Failed to fetch matches: ${res.status}`);
+        }
+        const json = await res.json();
+        return json.candidates || json || [];
+      } catch (error) {
+        console.error('Failed to fetch matches', error);
+        return [];
+      }
+    },
     fetchDiscoverFeed: async (opts: { userId?: string; mode?: string; limit?: number }) => {
       try {
         const params = new URLSearchParams();
