@@ -1,5 +1,15 @@
 import { NextResponse } from 'next/server';
-import { setSession, clearSession } from '@/lib/session';
+import { getSession, setSession, clearSession } from '@/lib/session';
+
+export async function GET() {
+  try {
+    const session = await getSession();
+    return NextResponse.json({ userId: session?.userId || null });
+  } catch (error) {
+    console.error('Failed to get session', error);
+    return NextResponse.json({ userId: null }, { status: 500 });
+  }
+}
 
 export async function POST(request: Request) {
   try {
