@@ -1,4 +1,4 @@
-import { Injectable, Logger, ForbiddenException } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 
 export interface Match {
@@ -23,11 +23,7 @@ export class MatchingService {
    * Get matches for a user from the database
    * Only returns mutual likes that have been converted to matches
    */
-  async getMatches(
-    userId: string,
-    status: 'active' | 'archived' = 'active',
-    limit = 12
-  ): Promise<Match[]> {
+  async getMatches(userId: string, limit = 12): Promise<Match[]> {
     try {
       // Query: Get all likes where this user is sender AND receiver also liked them back
       const mutualLikes = await this.prisma.userLike.findMany({

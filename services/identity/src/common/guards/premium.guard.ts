@@ -1,4 +1,4 @@
-﻿import {
+import {
   Injectable,
   CanActivate,
   ExecutionContext,
@@ -36,7 +36,7 @@ export class PremiumGuard implements CanActivate {
       }
 
       // TODO: Check subscription status from Stripe or local DB
-      // const hasPremium = await this.checkPremiumStatus(userId);
+      // const hasPremium = await this.checkPremiumStatus(id);
       // if (!hasPremium) {
       //   throw new HttpException(
       //     { error: 'Premium subscription required' },
@@ -60,7 +60,10 @@ export class PremiumGuard implements CanActivate {
    * Check if user has active premium subscription
    * Integrate with your subscription provider (Stripe, etc)
    */
-  private async checkPremiumStatus(_userId: string): Promise<boolean> {
+  private async checkPremiumStatus(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _userId: string
+  ): Promise<boolean> {
     // TODO: Implement
     // Option 1: Query Stripe API for active subscription
     // Option 2: Store subscription end date in DB and check expiry

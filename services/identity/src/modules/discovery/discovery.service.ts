@@ -1,6 +1,6 @@
-﻿import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { Orientation, DiscoverySpace, MatchPreference, Gender } from '../../prisma/prisma.types';
+import { Orientation, DiscoverySpace, Gender } from '../../prisma/prisma.types';
 
 export interface DiscoveryProfile {
   id: string;
@@ -59,15 +59,10 @@ export class DiscoveryService {
         },
       });
 
-      // 2. Calculate user age
-      const userAge = this.calculateAge(user.dateOfBirth);
+      // 2. User age calculation - reserved for future filtering
 
       // 3. Build orientation filter (enforce at query level)
-      const orientationAllowedGenders = this.getOrientationAllowedGenders(
-        user.orientation,
-        user.matchPreferences,
-        user.discoverySpace
-      );
+      const orientationAllowedGenders = this.getOrientationAllowedGenders(user.orientation);
 
       // 4. Get recently passed profiles (30-day cooldown)
       const thirtyDaysAgo = new Date();
@@ -96,7 +91,7 @@ export class DiscoveryService {
       const blockedIds = new Set(blockedUsers.map((b) => b.relatedUserId).filter(Boolean));
 
       // 6. Apply mode filters
-      const modeFilters = this.getModeFilters(mode, user.id);
+      const modeFilters = this.getModeFilters(mode);
 
       // 7. Query profiles
       const profiles = await this.prisma.user.findMany({
@@ -228,10 +223,9 @@ export class DiscoveryService {
   /**
    * Apply mode-specific filters
    */
-  private getModeFilters(mode: string, userId: string): Record<string, any> {
+  private getModeFilters(mode: string): Record<string, any> {
     const now = new Date();
     const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-    const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
 
     switch (mode) {
       case 'verified':
@@ -338,6 +332,3 @@ export class DiscoveryService {
     return Math.min(99, Math.max(1, score));
   }
 }
-
-
-
