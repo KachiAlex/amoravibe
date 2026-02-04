@@ -83,28 +83,6 @@ export const lovedateApi: any = new Proxy(
         },
       };
     },
-    fetchMatches: async (query: any) => {
-      try {
-        const params = new URLSearchParams();
-        if (query?.userId) params.set('userId', query.userId);
-        if (typeof query?.limit === 'number') params.set('limit', String(query.limit));
-
-        // Use relative URL for client-side, full URL for server-side
-        const baseUrl = typeof window === 'undefined' ? (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001') : '';
-        const url = `${baseUrl}/api/dashboard/matches?${params.toString()}`;
-        console.log('[fetchMatches] Calling:', url);
-        const res = await fetch(url, { cache: 'no-store' });
-        if (!res.ok) {
-          throw new Error(`Failed to fetch matches: ${res.status}`);
-        }
-        const json = await res.json();
-        console.log('[fetchMatches] Response:', json);
-        return json.candidates || json || [];
-      } catch (error) {
-        console.error('Failed to fetch matches', error);
-        return [];
-      }
-    },
     fetchDiscoverFeed: async (opts: { userId?: string; mode?: string; limit?: number }) => {
       try {
         const params = new URLSearchParams();

@@ -476,62 +476,6 @@ function MessagesInbox({ threads }: { threads: MessagingThread[] }) {
   );
 }
 
-function MatchesPanel({ candidates }: { candidates: MatchCandidatePreview[] }) {
-  return (
-    <Card className="space-y-4 border-none bg-white p-6 shadow-[0_18px_50px_rgba(15,23,42,0.1)]">
-      <header className="flex items-center justify-between">
-        <div>
-          <p className="text-sm font-medium text-[#6b7280]">Matches hub</p>
-          <h3 className="text-xl font-semibold text-[#0f172a]">Mutual sparks</h3>
-        </div>
-        <Link href="/matches" className="text-sm font-semibold text-[#4338ca]">
-          View all
-        </Link>
-      </header>
-      <div className="space-y-3">
-        {candidates.map((candidate) => (
-          <div
-            key={candidate.id}
-            className="flex items-center justify-between rounded-2xl border border-[#eef2ff] p-3"
-          >
-            <div className="flex items-center gap-3">
-              <Image
-                src={candidate.avatar}
-                alt={candidate.name}
-                width={48}
-                height={48}
-                className="h-12 w-12 rounded-2xl object-cover"
-              />
-              <div>
-                <p className="text-sm font-semibold text-[#0f172a]">{candidate.name}</p>
-                <p className="text-xs text-[#475569]">{candidate.highlight}</p>
-              </div>
-            </div>
-            <div className="text-right">
-              <span
-                className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${
-                  candidate.status === 'new'
-                    ? 'bg-[#fef2f2] text-[#b91c1c]'
-                    : candidate.status === 'active'
-                      ? 'bg-[#ecfeff] text-[#0f766e]'
-                      : 'bg-[#fff7ed] text-[#b45309]'
-                }`}
-              >
-                {candidate.status === 'new'
-                  ? 'New match'
-                  : candidate.status === 'active'
-                    ? 'Active chat'
-                    : 'Expiring soon'}
-              </span>
-              <p className="text-xs text-[#94a3b8]">{candidate.compatibility}% vibe match</p>
-            </div>
-          </div>
-        ))}
-      </div>
-    </Card>
-  );
-}
-
 function NotificationsPanel({ toggles }: { toggles: NotificationToggle[] }) {
   return (
     <Card className="space-y-4 border-none bg-white p-6 shadow-[0_18px_50px_rgba(15,23,42,0.1)]">
@@ -921,15 +865,6 @@ async function loadSnapshot(userId: string): Promise<TrustCenterSnapshotResponse
   }
 }
 
-async function loadMatches(userId: string, limit = 12): Promise<MatchCandidate[] | null> {
-  try {
-    return await lovedateApi.fetchMatches({ userId, limit });
-  } catch (error) {
-    console.error('Failed to load matches for dashboard', error);
-    return null;
-  }
-}
-
 async function loadEngagementDashboard(
   userId: string
 ): Promise<EngagementDashboardResponse | null> {
@@ -1196,7 +1131,7 @@ export default async function DashboardPage(props: DashboardPageProps) {
     64 + (snapshot.user.isVerified ? 18 : 0) + Math.min(12, devicesTrusted * 3);
   const profileCompletion = Math.min(98, Math.round(profileCompletionRaw));
 
-  const matches = (await loadMatches(userId, 18)) ?? [];
+  const matches: MatchCandidate[] = [];
   const fallbackDiscoverFeed = createDiscoverFeedFromCards(STATIC_DISCOVER_CARDS, discoverMode);
   const discoverFeed = normalizeDiscoverFeed(discoverFeedResponse, fallbackDiscoverFeed);
   const discoverCards = [discoverFeed.hero, ...discoverFeed.featured, ...discoverFeed.grid].filter(
@@ -1397,7 +1332,6 @@ export default async function DashboardPage(props: DashboardPageProps) {
       href: '/dashboard?section=discover#discover',
       section: 'discover',
     },
-    { label: 'Matches', icon: Heart, badge: '9', href: '/matches' },
     { label: 'Moments', icon: Star, href: '/dashboard?section=home#top' },
     {
       label: 'Messages',
@@ -1440,50 +1374,6 @@ export default async function DashboardPage(props: DashboardPageProps) {
         'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=200&q=80',
     },
   ];
-
-  const matchCandidates: MatchCandidatePreview[] = matches.length
-    ? matches.slice(0, 4).map((match, index) => ({
-        id: match.id,
-        name: match.displayName || 'Someone',
-        status: index === 0 ? 'new' : index === 1 ? 'active' : 'expiring',
-        highlight: match.city ?? 'Ready to connect',
-        compatibility: match.compatibilityScore ?? 0,
-        avatar:
-          (Array.isArray(match.photos) ? match.photos[0] : null) ||
-          'https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=crop&w=200&q=80',
-        verified: match.isVerified ?? false,
-      }))
-    : [
-        {
-          id: 'liv',
-          name: 'Liv',
-          status: 'new',
-          highlight: 'Met at Hidden City supper club',
-          compatibility: 92,
-          avatar:
-            'https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=crop&w=200&q=80',
-          verified: true,
-        },
-        {
-          id: 'noah',
-          name: 'Noah',
-          status: 'active',
-          highlight: 'Chatting about gallery openings',
-          compatibility: 84,
-          avatar:
-            'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80',
-        },
-        {
-          id: 'talia',
-          name: 'Talia',
-          status: 'expiring',
-          highlight: 'Reply in 12h to keep the vibe',
-          compatibility: 77,
-          avatar:
-            'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=200&q=80',
-          verified: true,
-        },
-      ];
 
   const notificationToggles: NotificationToggle[] = engagementFallback.notificationPreferences
     .length
@@ -1696,11 +1586,6 @@ export default async function DashboardPage(props: DashboardPageProps) {
                     timeline={verificationTimeline}
                     verifiedLabel={verifiedLabel}
                   />
-                </section>
-
-                <section className="grid gap-6 xl:grid-cols-2" id="matches">
-                  <MatchesPanel candidates={matchCandidates} />
-                  <NotificationsPanel toggles={notificationToggles} />
                 </section>
 
                 <section className="grid gap-6 xl:grid-cols-2" id="premium">
