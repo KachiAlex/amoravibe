@@ -194,7 +194,9 @@ const mapCardToDiscoverPerson = (card: DiscoverCard, mode: DiscoverFeedMode): Di
   cityRegion: card.cityRegion ?? null,
   distance: card.distance ?? null,
   tags: card.tags ?? [],
-  image: card.image || 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=900&q=80',
+  image:
+    card.image ||
+    'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=900&q=80',
   compatibility: card.compatibility,
   verified: card.verified ?? false,
   premiumOnly: card.premiumOnly,
@@ -476,6 +478,7 @@ function MessagesInbox({ threads }: { threads: MessagingThread[] }) {
   );
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function NotificationsPanel({ toggles }: { toggles: NotificationToggle[] }) {
   return (
     <Card className="space-y-4 border-none bg-white p-6 shadow-[0_18px_50px_rgba(15,23,42,0.1)]">
@@ -814,6 +817,7 @@ interface FeedProfile {
   actionable?: boolean;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 interface MatchCandidatePreview {
   id: string;
   name: string;
@@ -1160,7 +1164,9 @@ export default async function DashboardPage(props: DashboardPageProps) {
     name: match.displayName || 'Someone',
     age: undefined,
     distance: formatDistance(match.distanceKm),
-    location: match.cityRegion ? `${match.city || 'Unknown'} · ${match.cityRegion}` : (match.city || 'Unknown'),
+    location: match.cityRegion
+      ? `${match.city || 'Unknown'} · ${match.cityRegion}`
+      : match.city || 'Unknown',
     orientation: formatOrientation(match.orientation),
     intent: (match.matchPreferences ?? []).includes('everyone')
       ? 'Open to everyone'
@@ -1376,6 +1382,7 @@ export default async function DashboardPage(props: DashboardPageProps) {
     },
   ];
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const notificationToggles: NotificationToggle[] = engagementFallback.notificationPreferences
     .length
     ? engagementFallback.notificationPreferences
@@ -1751,11 +1758,14 @@ function DiscoverCard({
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
         <div className="absolute bottom-3 left-3 flex gap-1 text-[11px] font-semibold uppercase tracking-wide text-white">
-          {(person.tags || []).filter(Boolean).slice(0, 2).map((tag) => (
-            <span key={tag} className="rounded-full bg-white/30 px-2 py-1">
-              {tag}
-            </span>
-          ))}
+          {(person.tags || [])
+            .filter(Boolean)
+            .slice(0, 2)
+            .map((tag) => (
+              <span key={tag} className="rounded-full bg-white/30 px-2 py-1">
+                {tag}
+              </span>
+            ))}
         </div>
       </div>
       <div className="space-y-2 px-4 py-4">
@@ -1979,7 +1989,10 @@ function MatchSnippet({ match }: { match: MatchPreview }) {
 }
 
 function MessageSnippet({ thread }: { thread: MessagingThread }) {
-  const toneStyles = STATUS_TONE_STYLES[thread.status.tone];
+  const toneStyles = STATUS_TONE_STYLES[thread.status.tone] || {
+    pill: 'bg-[#f3f4f6] text-[#374151]',
+    dot: 'bg-[#9ca3af]',
+  };
   return (
     <Link
       href={thread.route}
