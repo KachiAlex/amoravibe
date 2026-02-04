@@ -5,7 +5,7 @@
 
 export const BACKEND_CONFIG = {
   // Identity service (discover, engagement, messaging, trust)
-  IDENTITY_SERVICE_URL: process.env.NEXT_PUBLIC_IDENTITY_SERVICE_URL || 'http://localhost:3001',
+  IDENTITY_SERVICE_URL: process.env.NEXT_PUBLIC_IDENTITY_SERVICE_URL || 'http://localhost:4001',
 
   // Whether to use real backend or stubs
   USE_REAL_BACKEND: process.env.NEXT_PUBLIC_USE_REAL_BACKEND === 'true',

@@ -182,7 +182,7 @@ export async function GET(request: Request) {
   // Try to fetch from real backend first
   if (BACKEND_CONFIG.ENABLE_REAL_MATCHES && userId && BACKEND_CONFIG.IDENTITY_SERVICE_URL) {
     try {
-      let backendUrl = getBackendUrl(`/matches/${userId}?limit=${limit}`);
+      let backendUrl = getBackendUrl(`/api/v1/matches/${userId}?limit=${limit}`);
       if (status) {
         backendUrl += `&status=${status}`;
       }
