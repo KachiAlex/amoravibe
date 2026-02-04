@@ -30,14 +30,39 @@ export default function MatchesPage() {
   const [activeTab, setActiveTab] = useState<'active' | 'archived'>('active');
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
+  const [notSignedIn, setNotSignedIn] = useState(false);
 
   useEffect(() => {
-    // Get userId from URL or session
-    const params = new URLSearchParams(window.location.search);
-    const urlUserId = params.get('userId');
-    if (urlUserId) {
-      setUserId(urlUserId);
-    }
+    const initializeUser = async () => {
+      try {
+        // First try to get userId from URL
+        const params = new URLSearchParams(window.location.search);
+        let currentUserId = params.get('userId');
+
+        // If no userId in URL, try to get from session endpoint
+        if (!currentUserId) {
+          const sessionRes = await fetch('/api/session');
+          if (sessionRes.ok) {
+            const sessionData = await sessionRes.json();
+            currentUserId = sessionData.userId;
+          }
+        }
+
+        if (!currentUserId) {
+          setNotSignedIn(true);
+          setLoading(false);
+          return;
+        }
+
+        setUserId(currentUserId);
+      } catch (error) {
+        console.error('Failed to get user session:', error);
+        setNotSignedIn(true);
+        setLoading(false);
+      }
+    };
+
+    initializeUser();
   }, []);
 
   useEffect(() => {
@@ -104,7 +129,7 @@ export default function MatchesPage() {
 
   const currentMatches = activeTab === 'active' ? matches : archivedMatches;
 
-  if (!userId) {
+  if (notSignedIn) {
     return (
       <main className="mx-auto max-w-3xl px-6 py-24 text-center">
         <Card className="space-y-4">
@@ -119,6 +144,14 @@ export default function MatchesPage() {
             </PillButton>
           </div>
         </Card>
+      </main>
+    );
+  }
+
+  if (loading && matches.length === 0) {
+    return (
+      <main className="mx-auto max-w-3xl px-6 py-24 text-center">
+        <p>Loading matches...</p>
       </main>
     );
   }
