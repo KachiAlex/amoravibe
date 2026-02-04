@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Badge, Card, PillButton } from '@/lib/ui-components';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -140,7 +140,8 @@ export default function MatchesPage() {
           </Badge>
           <h1 className="font-display text-4xl text-ink-900">Your mutual connections</h1>
           <p className="mt-2 max-w-2xl text-lg text-ink-700">
-            These are people who liked you and you liked back. Start a conversation or manage your connections.
+            These are people who liked you and you liked back. Start a conversation or manage your
+            connections.
           </p>
         </div>
 
@@ -178,12 +179,19 @@ export default function MatchesPage() {
             </h2>
             <p className="text-ink-700">
               {activeTab === 'active'
-                ? 'When you and someone both like each other, they'll appear here!'
+                ? "When you and someone both like each other, they'll appear here!"
                 : 'Your archived matches will appear here.'}
             </p>
           </Card>
         ) : (
-          currentMatches.map((match) => <MatchCard key={match.id} match={match} onUnmatch={handleUnmatch} onBlock={handleBlock} />)
+          currentMatches.map((match) => (
+            <MatchCard
+              key={match.id}
+              match={match}
+              onUnmatch={handleUnmatch}
+              onBlock={handleBlock}
+            />
+          ))
         )}
       </section>
     </main>
