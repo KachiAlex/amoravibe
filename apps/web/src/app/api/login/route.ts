@@ -38,7 +38,7 @@ export async function POST(request: Request) {
 
     // Mock login response
     const login = { user: { id: 'user-' + Math.random().toString(36).slice(2, 11) } };
-    setSession({ userId: login.user.id });
+    await setSession({ userId: login.user.id });
     return withCors(request, NextResponse.json(login), { methods: ['POST', 'OPTIONS'] });
   } catch (error) {
     console.error('Login error', error);

@@ -10,7 +10,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: 'userId is required' }, { status: 400 });
     }
 
-    setSession({ userId });
+    await setSession({ userId });
     console.info('Session set successfully', { userId });
     return NextResponse.json({ status: 'ok' });
   } catch (error) {
@@ -21,7 +21,7 @@ export async function POST(request: Request) {
 
 export async function DELETE() {
   try {
-    clearSession();
+    await clearSession();
     return NextResponse.json({ status: 'cleared' });
   } catch (error) {
     console.error('Failed to clear Lovedate session', error);

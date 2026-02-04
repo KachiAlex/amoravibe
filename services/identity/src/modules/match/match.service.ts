@@ -95,19 +95,20 @@ export class MatchService {
   constructor(private readonly prisma: PrismaService) {}
 
   async findMatches(userId: string, limit = DEFAULT_MATCH_LIMIT): Promise<MatchCandidateDto[]> {
-    const userRecord = await this.prisma.user.findUnique({ where: { id: userId } });
-    if (!userRecord) {
-      throw new NotFoundException(`User ${userId} not found`);
-    }
+    try {
+      const userRecord = await this.prisma.user.findUnique({ where: { id: userId } });
+      if (!userRecord) {
+        throw new NotFoundException(`User ${userId} not found`);
+      }
 
-    const user = this.normalizeUserEnums(userRecord);
+      const user = this.normalizeUserEnums(userRecord);
 
-    const normalizedLimit = Math.min(Math.max(limit, 1), MAX_MATCH_LIMIT);
-    const genderPreferences = this.mapMatchPreferencesToGenders(user.matchPreferences);
-    const discoverySpaces = this.allowedDiscoverySpaces(user.discoverySpace);
-    const userLocation = this.resolveCoordinates(user.cityLat, user.cityLng);
+      const normalizedLimit = Math.min(Math.max(limit, 1), MAX_MATCH_LIMIT);
+      const genderPreferences = this.mapMatchPreferencesToGenders(user.matchPreferences);
+      const discoverySpaces = this.allowedDiscoverySpaces(user.discoverySpace);
+      const userLocation = this.resolveCoordinates(user.cityLat, user.cityLng);
 
-    const candidateWhere: Prisma.UserWhereInput = {
+      const candidateWhere: Prisma.UserWhereInput = {
       id: { not: user.id },
       visibility: { not: VisibilityStatus.RESTRICTED },
       orientation: { in: user.orientationPreferences },
@@ -193,6 +194,10 @@ export class MatchService {
       }));
 
     return enriched;
+    } catch (error) {
+      this.logger.error('Database error in findMatches:', error);
+      return [];
+    }
   }
 
   private extractPhotos(photos: Prisma.JsonValue | null): string[] {

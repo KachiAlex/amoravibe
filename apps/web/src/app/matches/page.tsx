@@ -20,7 +20,7 @@ async function loadMatches(userId: string, limit?: number): Promise<MatchCandida
 
 export default async function MatchesPage(props: MatchesPageProps) {
   const resolvedParams = await Promise.resolve(props.searchParams ?? {});
-  const session = getSession();
+  const session = await getSession();
   const userId = resolvedParams.userId ?? session?.userId ?? null;
   const limit = resolvedParams.limit ? Number(resolvedParams.limit) : undefined;
 

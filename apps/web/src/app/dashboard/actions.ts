@@ -22,7 +22,7 @@ export async function requestReverificationAction(
   _prevState: ReverifyActionState,
   formData: FormData
 ): Promise<ReverifyActionState> {
-  const session = getSession();
+  const session = await getSession();
   const formUserId = formData.get('userId')?.toString().trim();
   const userId = formUserId && formUserId.length > 0 ? formUserId : session?.userId;
 

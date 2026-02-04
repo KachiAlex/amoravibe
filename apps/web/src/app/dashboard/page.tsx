@@ -1127,7 +1127,7 @@ void serverActionRegistry;
 
 export default async function DashboardPage(props: DashboardPageProps) {
   const resolvedParams = await Promise.resolve(props.searchParams ?? {});
-  const session = getSession();
+  const session = await getSession();
   const userId = resolvedParams?.userId ?? session?.userId ?? null;
   const sectionParam =
     typeof resolvedParams?.section === 'string' ? resolvedParams.section.toLowerCase() : 'home';
