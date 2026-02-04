@@ -1332,6 +1332,7 @@ export default async function DashboardPage(props: DashboardPageProps) {
       href: '/dashboard?section=discover#discover',
       section: 'discover',
     },
+    { label: 'Matches', icon: Heart, badge: '0', href: '/matches' },
     { label: 'Moments', icon: Star, href: '/dashboard?section=home#top' },
     {
       label: 'Messages',

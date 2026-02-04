@@ -13,6 +13,7 @@ import { TrustModule } from './modules/trust/trust.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { OnboardingModule } from './modules/onboarding/onboarding.module';
 import { MatchModule } from './modules/match/match.module';
+import { MatchesModule } from './modules/matches/matches.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { EngagementModule } from './modules/engagement/engagement.module';
 import { DiscoverModule } from './modules/discover/discover.module';
@@ -34,6 +35,7 @@ import { MessagingModule } from './modules/messaging/messaging.module';
     AnalyticsModule,
     OnboardingModule,
     MatchModule,
+    MatchesModule,
     AuthModule,
     EngagementModule,
     DiscoverModule,
