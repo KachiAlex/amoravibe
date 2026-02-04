@@ -174,53 +174,70 @@ const ALL_MATCH_CANDIDATES: MatchCandidate[] = [
  *  - status: 'new', 'active', 'expiring', 'archived' (optional)
  */
 export async function GET(request: Request) {
-  const url = new URL(request.url);
-  const userId = url.searchParams.get('userId');
-  const limit = parseInt(url.searchParams.get('limit') ?? '12', 10);
-  const status = url.searchParams.get('status');
+  try {
+    const url = new URL(request.url);
+    const userId = url.searchParams.get('userId');
+    const limit = parseInt(url.searchParams.get('limit') ?? '12', 10);
+    const status = url.searchParams.get('status');
 
-  // Try to fetch from real backend first
-  if (BACKEND_CONFIG.ENABLE_REAL_MATCHES && userId && BACKEND_CONFIG.IDENTITY_SERVICE_URL) {
-    try {
-      let backendUrl = getBackendUrl(`/api/v1/matches/${userId}?limit=${limit}`);
-      if (status) {
-        backendUrl += `&status=${status}`;
+    console.log('[MATCHES API] GET called with:', { userId, limit, status, url: url.toString() });
+
+    // Try to fetch from real backend first
+    if (BACKEND_CONFIG.ENABLE_REAL_MATCHES && userId && BACKEND_CONFIG.IDENTITY_SERVICE_URL) {
+      try {
+        let backendUrl = getBackendUrl(`/api/v1/matches/${userId}?limit=${limit}`);
+        if (status) {
+          backendUrl += `&status=${status}`;
+        }
+        console.log('[MATCHES API] Fetching from backend:', backendUrl);
+        const res = await fetch(backendUrl, { cache: 'no-store' });
+        console.log('[MATCHES API] Backend response status:', res.status);
+        if (res.ok) {
+          const backendData = await res.json();
+          console.log('[MATCHES API] Backend data:', backendData);
+          return Response.json({
+            candidates: backendData.candidates ?? backendData ?? [],
+            total: backendData.total ?? backendData?.length ?? 0,
+            hasMore: backendData.hasMore ?? false,
+            generatedAt: backendData.generatedAt ?? new Date().toISOString(),
+          });
+        }
+      } catch (error) {
+        console.error('[MATCHES API] Failed to fetch from identity service:', error);
       }
-      const res = await fetch(backendUrl, { cache: 'no-store' });
-      if (res.ok) {
-        const backendData = await res.json();
-        return Response.json({
-          candidates: backendData.candidates ?? backendData ?? [],
-          total: backendData.total ?? backendData?.length ?? 0,
-          hasMore: backendData.hasMore ?? false,
-          generatedAt: backendData.generatedAt ?? new Date().toISOString(),
-        });
+    }
+
+    // Fallback to stub data
+    console.log('[MATCHES API] Using stub data');
+    let candidates = [...ALL_MATCH_CANDIDATES];
+
+    if (status) {
+      // Filter by status if provided
+      // In a real app, this would be stored on the match object
+      // For now, we'll just slice them
+      if (status === 'new' && candidates.length > 0) {
+        candidates = [candidates[0]]; // Just the first one for demo
+      } else if (status === 'active' && candidates.length > 1) {
+        candidates = candidates.slice(1, 3); // Next 2
       }
-    } catch (error) {
-      console.error('Failed to fetch from identity service, falling back to stubs:', error);
     }
+
+    const result = candidates.slice(0, limit);
+
+    const response = {
+      candidates: result,
+      total: result.length,
+      hasMore: result.length < ALL_MATCH_CANDIDATES.length,
+      generatedAt: new Date().toISOString(),
+    };
+
+    console.log('[MATCHES API] Returning response with', result.length, 'candidates');
+    return Response.json(response);
+  } catch (error) {
+    console.error('[MATCHES API] Unexpected error:', error);
+    return Response.json(
+      { error: 'Failed to fetch matches', details: String(error) },
+      { status: 500 },
+    );
   }
-
-  // Fallback to stub data
-  let candidates = [...ALL_MATCH_CANDIDATES];
-
-  if (status) {
-    // Filter by status if provided
-    // In a real app, this would be stored on the match object
-    // For now, we'll just slice them
-    if (status === 'new' && candidates.length > 0) {
-      candidates = [candidates[0]]; // Just the first one for demo
-    } else if (status === 'active' && candidates.length > 1) {
-      candidates = candidates.slice(1, 3); // Next 2
-    }
-  }
-
-  const result = candidates.slice(0, limit);
-
-  return Response.json({
-    candidates: result,
-    total: result.length,
-    hasMore: result.length < ALL_MATCH_CANDIDATES.length,
-    generatedAt: new Date().toISOString(),
-  });
 }
