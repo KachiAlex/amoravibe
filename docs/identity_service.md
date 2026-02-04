@@ -46,7 +46,7 @@ modules/
 
 | Env Var                             | Description                                                   | Default                                         |
 | ----------------------------------- | ------------------------------------------------------------- | ----------------------------------------------- |
-| `KYC_PROVIDER`                      | provider slug stored on `Verification` rows + adapter binding | `persona`                                       |
+| `KYC_PROVIDER`                      | provider slug stored on `Verification` rows + adapter binding | `mock`                                          |
 | `KYC_API_BASE_URL`                  | downstream provider base URL (mock only)                      | `https://mock-kyc.local`                        |
 | `KYC_API_KEY`                       | provider credential (mock placeholder)                        | `mock-api-key`                                  |
 | `KYC_WEBHOOK_SECRET`                | shared secret for webhook signature                           | `mock-webhook-secret`                           |

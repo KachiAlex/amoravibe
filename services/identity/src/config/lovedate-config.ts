@@ -48,7 +48,7 @@ export const defaultConfig: LovedateConfig = {
   environment: (process.env.NODE_ENV as LovedateConfig['environment']) || 'development',
   orientationPools: ['hetero', 'lgbtq'],
   kyc: {
-    provider: env.KYC_PROVIDER ?? 'persona',
+    provider: env.KYC_PROVIDER ?? 'mock',
     apiBaseUrl: env.KYC_API_BASE_URL ?? 'https://mock-kyc.local',
     apiKey: env.KYC_API_KEY ?? 'mock-api-key',
     webhookSecret: env.KYC_WEBHOOK_SECRET ?? 'mock-webhook-secret',
