@@ -181,6 +181,10 @@ export async function GET(request: Request) {
     const status = url.searchParams.get('status');
 
     console.log('[MATCHES API] GET called with:', { userId, limit, status, url: url.toString() });
+    console.log('[MATCHES API] Config:', {
+      ENABLE_REAL_MATCHES: BACKEND_CONFIG.ENABLE_REAL_MATCHES,
+      IDENTITY_SERVICE_URL: BACKEND_CONFIG.IDENTITY_SERVICE_URL,
+    });
 
     // Try to fetch from real backend first
     if (BACKEND_CONFIG.ENABLE_REAL_MATCHES && userId && BACKEND_CONFIG.IDENTITY_SERVICE_URL) {
@@ -190,17 +194,19 @@ export async function GET(request: Request) {
           backendUrl += `&status=${status}`;
         }
         console.log('[MATCHES API] Fetching from backend:', backendUrl);
-        const res = await fetch(backendUrl, { cache: 'no-store' });
+        const res = await fetch(backendUrl, { cache: 'no-store', timeout: 5000 });
         console.log('[MATCHES API] Backend response status:', res.status);
         if (res.ok) {
           const backendData = await res.json();
-          console.log('[MATCHES API] Backend data:', backendData);
+          console.log('[MATCHES API] Backend data received:', backendData);
           return Response.json({
             candidates: backendData.candidates ?? backendData ?? [],
             total: backendData.total ?? backendData?.length ?? 0,
             hasMore: backendData.hasMore ?? false,
             generatedAt: backendData.generatedAt ?? new Date().toISOString(),
           });
+        } else {
+          console.warn('[MATCHES API] Backend returned non-ok status:', res.status, await res.text());
         }
       } catch (error) {
         console.error('[MATCHES API] Failed to fetch from identity service:', error);
@@ -208,7 +214,7 @@ export async function GET(request: Request) {
     }
 
     // Fallback to stub data
-    console.log('[MATCHES API] Using stub data');
+    console.log('[MATCHES API] Falling back to stub data');
     let candidates = [...ALL_MATCH_CANDIDATES];
 
     if (status) {

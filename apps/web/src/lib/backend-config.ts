@@ -10,12 +10,12 @@ export const BACKEND_CONFIG = {
   // Whether to use real backend or stubs
   USE_REAL_BACKEND: process.env.NEXT_PUBLIC_USE_REAL_BACKEND === 'true',
 
-  // Feature flags
-  ENABLE_REAL_DISCOVER: process.env.NEXT_PUBLIC_ENABLE_REAL_DISCOVER !== 'false',
-  ENABLE_REAL_ENGAGEMENT: process.env.NEXT_PUBLIC_ENABLE_REAL_ENGAGEMENT !== 'false',
-  ENABLE_REAL_MATCHES: process.env.NEXT_PUBLIC_ENABLE_REAL_MATCHES !== 'false',
-  ENABLE_REAL_MESSAGING: process.env.NEXT_PUBLIC_ENABLE_REAL_MESSAGING !== 'false',
-  ENABLE_REAL_TRUST: process.env.NEXT_PUBLIC_ENABLE_REAL_TRUST !== 'false',
+  // Feature flags (default to false - use stub data until backend is ready)
+  ENABLE_REAL_DISCOVER: process.env.NEXT_PUBLIC_ENABLE_REAL_DISCOVER === 'true',
+  ENABLE_REAL_ENGAGEMENT: process.env.NEXT_PUBLIC_ENABLE_REAL_ENGAGEMENT === 'true',
+  ENABLE_REAL_MATCHES: process.env.NEXT_PUBLIC_ENABLE_REAL_MATCHES === 'true',
+  ENABLE_REAL_MESSAGING: process.env.NEXT_PUBLIC_ENABLE_REAL_MESSAGING === 'true',
+  ENABLE_REAL_TRUST: process.env.NEXT_PUBLIC_ENABLE_REAL_TRUST === 'true',
 };
 
 /**
