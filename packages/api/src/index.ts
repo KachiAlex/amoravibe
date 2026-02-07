@@ -460,6 +460,189 @@ export interface DiscoverEventPayload {
   metadata?: Record<string, unknown>;
 }
 
+export type CommunityTypeValue = 'interest' | 'identity' | 'location' | 'verified';
+export type CommunityCategoryValue =
+  | 'interest'
+  | 'identity'
+  | 'location'
+  | 'campus'
+  | 'event'
+  | 'verified_only';
+export type CommunityMembershipStatusValue = 'pending' | 'active' | 'muted' | 'banned' | 'left';
+export type CommunityEntryTypeValue = 'organic' | 'invite' | 'auto' | 'staff';
+export type CommunityPostVisibilityValue = 'everyone' | 'members' | 'moderators';
+export type CommunityVisibilityValue = 'public' | 'private' | 'restricted';
+export type ReportReasonValue =
+  | 'impersonation'
+  | 'harassment'
+  | 'hate_speech'
+  | 'orientation_violation'
+  | 'explicit_content'
+  | 'spam'
+  | 'misinformation'
+  | 'other';
+
+export interface CommunityEligibility {
+  allowed: boolean;
+  reasons: string[];
+}
+
+export interface CommunityEntryRequirements {
+  minTrustScore?: number;
+  verifiedOnly?: boolean;
+  allowedOrientations?: Orientation[];
+  allowedGenders?: Gender[];
+  discoverySpaces?: DiscoverySpace[];
+  location?: {
+    city?: string;
+    countryCode?: string;
+  };
+}
+
+export interface CommunityAllowedInteractions {
+  posts?: boolean;
+  comments?: boolean;
+  reactions?: boolean;
+  viewMembers?: boolean;
+  media?: boolean;
+}
+
+export interface CommunitySummary {
+  id: string;
+  name: string;
+  description?: string | null;
+  slug?: string | null;
+  category?: CommunityCategoryValue | null;
+  type?: CommunityTypeValue | null;
+  memberCount: number;
+  visibility?: CommunityVisibilityValue | null;
+  userRole?: string | null;
+  userJoinedAt?: string | null;
+  isVerifiedOnly?: boolean;
+  frozenAt?: string | null;
+  archivedAt?: string | null;
+  eligibility?: CommunityEligibility;
+}
+
+export interface CommunityMembershipSnapshot {
+  id: string;
+  role: string;
+  status: CommunityMembershipStatusValue;
+  joinedAt?: string;
+  leftAt?: string | null;
+}
+
+export interface CommunityDetail extends CommunitySummary {
+  entryRequirements?: CommunityEntryRequirements | null;
+  allowedInteractions?: CommunityAllowedInteractions | null;
+  interactions?: CommunityAllowedInteractions | null;
+  membership?: CommunityMembershipSnapshot | null;
+  frozenReason?: string | null;
+  archivedReason?: string | null;
+  _count?: {
+    members?: number;
+    posts?: number;
+  };
+}
+
+export interface CommunityPostMedia {
+  id: string;
+  postId?: string;
+  url: string;
+  mimeType: string;
+  width?: number | null;
+  height?: number | null;
+}
+
+export interface CommunityPost {
+  id: string;
+  communityId: string;
+  userId: string;
+  content: string;
+  createdAt: string;
+  media?: CommunityPostMedia[];
+  mediaCount?: number;
+  visibility?: CommunityPostVisibilityValue;
+  author?: {
+    id: string;
+    displayName: string;
+    isVerified: boolean;
+  };
+  _count?: {
+    comments: number;
+    reactions: number;
+  };
+}
+
+export interface CommunityFeedResponse {
+  posts: CommunityPost[];
+  nextCursor: string | null;
+}
+
+export interface CommunitiesBrowseResponse {
+  communities: CommunitySummary[];
+  total: number;
+  page?: {
+    nextCursor?: string | null;
+  };
+}
+
+export interface CommunityMembersResponse {
+  members: Array<
+    CommunityMembershipSnapshot & {
+      user?: {
+        id: string;
+        displayName: string;
+        isVerified: boolean;
+      };
+    }
+  >;
+  total: number;
+}
+
+export interface CommunityJoinResponse {
+  status: CommunityMembershipStatusValue | 'denied';
+  eligibility: CommunityEligibility;
+  memberId?: string | null;
+  success?: boolean;
+  message?: string;
+}
+
+export interface ListCommunitiesParams {
+  userId: string;
+  type?: CommunityTypeValue;
+  search?: string;
+  limit?: number;
+  skip?: number;
+}
+
+export interface ListCommunityPostsParams {
+  communityId: string;
+  userId?: string;
+  limit?: number;
+  cursor?: string;
+}
+
+export interface CommunityPostPayload {
+  communityId: string;
+  userId: string;
+  content: string;
+  media?: CommunityPostMedia[];
+}
+
+export interface CommunityReportPayload {
+  communityId: string;
+  postId: string;
+  userId: string;
+  reason: ReportReasonValue;
+  description?: string;
+  evidence?: string[];
+}
+
+export interface CommunityEligibilityBatchResponse {
+  eligibility: Record<string, CommunityEligibility>;
+}
+
 export class LovedateApi {
   constructor(private readonly client: ApiClient) {}
 
@@ -555,6 +738,112 @@ export class LovedateApi {
 
   trackDiscoverEvent(payload: DiscoverEventPayload): Promise<void> {
     return this.client.post<void>('/discover/events', payload);
+  }
+
+  listCommunities(params: ListCommunitiesParams): Promise<CommunitiesBrowseResponse> {
+    const query = new URLSearchParams({ userId: params.userId });
+    if (params.type) {
+      query.set('type', params.type);
+    }
+    if (params.search) {
+      query.set('search', params.search);
+    }
+    if (typeof params.limit === 'number') {
+      query.set('limit', params.limit.toString());
+    }
+    if (typeof params.skip === 'number') {
+      query.set('skip', params.skip.toString());
+    }
+
+    return this.client.get<CommunitiesBrowseResponse>(
+      `/communities/browse?${query.toString()}`
+    );
+  }
+
+  getCommunityDetail(communityId: string, userId?: string): Promise<{ community: CommunityDetail | null }> {
+    const query = userId ? `?userId=${encodeURIComponent(userId)}` : '';
+    return this.client.get<{ community: CommunityDetail | null }>(
+      `/communities/${encodeURIComponent(communityId)}${query}`
+    );
+  }
+
+  listCommunityPosts(params: ListCommunityPostsParams): Promise<CommunityFeedResponse> {
+    const query = new URLSearchParams();
+    if (params.userId) {
+      query.set('userId', params.userId);
+    }
+    if (typeof params.limit === 'number') {
+      query.set('limit', params.limit.toString());
+    }
+    if (params.cursor) {
+      query.set('cursor', params.cursor);
+    }
+
+    const queryString = query.toString();
+    const suffix = queryString ? `?${queryString}` : '';
+    return this.client.get<CommunityFeedResponse>(
+      `/communities/${encodeURIComponent(params.communityId)}/posts${suffix}`
+    );
+  }
+
+  joinCommunity(communityId: string, userId: string): Promise<CommunityJoinResponse> {
+    return this.client.post<CommunityJoinResponse>(
+      `/communities/${encodeURIComponent(communityId)}/join`,
+      { userId }
+    );
+  }
+
+  leaveCommunity(communityId: string, userId: string): Promise<{ success: boolean; message?: string }> {
+    return this.client.post<{ success: boolean; message?: string }>(
+      `/communities/${encodeURIComponent(communityId)}/leave`,
+      { userId }
+    );
+  }
+
+  createCommunityPost(payload: CommunityPostPayload): Promise<{ success: boolean; postId?: string | null }> {
+    return this.client.post<{ success: boolean; postId?: string | null }>(
+      `/communities/${encodeURIComponent(payload.communityId)}/posts`,
+      {
+        userId: payload.userId,
+        content: payload.content,
+        media: payload.media,
+      }
+    );
+  }
+
+  reportCommunityPost(payload: CommunityReportPayload): Promise<{ success: boolean; reportId?: string | null }> {
+    return this.client.post<{ success: boolean; reportId?: string | null }>(
+      `/communities/${encodeURIComponent(payload.communityId)}/posts/${encodeURIComponent(
+        payload.postId
+      )}/report`,
+      {
+        userId: payload.userId,
+        reason: payload.reason,
+        description: payload.description,
+        evidence: payload.evidence,
+      }
+    );
+  }
+
+  getCommunityMembers(
+    communityId: string,
+    userId: string,
+    limit = 50
+  ): Promise<CommunityMembersResponse> {
+    const query = new URLSearchParams({ userId, limit: limit.toString() });
+    return this.client.get<CommunityMembersResponse>(
+      `/communities/${encodeURIComponent(communityId)}/members?${query.toString()}`
+    );
+  }
+
+  evaluateCommunityEligibility(
+    userId: string,
+    communityIds: string[]
+  ): Promise<CommunityEligibilityBatchResponse> {
+    return this.client.post<CommunityEligibilityBatchResponse>('/communities/eligibility', {
+      userId,
+      communityIds,
+    });
   }
 }
 

@@ -1,0 +1,455 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                      String                   @id @default(uuid())
+  legalName               String
+  displayName             String
+  dateOfBirth             DateTime
+  email                   String?                  @unique
+  phone                   String?                  @unique
+  passwordHash            String
+  gender                  Gender
+  orientation             Orientation
+  orientationPreferences  String[]                 @default([])
+  discoverySpace          DiscoverySpace
+  matchPreferences        MatchPreference[]        @default([])
+  city                    String
+  bio                     String?
+  photos                  Json?
+  verificationIntent      VerificationIntent       @default(skip)
+  trustScore              Int                      @default(50)
+  isAdmin                 Boolean                  @default(false)
+  visibility              VisibilityStatus         @default(limited)
+  isVerified              Boolean                  @default(false)
+  createdAt               DateTime                 @default(now())
+  updatedAt               DateTime                 @updatedAt
+  auditEvents             AuditEvent[]             @relation("UserAuditEvents")
+  auditExportRequests     AuditExportRequest[]
+  auditPurgeRequests      AuditPurgeRequest[]
+  deviceFingerprints      DeviceFingerprint[]
+  moderationEvents        ModerationEvent[]        @relation("UserModerationEvents")
+  notificationPreferences NotificationPreference[]
+  riskModelRuns           RiskModelRun[]
+  riskProfile             RiskProfile?
+  relatedRiskSignals      RiskSignal[]             @relation("RiskSignalRelatedUser")
+  riskSignals             RiskSignal[]             @relation("RiskSignalUser")
+  receivedLikes           UserLike[]               @relation("UserLikeReceiver")
+  sentLikes               UserLike[]               @relation("UserLikeSender")
+  verifications           Verification[]
+}
+
+model Verification {
+  id          String             @id @default(uuid())
+  userId      String
+  provider    String
+  status      VerificationStatus @default(pending)
+  reference   String?
+  metadata    Json?
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  auditEvents AuditEvent[]       @relation("VerificationAuditEvents")
+  user        User               @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+}
+
+model DeviceFingerprint {
+  id               String            @id @default(uuid())
+  userId           String?
+  hash             String
+  userAgent        String?
+  riskLabel        String?
+  signals          Json?
+  observedAt       DateTime          @default(now())
+  user             User?             @relation(fields: [userId], references: [id])
+  moderationEvents ModerationEvent[]
+  riskSignals      RiskSignal[]
+}
+
+model AuditEvent {
+  id             String           @id @default(uuid())
+  userId         String
+  verificationId String?
+  action         AuditAction
+  details        Json?
+  actorType      AuditActorType   @default(system)
+  actorId        String?
+  entityType     AuditEntityType?
+  entityId       String?
+  channel        String?
+  ipAddress      String?
+  userAgent      String?
+  expiresAt      DateTime
+  createdAt      DateTime         @default(now())
+  user           User             @relation("UserAuditEvents", fields: [userId], references: [id])
+  verification   Verification?    @relation("VerificationAuditEvents", fields: [verificationId], references: [id])
+
+  @@index([userId])
+  @@index([verificationId])
+  @@index([actorType])
+  @@index([entityType, entityId])
+  @@index([expiresAt])
+}
+
+model AuditExportRequest {
+  id              String            @id @default(uuid())
+  userId          String
+  status          AuditExportStatus @default(pending)
+  storageLocation String?
+  failureReason   String?
+  payload         Json?
+  requestedAt     DateTime          @default(now())
+  processedAt     DateTime?
+  user            User              @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([status])
+}
+
+model AuditPurgeRequest {
+  id          String           @id @default(uuid())
+  userId      String
+  status      AuditPurgeStatus @default(pending)
+  reason      String?
+  requestedAt DateTime         @default(now())
+  processedAt DateTime?
+  user        User             @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([status])
+}
+
+model AnalyticsUserSnapshot {
+  id             String           @id @default(uuid())
+  userId         String
+  snapshotDate   DateTime         @default(now())
+  hashedEmail    String?
+  hashedPhone    String?
+  orientation    Orientation
+  discoverySpace DiscoverySpace
+  trustScore     Int
+  isVerified     Boolean
+  piiTier        AnalyticsPiiTier
+  metadata       Json?
+  createdAt      DateTime         @default(now())
+
+  @@unique([userId, snapshotDate])
+  @@index([snapshotDate])
+}
+
+model AnalyticsTrustSignalFact {
+  id           String             @id @default(uuid())
+  signalId     String             @unique
+  userId       String?
+  hashedUserId String?
+  signalType   RiskSignalType
+  channel      RiskSignalChannel
+  severity     RiskSignalSeverity
+  score        Float?
+  piiTier      AnalyticsPiiTier
+  occurredAt   DateTime           @default(now())
+  createdAt    DateTime           @default(now())
+
+  @@index([userId])
+  @@index([occurredAt])
+}
+
+model AnalyticsModerationFact {
+  id                String             @id @default(uuid())
+  moderationEventId String             @unique
+  userId            String?
+  hashedUserId      String?
+  severity          ModerationSeverity
+  message           String
+  piiTier           AnalyticsPiiTier
+  occurredAt        DateTime           @default(now())
+  createdAt         DateTime           @default(now())
+
+  @@index([userId])
+  @@index([occurredAt])
+}
+
+model AnalyticsIngestionRun {
+  id         String    @id @default(uuid())
+  jobName    String    @unique
+  lastRunAt  DateTime?
+  checkpoint Json?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+}
+
+model ModerationEvent {
+  id                  String             @id @default(uuid())
+  userId              String?
+  deviceFingerprintId String?
+  severity            ModerationSeverity
+  message             String
+  metadata            Json?
+  createdAt           DateTime           @default(now())
+  deviceFingerprint   DeviceFingerprint? @relation(fields: [deviceFingerprintId], references: [id])
+  user                User?              @relation("UserModerationEvents", fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([deviceFingerprintId])
+}
+
+model RiskSignal {
+  id                  String             @id @default(uuid())
+  userId              String?
+  relatedUserId       String?
+  deviceFingerprintId String?
+  type                RiskSignalType
+  channel             RiskSignalChannel
+  severity            RiskSignalSeverity
+  metadata            Json?
+  features            Json?
+  score               Float?
+  createdAt           DateTime           @default(now())
+  processedAt         DateTime?
+  modelRuns           RiskModelRun[]
+  fingerprint         DeviceFingerprint? @relation(fields: [deviceFingerprintId], references: [id])
+  relatedUser         User?              @relation("RiskSignalRelatedUser", fields: [relatedUserId], references: [id])
+  user                User?              @relation("RiskSignalUser", fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([relatedUserId])
+  @@index([deviceFingerprintId])
+  @@index([type])
+}
+
+model RiskProfile {
+  userId          String    @id
+  trustScore      Int       @default(50)
+  metrics         Json?
+  lastEvaluatedAt DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  user            User      @relation(fields: [userId], references: [id])
+}
+
+model RiskModelRun {
+  id           String      @id @default(uuid())
+  userId       String
+  signalId     String?
+  modelVersion String
+  algorithm    String?
+  features     Json?
+  output       Json?
+  score        Float
+  createdAt    DateTime    @default(now())
+  signal       RiskSignal? @relation(fields: [signalId], references: [id])
+  user         User        @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([signalId])
+}
+
+model UserLike {
+  id         String         @id @default(uuid())
+  senderId   String
+  receiverId String
+  status     LikeEdgeStatus @default(pending)
+  highlight  String?
+  tags       String[]       @default([])
+  savedAt    DateTime?
+  nudgedAt   DateTime?
+  createdAt  DateTime       @default(now())
+  receiver   User           @relation("UserLikeReceiver", fields: [receiverId], references: [id])
+  sender     User           @relation("UserLikeSender", fields: [senderId], references: [id])
+
+  @@index([senderId])
+  @@index([receiverId])
+}
+
+model NotificationPreference {
+  id        String   @id @default(uuid())
+  userId    String
+  channel   String
+  label     String
+  helper    String
+  enabled   Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@unique([userId, channel])
+}
+
+model PremiumPerk {
+  id        String   @id @default(uuid())
+  title     String
+  helper    String
+  cta       String
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SafetyResource {
+  id        String   @id @default(uuid())
+  title     String
+  helper    String
+  href      String
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SettingsShortcut {
+  id        String   @id @default(uuid())
+  label     String
+  helper    String
+  href      String
+  tone      String?  @default("default")
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model DiscoverFilter {
+  id        String   @id @default(uuid())
+  label     String
+  helper    String
+  premium   Boolean  @default(false)
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum Gender {
+  man
+  woman
+  non_binary
+  trans_man
+  trans_woman
+  self_describe
+}
+
+enum Orientation {
+  heterosexual
+  gay
+  lesbian
+  bisexual
+  pansexual
+  asexual
+  queer
+}
+
+enum DiscoverySpace {
+  straight
+  lgbtq
+  both
+}
+
+enum MatchPreference {
+  men
+  women
+  everyone
+}
+
+enum VisibilityStatus {
+  limited
+  trusted
+  restricted
+}
+
+enum LikeEdgeStatus {
+  pending
+  matched
+  dismissed
+}
+
+enum VerificationIntent {
+  verify_now
+  skip
+}
+
+enum VerificationStatus {
+  unverified
+  pending
+  verified
+  flagged
+}
+
+enum AuditAction {
+  verification_initiated
+  verification_status_changed
+  orientation_pool_denied
+  device_alert_created
+}
+
+enum AuditActorType {
+  user
+  system
+  service
+  admin
+}
+
+enum AuditEntityType {
+  user
+  verification
+  device_fingerprint
+  trust_profile
+  moderation_case
+}
+
+enum AuditExportStatus {
+  pending
+  processing
+  completed
+  failed
+}
+
+enum AuditPurgeStatus {
+  pending
+  processing
+  completed
+  failed
+}
+
+enum ModerationSeverity {
+  info
+  warning
+  critical
+}
+
+enum RiskSignalType {
+  device_fingerprint
+  auth_pattern
+  behavior_anomaly
+  content_violation
+  manual_report
+}
+
+enum RiskSignalChannel {
+  device_pipeline
+  auth_service
+  moderation_service
+  manual_review
+  external_feed
+}
+
+enum RiskSignalSeverity {
+  low
+  medium
+  high
+  critical
+}
+
+enum AnalyticsPiiTier {
+  direct
+  hashed
+  aggregate
+}

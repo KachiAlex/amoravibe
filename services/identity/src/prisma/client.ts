@@ -1,1 +1,1 @@
-export * from '../../generated/identity-client';
+export * from '@prisma/client';

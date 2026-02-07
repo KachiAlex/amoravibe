@@ -50,6 +50,18 @@ export function Navbar() {
                 {link.label}
               </a>
             ))}
+            <Link href="/communities" className="text-gray-700 hover:text-purple-600 transition-colors">
+              Communities
+            </Link>
+            <Link href="/safety" className="text-gray-700 hover:text-purple-600 transition-colors">
+              Safety
+            </Link>
+            <Link href="/profile" className="text-gray-700 hover:text-purple-600 transition-colors">
+              Profile
+            </Link>
+            <Link href="/settings" className="text-gray-700 hover:text-purple-600 transition-colors">
+              Settings
+            </Link>
           </div>
 
           {/* Desktop CTA Buttons */}
@@ -94,6 +106,34 @@ export function Navbar() {
                 {link.label}
               </a>
             ))}
+            <Link
+              href="/communities"
+              className="block py-2 text-gray-700 hover:text-purple-600 transition-colors"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Communities
+            </Link>
+            <Link
+              href="/safety"
+              className="block py-2 text-gray-700 hover:text-purple-600 transition-colors"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Safety
+            </Link>
+            <Link
+              href="/profile"
+              className="block py-2 text-gray-700 hover:text-purple-600 transition-colors"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Profile
+            </Link>
+            <Link
+              href="/settings"
+              className="block py-2 text-gray-700 hover:text-purple-600 transition-colors"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Settings
+            </Link>
             <div className="pt-2 space-y-2">
               <button
                 type="button"

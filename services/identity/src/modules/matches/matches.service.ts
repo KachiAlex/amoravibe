@@ -229,7 +229,20 @@ export class MatchesService {
         },
       });
 
-      return match || null;
+      if (!match) return null;
+
+      // Normalize expiresAt to `undefined` when null to satisfy MatchRecord typing
+      const normalized: MatchRecord = {
+        id: match.id,
+        userId1: match.userId1,
+        userId2: match.userId2,
+        createdAt: match.createdAt,
+        status: match.status,
+        lastInteractionAt: match.lastInteractionAt ?? undefined,
+        expiresAt: match.expiresAt ?? undefined,
+      };
+
+      return normalized;
     } catch (error) {
       console.error('[MatchesService] Error checking match:', error);
       return null;

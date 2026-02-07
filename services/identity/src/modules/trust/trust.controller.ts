@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, ParseUUIDPipe, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { TrustSignalsService } from './services/trust-signals.service';
 import { RiskProfileService } from './services/risk-profile.service';
 import { TrustCenterService } from './services/trust-center.service';
@@ -18,17 +18,17 @@ export class TrustController {
   }
 
   @Get('signals/user/:userId')
-  getSignalsForUser(@Param('userId', new ParseUUIDPipe()) userId: string) {
+  getSignalsForUser(@Param('userId') userId: string) {
     return this.trustSignals.listForUser(userId);
   }
 
   @Get('profiles/:userId')
-  getProfile(@Param('userId', new ParseUUIDPipe()) userId: string) {
+  getProfile(@Param('userId') userId: string) {
     return this.riskProfiles.getProfile(userId);
   }
 
   @Get('center/:userId')
-  getTrustCenterSnapshot(@Param('userId', new ParseUUIDPipe()) userId: string) {
+  getTrustCenterSnapshot(@Param('userId') userId: string) {
     return this.trustCenter.getSnapshot(userId);
   }
 }

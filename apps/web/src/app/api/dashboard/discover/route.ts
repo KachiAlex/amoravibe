@@ -1,4 +1,4 @@
-import type { DiscoverCard, DiscoverFeedResponse } from '@/lib/api-types';
+import type { DiscoverCard, DiscoverFeedMode, DiscoverFeedResponse } from '@/lib/api-types';
 import { BACKEND_CONFIG, getBackendUrl } from '@/lib/backend-config';
 
 // NOTE: Minimal lint fix commit - ensures this file differs from older commits
@@ -104,6 +104,36 @@ const ALL_DISCOVER_CARDS: DiscoverCard[] = [
   },
 ];
 
+const DEFAULT_FILTERS: DiscoverFeedResponse['filters'] = [
+  { label: 'All', value: 'default' },
+  { label: 'Verified', value: 'verified' },
+  { label: 'Nearby', value: 'nearby' },
+  { label: 'Fresh', value: 'fresh' },
+  { label: 'Premium', value: 'premium' },
+  { label: 'Shared Interests', value: 'shared' },
+];
+
+const mapBackendProfileToCard = (profile: any): DiscoverCard => {
+  const firstPhoto = Array.isArray(profile?.photos) ? profile.photos[0] : null;
+
+  return {
+    id: profile?.id ?? 'unknown',
+    name: profile?.displayName ?? profile?.name ?? 'Member',
+    age: profile?.age ?? null,
+    city: profile?.city ?? null,
+    cityRegion: profile?.cityRegion ?? null,
+    distance: profile?.distance ?? null,
+    distanceKm: typeof profile?.distanceKm === 'number' ? profile.distanceKm : null,
+    tags: profile?.tags ?? [],
+    image: firstPhoto ?? profile?.image ?? null,
+    compatibility: profile?.compatibility,
+    verified: Boolean(profile?.verified),
+    premiumOnly: Boolean(profile?.premiumOnly),
+    receiverId: profile?.receiverId ?? profile?.id,
+    actionable: profile?.actionable ?? true,
+  };
+};
+
 function filterCardsByMode(cards: DiscoverCard[], mode: string | null): DiscoverCard[] {
   if (!mode) return cards;
 
@@ -137,21 +167,31 @@ export async function GET(request: Request) {
   // Try to fetch from real backend first
   if (BACKEND_CONFIG.ENABLE_REAL_DISCOVER && userId && BACKEND_CONFIG.IDENTITY_SERVICE_URL) {
     try {
-      const backendUrl = getBackendUrl(`/discover/feed/${userId}?mode=${mode}&limit=${limit}`);
+      const backendUrl = getBackendUrl(
+        `/discovery/feed?userId=${encodeURIComponent(userId)}&mode=${encodeURIComponent(mode)}&limit=${limit}`
+      );
       const res = await fetch(backendUrl, { cache: 'no-store' });
       if (res.ok) {
         const backendData = await res.json();
-        // Transform backend response to match frontend expected shape if needed
+        const backendGrid = Array.isArray(backendData?.grid) ? backendData.grid : [];
+        const mappedGrid = backendGrid.map(mapBackendProfileToCard).slice(0, limit);
+        const filters = backendData?.filters?.length ? backendData.filters : DEFAULT_FILTERS;
+
+        // Ensure we return a complete feed shape even when backend omits hero/featured
         return Response.json({
-          hero: backendData.hero ?? null,
-          featured: backendData.featured ?? [],
-          grid: backendData.grid ?? [],
-          filters: backendData.filters ?? [],
-          mode: backendData.mode ?? mode,
-          total: backendData.total ?? 0,
+          hero: backendData?.hero ?? mappedGrid[0] ?? null,
+          featured: backendData?.featured?.length
+            ? backendData.featured.map(mapBackendProfileToCard)
+            : mappedGrid.slice(0, 2),
+          grid: mappedGrid,
+          filters,
+          mode: (backendData?.mode as DiscoverFeedMode) ?? (mode as DiscoverFeedMode),
+          total: backendData?.total ?? mappedGrid.length,
           generatedAt: backendData.generatedAt ?? new Date().toISOString(),
         });
       }
+      // eslint-disable-next-line no-console
+      console.error('Identity service discover feed returned non-200', res.status);
     } catch (error) {
       console.error('Failed to fetch from identity service, falling back to stubs:', error);
     }
@@ -164,14 +204,7 @@ export async function GET(request: Request) {
     hero: filtered.length > 0 ? filtered[0] : null,
     featured: filtered.slice(0, 2),
     grid: filtered,
-    filters: [
-      { label: 'All', value: 'default' },
-      { label: 'Verified', value: 'verified' },
-      { label: 'Nearby', value: 'nearby' },
-      { label: 'Fresh', value: 'fresh' },
-      { label: 'Premium', value: 'premium' },
-      { label: 'Shared Interests', value: 'shared' },
-    ],
+    filters: DEFAULT_FILTERS,
     mode: mode as any,
     total: filtered.length,
     generatedAt: new Date().toISOString(),

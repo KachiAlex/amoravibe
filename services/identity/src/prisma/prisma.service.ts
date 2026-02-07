@@ -4,13 +4,19 @@ import { PrismaClient } from './client';
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
   private connectionPromise: Promise<void> | null = null;
+  private connected = false;
 
   async onModuleInit() {
     // Don't wait for connection on startup to avoid blocking lambda init
     // Connection will be established on first query
-    this.connectionPromise = this.$connect().catch((error) => {
-      console.error('[PrismaService] Connection error:', error);
-    });
+    this.connectionPromise = this.$connect()
+      .then(() => {
+        this.connected = true;
+      })
+      .catch((error) => {
+        this.connected = false;
+        console.error('[PrismaService] Connection error:', error);
+      });
   }
 
   async onModuleDestroy() {
@@ -24,5 +30,9 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
     this.$on('beforeExit' as never, async () => {
       await app.close();
     });
+  }
+
+  isConnected(): boolean {
+    return this.connected;
   }
 }

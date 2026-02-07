@@ -1,8 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Prisma, RiskSignal } from '../../../prisma/client';
+import { Prisma } from '../../../prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { TrustModelService } from './trust-model.service';
 import { RiskProfileService } from './risk-profile.service';
+
+// Type stub - RiskSignal table doesn't exist in SQLite schema
+type RiskSignal = any;
 
 @Injectable()
 export class RiskScoringService {

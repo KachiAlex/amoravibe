@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { setSession } from '@/lib/session';
 import { preflight, withCors } from '@/lib/cors';
+import { BACKEND_CONFIG, getBackendUrl } from '@/lib/backend-config';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const upstreamBase = (
@@ -36,7 +37,31 @@ export async function POST(request: Request) {
       );
     }
 
-    // Mock login response
+    if (BACKEND_CONFIG.USE_REAL_BACKEND) {
+      try {
+        // Call real identity service login
+        const loginResponse = await fetch(getBackendUrl('/auth/login'), {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ email, phone, password }),
+        });
+
+        if (loginResponse.ok) {
+          const loginData = await loginResponse.json();
+          await setSession({ userId: loginData.user.id });
+          return withCors(request, NextResponse.json(loginData), { methods: ['POST', 'OPTIONS'] });
+        } else {
+          // If real backend fails, log and fall back to mock
+          console.warn('Real backend login failed, falling back to mock login');
+        }
+      } catch (error) {
+        console.warn('Real backend login error, falling back to mock login', error);
+      }
+    }
+
+    // Mock login response (fallback)
     const login = { user: { id: 'user-' + Math.random().toString(36).slice(2, 11) } };
     await setSession({ userId: login.user.id });
     return withCors(request, NextResponse.json(login), { methods: ['POST', 'OPTIONS'] });

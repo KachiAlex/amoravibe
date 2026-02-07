@@ -3,7 +3,7 @@ import { PoolAccessRequestDto } from '../dto/pool-access-request.dto';
 import { OrientationPolicyService } from '../services/orientation-policy.service';
 import { UserService } from '../../user/services/user.service';
 import { AuditService } from '../../audit/services/audit.service';
-import { AuditActorType, AuditEntityType } from '../../../prisma/client';
+import { AuditActorType, AuditEntityType } from '../../../prisma/audit.stubs';
 import { Orientation } from '../../../common/enums/orientation.enum';
 
 @Controller('policy/pools')

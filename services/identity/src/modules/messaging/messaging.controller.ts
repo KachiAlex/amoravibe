@@ -1,4 +1,4 @@
-import { Controller, Get, Param, ParseUUIDPipe, Query } from '@nestjs/common';
+import { Controller, Get, Param, Query } from '@nestjs/common';
 import { MessagingService } from './messaging.service';
 
 const DEFAULT_LIMIT = 6;
@@ -9,7 +9,7 @@ export class MessagingController {
   constructor(private readonly messaging: MessagingService) {}
 
   @Get('threads/:userId')
-  getThreads(@Param('userId', new ParseUUIDPipe()) userId: string, @Query('limit') limit?: string) {
+  getThreads(@Param('userId') userId: string, @Query('limit') limit?: string) {
     return this.messaging.getThreads(userId, this.normalizeLimit(limit));
   }
 

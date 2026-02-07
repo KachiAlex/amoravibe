@@ -1,5 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { DeviceFingerprint, Prisma, AuditActorType, AuditEntityType } from '../../../prisma/client';
+import { DeviceFingerprint, Prisma } from '../../../prisma/client';
+import { AuditActorType, AuditEntityType } from '../../../prisma/audit.stubs';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { IngestDeviceFingerprintDto } from '../dto/ingest-device-fingerprint.dto';
 import { PrismaClientLike } from '../../../prisma/prisma.types';

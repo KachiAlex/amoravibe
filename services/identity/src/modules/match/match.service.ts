@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { MatchCandidateDto } from './dto/match.dto';
 import { Prisma, User, $Enums } from '../../prisma/client';
@@ -92,6 +92,7 @@ type ComparableProfile = Pick<
 
 @Injectable()
 export class MatchService {
+  private readonly logger = new Logger(MatchService.name);
   constructor(private readonly prisma: PrismaService) {}
 
   async findMatches(userId: string, limit = DEFAULT_MATCH_LIMIT): Promise<MatchCandidateDto[]> {
@@ -381,5 +382,58 @@ export class MatchService {
       return value;
     }
     return value.toNumber();
+  }
+
+  async recordAction(
+    senderId: string,
+    receiverId: string,
+    action: string,
+    highlight?: string
+  ): Promise<{ success: boolean; data?: any; error?: string }> {
+    try {
+      // Validate both users exist
+      const [sender, receiver] = await Promise.all([
+        this.prisma.user.findUnique({ where: { id: senderId } }),
+        this.prisma.user.findUnique({ where: { id: receiverId } }),
+      ]);
+
+      if (!sender || !receiver) {
+        throw new Error('Sender or receiver not found');
+      }
+
+      // Map action to LikeEdgeStatus using enum
+      let status: $Enums.LikeEdgeStatus = $Enums.LikeEdgeStatus.pending;
+      if (action === 'pass' || action === 'dismiss') {
+        status = $Enums.LikeEdgeStatus.passed;
+      } else if (action === 'like' || action === 'superlike' || action === 'save') {
+        status = $Enums.LikeEdgeStatus.pending;
+      }
+
+      // Check if a like already exists for this sender/receiver pair
+      const existing = await this.prisma.userLike.findFirst({
+        where: { senderId, receiverId },
+      });
+
+      let like;
+      if (existing) {
+        // Update existing like
+        like = await this.prisma.userLike.update({
+          where: { id: existing.id },
+          data: { status, highlight: highlight || null },
+        });
+      } else {
+        // Create new like
+        like = await this.prisma.userLike.create({
+          data: { senderId, receiverId, status, highlight: highlight || null },
+        });
+      }
+
+      this.logger.log(`Action "${action}" recorded: ${senderId} -> ${receiverId}`);
+
+      return { success: true, data: like };
+    } catch (error) {
+      this.logger.error(`Failed to record action:`, error);
+      throw error;
+    }
   }
 }

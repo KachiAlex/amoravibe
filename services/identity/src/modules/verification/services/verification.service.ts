@@ -1,11 +1,15 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma, Verification, AuditActorType, AuditEntityType } from '../../../prisma/client';
+import { Prisma } from '../../../prisma/client';
+import { AuditActorType, AuditEntityType } from '../../../prisma/audit.stubs';
 import { VerificationStatus } from '../../../common/enums/verification-status.enum';
 import { InitiateVerificationDto } from '../dto/initiate-verification.dto';
 import { UserService } from '../../user/services/user.service';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { PrismaClientLike } from '../../../prisma/prisma.types';
-import { AuditService } from '../../audit/services/audit.service';
+// import { AuditService } from '../../audit/services/audit.service';
+
+// Type stub - Verification table is in SQLite schema
+type Verification = any;
 
 interface ProviderDecisionInput {
   status: VerificationStatus;

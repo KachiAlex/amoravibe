@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Query } from '@nestjs/common';
+import { Controller, Get, Post, Param, Query, Body } from '@nestjs/common';
 import { MatchService } from './match.service';
 
 // Stub data for development when real data isn't available
@@ -65,6 +65,18 @@ export class MatchController {
         hasMore: false,
         generatedAt: new Date().toISOString(),
       };
+    }
+  }
+
+  @Post('action')
+  async recordAction(
+    @Body() body: { senderId: string; receiverId: string; action: string; highlight?: string }
+  ) {
+    try {
+      return await this.matchService.recordAction(body.senderId, body.receiverId, body.action, body.highlight);
+    } catch (error) {
+      console.error(`Failed to record action:`, error);
+      return { success: false, error: (error as Error).message };
     }
   }
 }

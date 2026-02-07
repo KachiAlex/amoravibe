@@ -1,8 +1,9 @@
-import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { LoginRequestDto } from './dto/login-request.dto';
 import { LoginResponseDto } from './dto/login-response.dto';
-import { verifyPassword } from '../user/password.utils';
+import { hashPassword, verifyPassword } from '../user/password.utils';
+import { ChangePasswordDto } from './dto/change-password.dto';
 
 @Injectable()
 export class AuthService {
@@ -23,6 +24,25 @@ export class AuthService {
       },
       nextRoute: `/dashboard?userId=${user.id}`,
     };
+  }
+
+  async changePassword(dto: ChangePasswordDto) {
+    const user = await this.prisma.user.findUnique({ where: { id: dto.userId } });
+    if (!user) {
+      throw new NotFoundException('User not found.');
+    }
+
+    if (!verifyPassword(dto.currentPassword, user.passwordHash)) {
+      throw new UnauthorizedException('Current password is incorrect.');
+    }
+
+    const hashed = hashPassword(dto.newPassword);
+    await this.prisma.user.update({
+      where: { id: dto.userId },
+      data: { passwordHash: hashed },
+    });
+
+    return { success: true, message: 'Password updated' };
   }
 
   private async resolveUser(dto: LoginRequestDto) {
