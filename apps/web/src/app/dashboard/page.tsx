@@ -625,6 +625,42 @@ function SettingsPanel({ items }: { items: SettingItem[] }) {
   );
 }
 
+function SummaryCards({ matchesCount, messagesCount, likesCount }: { matchesCount: number; messagesCount: number; likesCount: number; }) {
+  return (
+    <div className="grid gap-4 sm:grid-cols-3">
+      <Card className="flex items-center justify-between gap-4 p-4">
+        <div>
+          <p className="text-xs text-[#94a3b8]">Matches</p>
+          <p className="text-xl font-semibold text-[#0f172a]">{matchesCount}</p>
+        </div>
+        <Link href="/matches" className="rounded-full bg-[#eef2ff] px-3 py-2 text-sm font-semibold text-[#4338ca]">
+          View
+        </Link>
+      </Card>
+
+      <Card className="flex items-center justify-between gap-4 p-4">
+        <div>
+          <p className="text-xs text-[#94a3b8]">Messages</p>
+          <p className="text-xl font-semibold text-[#0f172a]">{messagesCount}</p>
+        </div>
+        <Link href="/dashboard?section=messages#messages" className="rounded-full bg-[#eef2ff] px-3 py-2 text-sm font-semibold text-[#4338ca]">
+          Open
+        </Link>
+      </Card>
+
+      <Card className="flex items-center justify-between gap-4 p-4">
+        <div>
+          <p className="text-xs text-[#94a3b8]">Likes</p>
+          <p className="text-xl font-semibold text-[#0f172a]">{likesCount}</p>
+        </div>
+        <Link href="/matches?view=likes" className="rounded-full bg-[#eef2ff] px-3 py-2 text-sm font-semibold text-[#4338ca]">
+          See
+        </Link>
+      </Card>
+    </div>
+  );
+}
+
 function HomeFeed({ profiles, senderId }: { profiles: FeedProfile[]; senderId?: string }) {
   return (
     <div className="space-y-4">
@@ -1121,7 +1157,7 @@ export default async function DashboardPage(props: DashboardPageProps) {
     return (
       <main className="mx-auto max-w-3xl px-6 py-24 text-center">
         <Card className="space-y-4">
-          <h1 className="font-display text-3xl text-ink-900">Trust dashboard</h1>
+          <h1 className="font-display text-3xl text-ink-900">Dashboard</h1>
           <p className="text-ink-700">
             You’re not signed in yet. Complete onboarding or re-open the matches page to generate a
             session.
@@ -1503,6 +1539,12 @@ export default async function DashboardPage(props: DashboardPageProps) {
                     </span>
                   </div>
                 </div>
+                <SummaryCards
+                  matchesCount={matchPreviews.length}
+                  messagesCount={unreadCount}
+                  likesCount={likesYou.length}
+                />
+                <div className="mt-4" />
                 <HomeFeed profiles={feedProfiles} senderId={userId} />
               </section>
 
