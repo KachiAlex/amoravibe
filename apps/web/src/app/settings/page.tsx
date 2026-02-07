@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { Badge, Card, PillButton } from "@/lib/ui-components";
-import { Shield, Bell, Eye, CreditCard, Lock, ArrowRight } from "lucide-react";
+import { Shield, Bell, Eye, CreditCard, ArrowRight } from "lucide-react";
 
 interface SettingsPayload {
   emailNotifications: boolean;
@@ -55,11 +55,11 @@ const VISIBILITY_OPTIONS = [
   { value: "verified_only", label: "Verified only" },
 ];
 
-const DISCOVERY_STATES = [
-  { value: "everywhere", label: "Everywhere" },
-  { value: "app_only", label: "In app only" },
-  { value: "hidden", label: "Hidden" },
-];
+// const DISCOVERY_STATES = [
+//   { value: "everywhere", label: "Everywhere" },
+//   { value: "app_only", label: "In app only" },
+//   { value: "hidden", label: "Hidden" },
+// ];
 
 const ACTIVE_SESSIONS = [
   { id: "session-1", device: "iPhone 15", location: "San Francisco, CA", updatedAt: "2h ago" },
@@ -86,7 +86,7 @@ export default function SettingsPage() {
       { id: "bh-3", date: "Nov 02, 2025", amount: "$19.99" },
     ],
   });
-  const [loading, setLoading] = useState(true);
+  const [, setLoading] = useState(true);
   const [saved, setSaved] = useState(false);
   const [statusMessage, setStatusMessage] = useState("");
   const [passwordForm, setPasswordForm] = useState({ currentPassword: "", newPassword: "", confirmPassword: "" });

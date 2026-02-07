@@ -6,12 +6,8 @@ import {
   Award,
   Eye,
   EyeOff,
-  Edit2,
   Check,
-  X,
   Lock,
-  Globe,
-  Heart,
   ArrowUp,
   ArrowDown,
   Shuffle,
@@ -48,7 +44,7 @@ interface ProfileHealth {
 
 export default function ProfilePage() {
   const [userId, setUserId] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [, setLoading] = useState(true);
   const [publicProfile, setPublicProfile] = useState<UserProfile | null>(null);
   const [privateProfile, setPrivateProfile] = useState<PrivateProfile | null>(null);
   const [profileHealth, setProfileHealth] = useState<ProfileHealth | null>(null);

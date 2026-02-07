@@ -4,15 +4,9 @@ import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { Badge, Card, PillButton } from "@/lib/ui-components";
 import Link from "next/link";
 import {
-  FileText,
   Shield,
-  AlertTriangle,
   ArrowRight,
   Plus,
-  Users,
-  MapPin,
-  Lock,
-  RefreshCcw,
   Camera,
 } from "lucide-react";
 import { COMMUNITY_GUIDELINES } from "@/data/community-guidelines";
@@ -80,7 +74,7 @@ export default function SafetyPage() {
   const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [experience, setExperience] = useState<SafetyExperience | null>(null);
-  const [blockedUsers, setBlockedUsers] = useState<BlockedUser[]>([]);
+  const [, setBlockedUsers] = useState<BlockedUser[]>([]);
   const [reports, setReports] = useState<SafetyReport[]>([]);
   const [moderationOutcomes, setModerationOutcomes] = useState<ModerationOutcome[]>([]);
   const [tools, setTools] = useState<SafetyToolsState | null>(null);

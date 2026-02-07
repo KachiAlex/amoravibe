@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const IDENTITY_SERVICE_URL = process.env.IDENTITY_SERVICE_URL || 'http://localhost:4001';
-
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);

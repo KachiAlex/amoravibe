@@ -159,7 +159,6 @@ export async function GET(request: NextRequest) {
     const action = searchParams.get('action');
     const userId = searchParams.get('userId');
     const communityId = searchParams.get('communityId');
-    const memberId = searchParams.get('memberId');
     const postId = searchParams.get('postId');
     const type = searchParams.get('type');
     const search = searchParams.get('search');

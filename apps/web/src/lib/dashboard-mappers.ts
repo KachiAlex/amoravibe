@@ -79,5 +79,3 @@ export const mapCardToDiscoverPerson = (card: DiscoverCard, mode: DiscoverFeedMo
   actionable: card.actionable,
   mode,
 });
-
-export default {};
