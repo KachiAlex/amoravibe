@@ -13,5 +13,6 @@
       "dest": "apps/web/$1"
     }
   ],
-  "installCommand": "npm install --legacy-peer-deps"
+  "installCommand": "npm install",
+  "buildCommand": "npm run build"
 }
