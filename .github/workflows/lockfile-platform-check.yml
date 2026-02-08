@@ -1,0 +1,24 @@
+name: Lockfile Platform Check
+
+on:
+  pull_request:
+    branches: ["main", "master"]
+
+jobs:
+  check-lockfiles:
+    name: Check lockfiles for platform-specific binaries
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Fail if rollup-win32 appears in any lockfile
+        run: |
+          set -euo pipefail
+          echo "Searching for platform-specific rollup entries in package-lock.json files..."
+          if grep -R --line-number -E '@rollup/rollup-win32|rollup-win32' . --include 'package-lock.json'; then
+            echo "\nERROR: Found platform-specific rollup entries in package-lock.json (see lines above)."
+            echo "Please remove or mark platform-only packages as optional and regenerate the lockfile on Linux."
+            exit 1
+          fi
+          echo "No rollup-win32 entries found."
