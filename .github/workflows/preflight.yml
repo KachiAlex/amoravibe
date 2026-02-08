@@ -1,0 +1,28 @@
+name: Preflight
+
+on:
+  push:
+    branches: ["main", "master"]
+  pull_request:
+    branches: ["main", "master"]
+
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies (omit optional)
+        run: npm ci --omit=optional
+
+      - name: Type check (root)
+        run: npx tsc -p tsconfig.base.json --noEmit
+
+      - name: Web workspace build
+        run: npm run --workspace=apps/web build

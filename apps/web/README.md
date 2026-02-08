@@ -1,3 +1,35 @@
+# Web app (apps/web)
+
+Local development and common commands for the `apps/web` Next.js application.
+
+Prereqs
+- Node 20.x (recommended)
+- npm 11.x (repo uses npm workspaces)
+
+Dev
+
+```powershell
+# from repo root
+npm run dev --workspace=apps/web
+# or from inside apps/web
+npm run dev
+```
+
+Build
+
+```powershell
+npm run --workspace=apps/web build
+```
+
+Tests
+
+```powershell
+npm run --workspace=apps/web test || npx vitest -c ../../vitest.config.ts --run
+```
+
+Notes
+- The monorepo uses npm workspaces; some cross-workspace packages are file: references.
+- If CI fails with platform-specific packages, regenerate `package-lock.json` on a Linux runner using `npm install --package-lock-only --omit=optional` and push the lockfile.
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
 ## Getting Started
