@@ -1,0 +1,45 @@
+name: Playwright Smoke
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: ["main", "master"]
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    services:
+      web:
+        image: node:20-bullseye
+        options: >-
+          --health-cmd "curl -sSf http://localhost:3000/ || exit 1"
+          --health-interval 5s
+          --health-timeout 2s
+          --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci --omit=optional
+
+      - name: Start web app
+        run: |
+          cd apps/web
+          nohup npm run dev &
+        env:
+          PORT: 3000
+
+      - name: Wait for web
+        run: |
+          for i in {1..30}; do
+            if curl -sSf http://localhost:3000/ >/dev/null 2>&1; then exit 0; fi
+            sleep 2
+          done
+          exit 1
+
+      - name: Run Playwright smoke
+        run: npx playwright test apps/web/tests/playwright --project=chromium --reporter=list
