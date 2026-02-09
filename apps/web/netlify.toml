@@ -1,0 +1,9 @@
+# Netlify config for the Next.js frontend (apps/web)
+[build]
+# Use apps/web as the base directory so Netlify builds the frontend workspace
+  base = "apps/web"
+  command = "npm install && npm run build"
+  publish = "apps/web/.next"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
