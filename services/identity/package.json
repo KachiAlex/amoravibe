@@ -1,5 +1,5 @@
 {
-  "name": "@lovedate/identity-service",
+  "name": "@amoravibe/identity-service",
   "version": "0.1.0",
   "private": true,
   "type": "commonjs",
@@ -7,10 +7,12 @@
   "scripts": {
     "dev": "ts-node --files --project tsconfig.json src/main.ts",
     "build": "npm run prisma:generate && tsc -p tsconfig.json && node ./scripts/copy-site.mjs",
+    "start": "node dist/main.js",
     "clean": "rimraf dist",
     "lint": "eslint \"src/**/*.{ts,tsx}\"",
     "test": "vitest run",
-    "prisma:generate": "prisma generate"
+    "seed:mock": "ts-node --files --project tsconfig.json scripts/seed-mock-users.ts",
+    "prisma:generate": "prisma generate --schema=prisma/schema.postgresql.prisma"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.497.0",
@@ -32,7 +34,6 @@
     "@types/node": "^20.10.6",
     "prisma": "^5.9.1",
     "rimraf": "^5.0.5",
-    "rollup": "^4.55.2",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3",
     "vitest": "^1.2.0"
