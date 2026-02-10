@@ -12,7 +12,7 @@
     "lint": "eslint \"src/**/*.{ts,tsx}\"",
     "test": "vitest run",
     "seed:mock": "ts-node --files --project tsconfig.json scripts/seed-mock-users.ts",
-    "prisma:generate": "prisma generate --schema=prisma/schema.postgresql.prisma"
+    "prisma:generate": "prisma generate --schema=prisma/schema.prisma"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.497.0",

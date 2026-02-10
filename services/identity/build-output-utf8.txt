@@ -1,0 +1,14 @@
+﻿npx : npm warn config optional Use `--omit=optional` to exclude optional 
+dependencies, or
+At line:1 char:1
++ npx -y tsc -p services/identity/tsconfig.json --pretty false 2>&1 | O ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (npm warn config...ependencies, or 
+   :String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+npm warn config `--include=optional` to include them.
+npm warn config
+npm warn config       Default value does install optional deps unless 
+otherwise omitted.
+
