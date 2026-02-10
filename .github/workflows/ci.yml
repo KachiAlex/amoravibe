@@ -25,10 +25,14 @@ jobs:
 
       - name: Verify pnpm
         run: |
-          if ! command -v pnpm >/dev/null; then
-            npm i -g pnpm@10.29.2
+          echo "PNPM_HOME=$PNPM_HOME"
+          # Prefer the action-installed pnpm binary if present, and don't fail if
+          # pnpm exits due to project-level package manager configuration.
+          if [ -x "$HOME/setup-pnpm/node_modules/.bin/pnpm" ]; then
+            "$HOME/setup-pnpm/node_modules/.bin/pnpm" -v || true
+          else
+            pnpm -v || true
           fi
-          pnpm -v
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
