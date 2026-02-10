@@ -1,44 +1,81 @@
 {
-  "name": "lovedate",
+  "name": "amoravibe-monorepo",
+  "version": "1.0.0",
   "private": true,
-  "version": "0.1.0",
-  "description": "Authenticity-first dating platform monorepo",
-  "scripts": {
-    "dev": "turbo run dev",
-    "build": "turbo run build",
-    "lint": "turbo run lint",
-    "test": "turbo run test",
-    "test:unit": "vitest run",
-    "clean": "turbo run clean",
-    "format": "prettier --write .",
-    "format:check": "prettier --check .",
-    "prepare": "node scripts/prepare-husky.mjs",
-    "deploy:web": "vercel deploy --prod --confirm --local-config=D:\\lovedate\\apps\\web\\vercel.json --cwd=apps/web",
-    "deploy:identity": "vercel deploy --prod --cwd=services/identity --confirm",
-    "deploy:all": "npm run deploy:identity && npm run deploy:web"
-  },
+  "workspaces": [
+    "apps/*",
+    "packages/*",
+    "services/*"
+  ],
   "engines": {
     "node": ">=20.10.0"
   },
-  "workspaces": [
-    "apps/*",
-    "services/*",
-    "packages/*"
-  ],
-  "packageManager": "npm@11.7.0",
+  "packageManager": "pnpm@10.29.2",
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build --filter=apps/* --filter=packages/* --filter=services/*",
+    "lint": "turbo run lint",
+    "test": "turbo run test"
+  },
   "devDependencies": {
+    "@playwright/test": "^1.58.1",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
     "@typescript-eslint/parser": "^6.21.0",
     "eslint": "^8.56.0",
-    "husky": "^9.0.10",
+    "husky": "^9.1.7",
     "lint-staged": "^15.2.0",
     "prettier": "^3.2.4",
-    "turbo": "^2.7.6",
+    "turbo": "^2.8.1",
     "typescript": "^5.3.3",
-    "vitest": "^1.2.0"
+    "vitest": "^1.2.0",
+    "@storybook/react": "^7.0.0"
   },
-  "optionalDependencies": {
-    "turbo-windows-64": "^2.7.6"
+  "dependencies": {
+    "encoding": "^0.1.13"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx}": [
+      "npx eslint --max-warnings=0 --no-error-on-unmatched-pattern"
+    ],
+    "*.{ts,tsx,js,jsx,json,md,yml,yaml}": [
+      "npx prettier --check"
+    ]
+  }
+}
+{
+  "name": "amoravibe-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*",
+    "services/*"
+  ],
+  "engines": {
+    "node": ">=20.10.0"
+  },
+  "packageManager": "pnpm@10.29.2",
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build --filter=apps/* --filter=packages/* --filter=services/*",
+    "lint": "turbo run lint",
+    "test": "turbo run test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.58.1",
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/parser": "^6.21.0",
+    "eslint": "^8.56.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.2.0",
+    "prettier": "^3.2.4",
+    "turbo": "^2.8.1",
+    "typescript": "^5.3.3",
+    "vitest": "^1.2.0",
+    "@storybook/react": "^7.0.0"
+  },
+  "dependencies": {
+    "encoding": "^0.1.13"
   },
   "lint-staged": {
     "*.{ts,tsx,js,jsx}": [
