@@ -11,6 +11,9 @@ const nextConfig = {
       allowedOrigins,
     },
   },
+  // Transpile internal workspace packages that ship TypeScript/TSX source
+  // directly (e.g. `@lovedate/ui`) so Next's webpack can compile them.
+  transpilePackages: ['@lovedate/ui'],
   images: {
     remotePatterns: [
       {
