@@ -26,7 +26,9 @@ export default async function AdminDashboardPage() {
   const api = createLovedateApi({ baseUrl: upstreamBase });
   let user: any = null;
   try {
-    user = await api.client.get(`/users/${session!.userId}`);
+    // Use fetchTrustSnapshot to get user details
+    const snapshot = await api.fetchTrustSnapshot(session!.userId);
+    user = snapshot.user;
   } catch (e) {
     // If user fetch fails, treat as not authorized
     redirect('/login?next=/admin');
