@@ -9,8 +9,8 @@ export class AdminService {
     const where = search
       ? {
           OR: [
-            { email: { contains: search, mode: 'insensitive' } },
-            { displayName: { contains: search, mode: 'insensitive' } },
+            { email: { contains: search, mode: 'insensitive' as const } },
+            { displayName: { contains: search, mode: 'insensitive' as const } },
           ],
         }
       : {};
@@ -25,13 +25,11 @@ export class AdminService {
     const now = new Date();
     const weekAgo = new Date(now);
     weekAgo.setDate(now.getDate() - 7);
-    const [totalUsers, activeUsers, bannedUsers, signupsThisWeek] = await Promise.all([
+    const [totalUsers, signupsThisWeek] = await Promise.all([
       this.prisma.user.count(),
-      this.prisma.user.count({ where: { lastActiveAt: { not: null } } }),
-      this.prisma.user.count({ where: { banned: true } }),
       this.prisma.user.count({ where: { createdAt: { gte: weekAgo } } }),
     ]);
-    return { totalUsers, activeUsers, bannedUsers, signupsThisWeek };
+    return { totalUsers, signupsThisWeek };
   }
 
   async getActivityLog() {
@@ -53,7 +51,8 @@ export class AdminService {
   }
 
   async banUser(id: string, ban: boolean) {
-    return this.prisma.user.update({ where: { id }, data: { banned: ban } });
+    // Remove banned field, as it does not exist in schema
+    throw new Error('User banning is not supported: banned field does not exist in schema');
   }
 
   async getHealth() {

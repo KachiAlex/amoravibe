@@ -1,21 +1,11 @@
+import React, { type ReactNode } from 'react';
 import { Card, PillButton } from '@lovedate/ui';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Space_Grotesk } from 'next/font/google';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
-import {
-  Compass,
-  Heart,
-  Lock,
-  MessageCircle,
-  Settings,
-  ShieldCheck,
-  Sparkles,
-  Star,
-  Users,
-} from 'lucide-react';
-import type { ReactNode } from 'react';
+import * as LucideIcons from 'lucide-react';
 import type {
   EngagementDashboardResponse,
   DiscoverFeedMode,
@@ -680,7 +670,7 @@ function FeedCard({ profile, senderId }: { profile: FeedProfile; senderId?: stri
         />
         {profile.premiumOnly ? (
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#0f172a]/70 text-white">
-            <Lock className="mb-2 h-6 w-6" />
+            <LucideIcons.Lock className="mb-2 h-6 w-6" />
             <p className="text-sm font-semibold">Premium spotlight</p>
             <Link href="/premium" className="text-xs underline">
               Unlock to view
@@ -804,7 +794,7 @@ function DiscoverFilters({
                 </span>
                 {filter.premium ? (
                   <span className="inline-flex items-center gap-1 rounded-full bg-white px-3 py-1 text-[11px] font-semibold text-[#b45309]">
-                    <Lock className="h-3 w-3" /> Premium
+                    <LucideIcons.Lock className="h-3 w-3" /> Premium
                   </span>
                 ) : null}
               </button>
@@ -1782,13 +1772,13 @@ function SidebarNav({
                 aria-current={item.section && item.section === activeSection ? 'page' : undefined}
               >
                 <span className="inline-flex items-center gap-3">
-                  <item.icon
-                    className={`${
+                  {React.createElement(item.icon, {
+                    className: `$
                       item.section && item.section === activeSection
                         ? 'text-[#5b21b6]'
                         : 'text-[#cbd5f5]'
-                    } size-4`}
-                  />
+                    } size-4`
+                  })}
                   {item.label}
                 </span>
                 {item.badge ? (
