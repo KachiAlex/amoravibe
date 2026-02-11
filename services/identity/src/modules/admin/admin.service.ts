@@ -22,18 +22,30 @@ export class AdminService {
   }
 
   async getMetrics() {
-    const [totalUsers, activeUsers, bannedUsers] = await Promise.all([
+    const now = new Date();
+    const weekAgo = new Date(now);
+    weekAgo.setDate(now.getDate() - 7);
+    const [totalUsers, activeUsers, bannedUsers, signupsThisWeek] = await Promise.all([
       this.prisma.user.count(),
       this.prisma.user.count({ where: { lastActiveAt: { not: null } } }),
       this.prisma.user.count({ where: { banned: true } }),
+      this.prisma.user.count({ where: { createdAt: { gte: weekAgo } } }),
     ]);
-    // TODO: Add signupsThisWeek logic
-    return { totalUsers, activeUsers, bannedUsers, signupsThisWeek: 0 };
+    return { totalUsers, activeUsers, bannedUsers, signupsThisWeek };
   }
 
   async getActivityLog() {
-    // TODO: Implement real activity log (requires audit table)
-    return [];
+    // Return the 50 most recent audit events with user info
+    const events = await this.prisma.auditEvent.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: 50,
+      include: {
+        user: {
+          select: { id: true, email: true, displayName: true }
+        }
+      }
+    });
+    return events;
   }
 
   async verifyUser(id: string) {
