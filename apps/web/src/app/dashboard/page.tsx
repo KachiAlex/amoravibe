@@ -15,7 +15,7 @@ import {
   Star,
   Users,
 } from 'lucide-react';
-import type { ComponentType, ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import type {
   EngagementDashboardResponse,
   DiscoverFeedMode,
