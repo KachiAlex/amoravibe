@@ -1,15 +1,37 @@
+
 import { getSession } from '@/lib/session';
 import { redirect } from 'next/navigation';
 import { Card } from '@lovedate/ui';
+import { createLovedateApi } from '@lovedate/api';
 import dynamic from 'next/dynamic';
 
 const AdminMetrics = dynamic(() => import('./AdminMetrics'), { ssr: false });
 const UserTable = dynamic(() => import('./UserTable'), { ssr: false });
+const ActivityLog = dynamic(() => import('./ActivityLog'), { ssr: false });
+const TrustOverride = dynamic(() => import('./TrustOverride'), { ssr: false });
+const SystemHealth = dynamic(() => import('./SystemHealth'), { ssr: false });
+
+const upstreamBase =
+  process.env.TRUST_API_PROXY_TARGET ||
+  process.env.NEXT_PUBLIC_TRUST_API_URL ||
+  'http://localhost:4001/api/v1';
 
 export default async function AdminDashboardPage() {
   const session = getSession();
-  // Only allow admin@amoravibe.com
-  if (!session || session.user?.email !== 'admin@amoravibe.com') {
+  if (!session) {
+    redirect('/login?next=/admin');
+  }
+
+  // Fetch user by ID to check email
+  const api = createLovedateApi({ baseUrl: upstreamBase });
+  let user: any = null;
+  try {
+    user = await api.client.get(`/users/${session!.userId}`);
+  } catch (e) {
+    // If user fetch fails, treat as not authorized
+    redirect('/login?next=/admin');
+  }
+  if (!user || user.email !== 'admin@amoravibe.com') {
     redirect('/login?next=/admin');
   }
 
@@ -21,6 +43,9 @@ export default async function AdminDashboardPage() {
       </Card>
       <AdminMetrics />
       <UserTable />
+      <TrustOverride />
+      <ActivityLog />
+      <SystemHealth />
     </main>
   );
 }
