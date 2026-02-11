@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useCallback, useContext, useState } from 'react';
+import type { ReactNode } from 'react';
 import { OnboardingModal } from '@/app/components/OnboardingModal';
 import { OnboardingProvider } from '@/lib/onboarding-context';
 
@@ -11,7 +12,7 @@ interface OnboardingModalContextValue {
 
 const OnboardingModalContext = createContext<OnboardingModalContextValue | null>(null);
 
-export function OnboardingModalProvider({ children }: { children: React.ReactNode }) {
+export function OnboardingModalProvider({ children }: { children: ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
 
   const openModal = useCallback(() => setIsOpen(true), []);
