@@ -9,6 +9,9 @@ const upstreamBase = (
   'http://localhost:4001/api/v1'
 ).replace(/\/$/, '');
 
+// Log the resolved upstream base to help debug proxy targets during development
+console.info('[Login route] upstreamBase =', upstreamBase);
+
 const serverLovedateApi = createLovedateApi({
   baseUrl: upstreamBase,
   apiKey: process.env.TRUST_API_KEY,

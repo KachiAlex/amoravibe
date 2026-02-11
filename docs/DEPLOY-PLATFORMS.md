@@ -12,6 +12,40 @@ Netlify (frontend)
   - `NETLIFY_SITE_ID` — Netlify site id
 - The provided GitHub Action `/.github/workflows/deploy-netlify.yml` will build and deploy the frontend on pushes to `master`.
 
+Environment variables
+- Do NOT commit real secrets to the repository. Use the platform secrets / env var features.
+- Required variables (examples):
+  - `DATABASE_URL` — Postgres connection string for Prisma. Example (DO NOT COMMIT):
+    `postgresql://<user>:<pass>@<host>:5432/<db>?sslmode=require`
+
+How to set `DATABASE_URL`:
+
+- Vercel (via web UI):
+  1. Open your project on Vercel → Settings → Environment Variables.
+  2. Add `DATABASE_URL` with the value and choose scope (`Production`, `Preview`, `Development`).
+
+- Vercel (CLI):
+  - Install `vercel` and authenticate, then run interactively:
+    ```bash
+    vercel env add DATABASE_URL production
+    ```
+    or use `vercel env` subcommands to set values non-interactively per Vercel docs.
+
+- Render (via web UI):
+  1. Open your service on Render → Environment → Environment Variables.
+  2. Add `DATABASE_URL` and save.
+
+- Render (render CLI):
+  - Use Render dashboard import of `render.yaml` then add envs in the service settings, or use the Render API/CLI to set env vars.
+
+- GitHub Actions (if using Actions to deploy):
+  1. In GitHub repo → Settings → Secrets and variables → Actions → New repository secret.
+  2. Add `DATABASE_URL` as a secret. In workflows reference it as `${{ secrets.DATABASE_URL }}`.
+
+Local development
+- Copy `.env.example` to `.env` and populate `DATABASE_URL` for local runs. Keep `.env` out of source control.
+
+
 Render (backend)
 - Connect Render to this GitHub repository.
 - Import the `render.yaml` from the repo when creating services, or create services manually using the settings in `render.yaml`.

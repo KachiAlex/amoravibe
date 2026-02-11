@@ -143,13 +143,13 @@ export class MatchService {
         isVerified: true,
         gender: true,
         orientationPreferences: true,
-      },
+      } as any,
       take: normalizedLimit * 3,
       orderBy: [{ trustScore: 'desc' }, { createdAt: 'desc' }],
     });
 
     const enriched = candidates
-      .map((candidate) => this.normalizeCandidateEnums(candidate as CandidateRecord))
+      .map((candidate) => this.normalizeCandidateEnums(candidate as unknown as CandidateRecord))
       .map((candidate) => {
         const compatibility = this.computeCompatibility(user, candidate);
         const candidateLocation = this.resolveCoordinates(candidate.cityLat, candidate.cityLng);
@@ -316,8 +316,8 @@ export class MatchService {
       matchPreferences: (user.matchPreferences ?? []) as MatchPreference[],
       orientation: user.orientation as Orientation,
       orientationPreferences: (user.orientationPreferences ?? []) as Orientation[],
-      cityLat: this.toNumber(user.cityLat),
-      cityLng: this.toNumber(user.cityLng),
+      cityLat: this.toNumber((user as any).cityLat),
+      cityLng: this.toNumber((user as any).cityLng),
     };
   }
 

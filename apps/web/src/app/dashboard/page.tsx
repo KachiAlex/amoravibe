@@ -1666,60 +1666,35 @@ export default async function DashboardPage(props: DashboardPageProps) {
 
           <section className="grid gap-6 xl:grid-cols-[1.8fr,1fr]" id="overview">
             <Card className="space-y-6 border border-white/70 bg-white/90 p-6 shadow-[0_20px_60px_rgba(21,33,76,0.08)]">
-              <div className="flex flex-wrap items-center justify-between gap-4">
-                <div>
-                  <p className="text-sm font-medium text-[#6b7280]">Welcome back</p>
-                  <h1 className="mt-1 text-3xl font-semibold text-[#0f172a]">
-                    {snapshot.user.displayName}, explore your orbit
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-[#6b7280]">Welcome back,</p>
+                  <h1 className="mt-1 hero-title text-[#0f172a]">
+                    <span className="inline-block truncate">{snapshot.user.displayName}</span>
+                    <span className="ml-3 inline-block gradient-clip">👋</span>
                   </h1>
-                  <p className="text-sm text-[#94a3b8]">
-                    Profile strength {profileCompletion}% complete
+                  <p className="mt-2 text-sm text-[#94a3b8]">
+                    You have <span className="font-semibold text-[#0f172a]">{matches.length}</span> matches and{' '}
+                    <span className="font-semibold text-[#0f172a]">{unreadCount}</span> unread messages
                   </p>
                 </div>
-                <Link
-                  href="/settings/profile"
-                  className="rounded-full bg-[#eef2ff] px-4 py-2 text-sm font-medium text-[#4338ca] shadow-sm"
-                >
-                  Edit profile
-                </Link>
-              </div>
 
-              <div className="space-y-3 rounded-2xl bg-[#f8fafc] p-4">
-                <div className="flex items-center justify-between text-sm text-[#475569]">
-                  <span>Profile progress</span>
-                  <span className="font-semibold text-[#0f172a]">{profileCompletion}%</span>
-                </div>
-                <div className="h-2 rounded-full bg-[#e2e8f0]">
-                  <div
-                    className="h-full rounded-full bg-gradient-to-r from-[#8f63ff] via-[#ff79c6] to-[#ffb347]"
-                    style={{ width: `${profileCompletion}%` }}
-                  />
-                </div>
-              </div>
-
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="rounded-2xl border border-[#f1f5f9] bg-white p-4">
-                  <p className="text-sm font-medium text-[#475569]">Next experience</p>
-                  <p className="text-lg font-semibold text-[#0f172a]">Gallery crawl tonight</p>
-                  <p className="text-sm text-[#94a3b8]">Invite your best matches</p>
-                  <Link
-                    href="/matches?view=events"
-                    className="mt-3 inline-flex rounded-full bg-[#4338ca] px-4 py-2 text-sm font-semibold text-white"
-                  >
-                    Plan outing
-                  </Link>
-                </div>
-                <div className="rounded-2xl border border-[#f1f5f9] bg-white p-4">
-                  <p className="text-sm font-medium text-[#475569]">Safety pulse</p>
-                  <p className="text-lg font-semibold text-[#0f172a]">
-                    Verification {verifiedLabel.toLowerCase()}
-                  </p>
-                  <Link
-                    href="/trust-center"
-                    className="mt-3 inline-flex rounded-full border border-[#d0d7ff] px-4 py-2 text-sm font-medium text-[#4338ca]"
-                  >
-                    Review status
-                  </Link>
+                <div className="flex w-full sm:w-auto gap-3 sm:gap-4">
+                  <div className="flex-1 sm:flex-none stat-card p-4 w-full sm:w-40 transition-transform hover:scale-[1.01]">
+                    <p className="text-xs text-[#94a3b8]">Total Matches</p>
+                    <p className="mt-2 text-2xl lg:text-3xl font-bold text-[#0f172a]">{matches.length}</p>
+                    <p className="text-xs text-[#10b981]">+12 this week</p>
+                  </div>
+                  <div className="flex-1 sm:flex-none stat-card p-4 w-full sm:w-40 transition-transform hover:scale-[1.01]">
+                    <p className="text-xs text-[#94a3b8]">Active Chats</p>
+                    <p className="mt-2 text-2xl lg:text-3xl font-bold text-[#0f172a]">{messageThreads.length}</p>
+                    <p className="text-xs text-[#10b981]">+5 today</p>
+                  </div>
+                  <div className="flex-1 sm:flex-none stat-card p-4 w-full sm:w-40 transition-transform hover:scale-[1.01]">
+                    <p className="text-xs text-[#94a3b8]">Profile Views</p>
+                    <p className="mt-2 text-2xl lg:text-3xl font-bold text-[#0f172a]">{(snapshot.user as any).profileViews ?? 156}</p>
+                    <p className="text-xs text-[#8b5cf6]">Top 10%</p>
+                  </div>
                 </div>
               </div>
             </Card>

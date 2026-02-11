@@ -10,7 +10,7 @@ import {
   type ReactNode,
 } from 'react';
 import { useRouter } from 'next/navigation';
-import { AnimatePresence, motion } from 'motion';
+import { AnimatePresence, motion } from 'motion/react';
 import {
   ArrowLeft,
   ArrowRight,
@@ -36,6 +36,7 @@ import type {
   VerificationIntent,
 } from '@lovedate/api';
 import { useOnboarding } from '@/lib/onboarding-context';
+import { lovedateApi } from '@/lib/api';
 
 const TOTAL_STEPS = 6;
 
@@ -201,6 +202,102 @@ const INITIAL_FORM: FormData = {
   verificationIntent: 'verify_now',
 };
 
+// Utility helpers for image inline size estimation and compression.
+// Placed at module scope so child components (like `StepStory`) can reference them.
+export const estimateDataUrlBytes = (value: string) => {
+  const commaIndex = value.indexOf(',');
+  const base64 = commaIndex >= 0 ? value.slice(commaIndex + 1) : value;
+  return Math.ceil((base64.length * 3) / 4);
+};
+
+export const compressPhotoFile = async (file: File): Promise<string> => {
+  const readAsDataUrl = () =>
+    new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = () => reject(reader.error ?? new Error('Unable to read photo file.'));
+      reader.readAsDataURL(file);
+    });
+
+  const originalDataUrl = await readAsDataUrl();
+  if (file.size <= MAX_INLINE_PHOTO_BYTES || typeof window === 'undefined') {
+    return originalDataUrl;
+  }
+
+  try {
+    const image = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error('Failed to load image for compression.'));
+      img.src = originalDataUrl;
+    });
+
+    const longestSide = Math.max(image.width, image.height);
+    const scale = longestSide > MAX_PHOTO_DIMENSION ? MAX_PHOTO_DIMENSION / longestSide : 1;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.max(1, Math.round(image.width * scale));
+    canvas.height = Math.max(1, Math.round(image.height * scale));
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      return originalDataUrl;
+    }
+    ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+
+    const compressedDataUrl = canvas.toDataURL('image/jpeg', PHOTO_JPEG_QUALITY);
+    if (estimateDataUrlBytes(compressedDataUrl) <= MAX_INLINE_PHOTO_BYTES) {
+      return compressedDataUrl;
+    }
+    return compressedDataUrl;
+  } catch (error) {
+    console.warn('Photo compression failed, falling back to original photo payload.', error);
+    return originalDataUrl;
+  }
+};
+
+export const compressDataUrl = async (dataUrl: string): Promise<string> => {
+  try {
+    const image = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error('Failed to load image data for compression.'));
+      img.src = dataUrl;
+    });
+
+    const longestSide = Math.max(image.width, image.height);
+    const baseScale = longestSide > MAX_PHOTO_DIMENSION ? MAX_PHOTO_DIMENSION / longestSide : 1;
+
+    const tryCompress = (scale: number, quality: number) => {
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.max(1, Math.round(image.width * scale));
+      canvas.height = Math.max(1, Math.round(image.height * scale));
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return null;
+      ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+      return canvas.toDataURL('image/jpeg', quality);
+    };
+
+    // Try a few quality/scale combinations until under the size limit
+    const qualitySteps = [0.72, 0.6, 0.5, 0.4, 0.3];
+    const scaleSteps = [baseScale, baseScale * 0.9, baseScale * 0.8, baseScale * 0.7];
+
+    for (const scale of scaleSteps) {
+      for (const quality of qualitySteps) {
+        const candidate = tryCompress(scale, quality);
+        if (!candidate) continue;
+        if (estimateDataUrlBytes(candidate) <= MAX_INLINE_PHOTO_BYTES) return candidate;
+      }
+    }
+
+    // Fallback: return the most compressed attempt (last quality/scale)
+    const fallback = tryCompress(scaleSteps[scaleSteps.length - 1], qualitySteps[qualitySteps.length - 1]);
+    return fallback ?? dataUrl;
+  } catch (err) {
+    console.warn('compressDataUrl failed', err);
+    return dataUrl;
+  }
+};
+
 export function OnboardingModal({ isOpen, onClose }: OnboardingModalProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState<FormData>(INITIAL_FORM);
@@ -271,56 +368,7 @@ export function OnboardingModal({ isOpen, onClose }: OnboardingModalProps) {
     });
   };
 
-  const estimateDataUrlBytes = (value: string) => {
-    const commaIndex = value.indexOf(',');
-    const base64 = commaIndex >= 0 ? value.slice(commaIndex + 1) : value;
-    return Math.ceil((base64.length * 3) / 4);
-  };
-
-  const compressPhotoFile = async (file: File): Promise<string> => {
-    const readAsDataUrl = () =>
-      new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result as string);
-        reader.onerror = () => reject(reader.error ?? new Error('Unable to read photo file.'));
-        reader.readAsDataURL(file);
-      });
-
-    const originalDataUrl = await readAsDataUrl();
-    if (file.size <= MAX_INLINE_PHOTO_BYTES || typeof window === 'undefined') {
-      return originalDataUrl;
-    }
-
-    try {
-      const image = await new Promise<HTMLImageElement>((resolve, reject) => {
-        const img = new Image();
-        img.onload = () => resolve(img);
-        img.onerror = () => reject(new Error('Failed to load image for compression.'));
-        img.src = originalDataUrl;
-      });
-
-      const longestSide = Math.max(image.width, image.height);
-      const scale = longestSide > MAX_PHOTO_DIMENSION ? MAX_PHOTO_DIMENSION / longestSide : 1;
-
-      const canvas = document.createElement('canvas');
-      canvas.width = Math.max(1, Math.round(image.width * scale));
-      canvas.height = Math.max(1, Math.round(image.height * scale));
-      const ctx = canvas.getContext('2d');
-      if (!ctx) {
-        return originalDataUrl;
-      }
-      ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
-
-      const compressedDataUrl = canvas.toDataURL('image/jpeg', PHOTO_JPEG_QUALITY);
-      if (estimateDataUrlBytes(compressedDataUrl) <= MAX_INLINE_PHOTO_BYTES) {
-        return compressedDataUrl;
-      }
-      return compressedDataUrl;
-    } catch (error) {
-      console.warn('Photo compression failed, falling back to original photo payload.', error);
-      return originalDataUrl;
-    }
-  };
+  
 
   const handlePhotoFileUpload = async (index: number, file: File | null) => {
     if (!file) return;
@@ -336,6 +384,8 @@ export function OnboardingModal({ isOpen, onClose }: OnboardingModalProps) {
       setError('Please choose a smaller photo (under 450 KB) or reduce its resolution.');
     }
   };
+
+  
 
   const addPhotoField = () => {
     setFormData((prev) => ({ ...prev, photos: [...prev.photos, ''] }));
@@ -399,11 +449,68 @@ export function OnboardingModal({ isOpen, onClose }: OnboardingModalProps) {
     setPending(true);
     setError(null);
     try {
-      // Generate a mock user ID
-      const userId = 'user-' + Math.random().toString(36).slice(2, 11);
-      const displayName = formData.displayName || formData.firstName;
+      // Ensure photos do not exceed inline size budget to avoid upstream 413 errors
+      // Attempt to auto-compress inline data: URLs that are too large
+      for (let i = 0; i < formData.photos.length; i++) {
+        const url = formData.photos[i];
+        if (!url) continue;
+        // Only try compression for data URLs (already in-memory) — avoid cross-origin fetch for remote URLs
+        if (url.startsWith('data:') && estimateDataUrlBytes(url) > MAX_INLINE_PHOTO_BYTES) {
+          try {
+            const compressed = await compressDataUrl(url);
+            if (compressed && estimateDataUrlBytes(compressed) <= MAX_INLINE_PHOTO_BYTES) {
+              updatePhoto(i, compressed);
+            }
+          } catch (err) {
+            console.warn('Auto-compress failed for photo index', i, err);
+          }
+        }
+      }
 
-      // Save onboarding data to local context (localStorage)
+      const oversizedIndices = formData.photos
+        .map((url, idx) => (url && estimateDataUrlBytes(url) > MAX_INLINE_PHOTO_BYTES ? idx : -1))
+        .filter((i) => i >= 0);
+      if (oversizedIndices.length > 0) {
+        setError('One or more photos exceed the 450 KB inline size limit. Please remove or choose smaller images.');
+        setPending(false);
+        return;
+      }
+
+      const payload = {
+        legalName: formData.firstName,
+        legalLastName: formData.lastName || undefined,
+        displayName: formData.displayName || formData.firstName,
+        dateOfBirth: formData.dateOfBirth,
+        email: formData.email || undefined,
+        phone: formData.phone || undefined,
+        password: formData.password,
+        gender: formData.gender as any,
+        orientation: formData.orientation as any,
+        orientationPreferences: formData.orientationPreferences,
+        discoverySpace: formData.discoverySpace as any,
+        matchPreferences: formData.matchPreferences,
+        city: formData.city,
+        cityPlaceId: formData.cityPlaceId ?? undefined,
+        cityCountry: formData.cityCountry ?? undefined,
+        cityCountryCode: formData.cityCountryCode ?? undefined,
+        cityRegion: formData.cityRegion ?? undefined,
+        cityRegionCode: formData.cityRegionCode ?? undefined,
+        cityTimezone: formData.cityTimezone ?? undefined,
+        cityLat: formData.cityLat ?? undefined,
+        cityLng: formData.cityLng ?? undefined,
+        locationAccuracyMeters: formData.locationAccuracyMeters ?? undefined,
+        locationUpdatedAt: formData.locationUpdatedAt ?? undefined,
+        bio: formData.bio || undefined,
+        photos: formData.photos.filter((url) => url.trim().length > 0),
+        verificationIntent: formData.verificationIntent,
+      };
+
+      const result = await lovedateApi.submitOnboarding(payload as any);
+
+      const userId = result.user.id;
+      const displayName = result.user.displayName;
+
+      // Persist a lightweight local copy so UI flows can use it
       onboardingContext.saveOnboarding({
         userId,
         displayName,
@@ -416,15 +523,37 @@ export function OnboardingModal({ isOpen, onClose }: OnboardingModalProps) {
         completedAt: Date.now(),
       });
 
+      // Attempt to establish a server session so subsequent navigation sees the user as logged in.
+      try {
+        if (formData.email || formData.phone) {
+          const loginPayload = {
+            email: formData.email || undefined,
+            phone: formData.phone || undefined,
+            password: formData.password,
+          };
+
+          const loginResp = await fetch('/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(loginPayload),
+          });
+
+          if (!loginResp.ok) {
+            console.warn('Auto-login after onboarding failed', await loginResp.text().catch(() => '')); 
+          }
+        }
+      } catch (err) {
+        console.warn('Auto-login error', err);
+      }
+
       setSuccess(`Welcome aboard, ${displayName}! Redirecting…`);
       setTimeout(() => {
         setSuccess(null);
         onClose();
-        // Redirect to dashboard with userId param
-        const dashboardRoute = `/dashboard?userId=${encodeURIComponent(userId)}`;
-        void router.push(dashboardRoute);
-      }, 1600);
+        void router.push(result.nextRoute ?? `/dashboard?userId=${encodeURIComponent(userId)}`);
+      }, 1200);
     } catch (err) {
+      console.error('Onboarding submit error', err);
       setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
     } finally {
       setPending(false);
@@ -1207,6 +1336,9 @@ const StepStory = ({
                   >
                     Remove
                   </button>
+                )}
+                {photo && estimateDataUrlBytes(photo) > MAX_INLINE_PHOTO_BYTES && (
+                  <p className="mt-1 text-xs text-rose-600">This image exceeds the 450 KB inline upload limit.</p>
                 )}
               </div>
             ))}
