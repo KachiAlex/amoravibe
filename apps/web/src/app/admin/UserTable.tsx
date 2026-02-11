@@ -1,5 +1,3 @@
-import React from 'react';
-import { Card } from '@lovedate/ui';
 
 "use client";
 import React, { useEffect, useState } from 'react';
