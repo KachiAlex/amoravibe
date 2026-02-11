@@ -33,6 +33,9 @@ import { lovedateApi } from '@/lib/api';
 import { getSession } from '@/lib/session';
 import { buildMessagingFallback } from '@/lib/messaging';
 import { LikeActionSubmitButton } from './like-action-submit-button';
+import dynamic from 'next/dynamic';
+
+const HeroStatsClient = dynamic(() => import('./HeroStatsClient'), { ssr: false });
 
 const sidebarFont = Space_Grotesk({ subsets: ['latin'], weight: ['400', '500', '600'] });
 
@@ -207,7 +210,8 @@ const STATUS_TONE_STYLES: Record<MessagingThread['status']['tone'], { pill: stri
     emerald: { pill: 'bg-[#ecfdf5] text-[#047857]', dot: 'bg-[#34d399]' },
   };
 
-type IconType = ComponentType<{ className?: string }>;
+import type { LucideIcon } from 'lucide-react';
+type IconType = LucideIcon;
 
 type DashboardSection = 'home' | 'discover' | 'messages';
 
@@ -1679,22 +1683,13 @@ export default async function DashboardPage(props: DashboardPageProps) {
                   </p>
                 </div>
 
-                <div className="flex w-full sm:w-auto gap-3 sm:gap-4">
-                  <div className="flex-1 sm:flex-none stat-card p-4 w-full sm:w-40 transition-transform hover:scale-[1.01]">
-                    <p className="text-xs text-[#94a3b8]">Total Matches</p>
-                    <p className="mt-2 text-2xl lg:text-3xl font-bold text-[#0f172a]">{matches.length}</p>
-                    <p className="text-xs text-[#10b981]">+12 this week</p>
-                  </div>
-                  <div className="flex-1 sm:flex-none stat-card p-4 w-full sm:w-40 transition-transform hover:scale-[1.01]">
-                    <p className="text-xs text-[#94a3b8]">Active Chats</p>
-                    <p className="mt-2 text-2xl lg:text-3xl font-bold text-[#0f172a]">{messageThreads.length}</p>
-                    <p className="text-xs text-[#10b981]">+5 today</p>
-                  </div>
-                  <div className="flex-1 sm:flex-none stat-card p-4 w-full sm:w-40 transition-transform hover:scale-[1.01]">
-                    <p className="text-xs text-[#94a3b8]">Profile Views</p>
-                    <p className="mt-2 text-2xl lg:text-3xl font-bold text-[#0f172a]">{(snapshot.user as any).profileViews ?? 156}</p>
-                    <p className="text-xs text-[#8b5cf6]">Top 10%</p>
-                  </div>
+                <div>
+                  <HeroStatsClient
+                    userId={userId}
+                    initialMatches={matches.length}
+                    initialChats={messageThreads.length}
+                    initialProfileViews={(snapshot.user as any).profileViews ?? 156}
+                  />
                 </div>
               </div>
             </Card>
