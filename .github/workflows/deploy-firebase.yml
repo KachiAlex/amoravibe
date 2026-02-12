@@ -45,10 +45,9 @@ jobs:
 
       - name: Deploy to Firebase Hosting
         env:
+          FIREBASE_DEBUG: 'true'
           FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
         run: |
-          if [ -z "$FIREBASE_PROJECT_ID" ]; then
-            echo "FIREBASE_PROJECT_ID secret is missing" >&2
-            exit 1
-          fi
-          pnpm deploy:web:firebase -- --project "$FIREBASE_PROJECT_ID" --non-interactive
+          PROJECT_ID=${FIREBASE_PROJECT_ID:-amoravibeapp}
+          echo "Deploying to Firebase project: $PROJECT_ID"
+          pnpm deploy:web:firebase -- --project "$PROJECT_ID" --non-interactive
