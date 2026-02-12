@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import { Card } from '@lovedate/ui';
 import { createLovedateApi } from '@lovedate/api';
 import dynamic from 'next/dynamic';
+import { resolveTrustApiBase } from '@/lib/trust-upstream';
 
 const AdminMetrics = dynamic(() => import('./AdminMetrics'), { ssr: false });
 const UserTable = dynamic(() => import('./UserTable'), { ssr: false });
@@ -11,10 +12,7 @@ const ActivityLog = dynamic(() => import('./ActivityLog'), { ssr: false });
 const TrustOverride = dynamic(() => import('./TrustOverride'), { ssr: false });
 const SystemHealth = dynamic(() => import('./SystemHealth'), { ssr: false });
 
-const upstreamBase =
-  process.env.TRUST_API_PROXY_TARGET ||
-  process.env.NEXT_PUBLIC_TRUST_API_URL ||
-  'http://localhost:4001/api/v1';
+const upstreamBase = resolveTrustApiBase();
 
 export default async function AdminDashboardPage() {
   const session = getSession();

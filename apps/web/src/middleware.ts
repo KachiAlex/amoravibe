@@ -1,11 +1,8 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { resolveTrustApiBase } from '@/lib/trust-upstream';
 
-const upstreamBase = (
-  process.env.TRUST_API_PROXY_TARGET ||
-  process.env.NEXT_PUBLIC_TRUST_API_URL ||
-  'http://localhost:4001/api/v1'
-).replace(/\/$/, '');
+const upstreamBase = resolveTrustApiBase();
 
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;

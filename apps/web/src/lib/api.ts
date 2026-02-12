@@ -1,4 +1,5 @@
 import { createLovedateApi } from '@lovedate/api';
+import { resolveTrustApiBase } from '@/lib/trust-upstream';
 
 const normalizeBaseUrl = (value: string) => {
   if (!value) return value;
@@ -10,11 +11,7 @@ const normalizeBaseUrl = (value: string) => {
 
 const resolveBaseUrl = () => {
   if (typeof window === 'undefined') {
-    const upstream =
-      process.env.TRUST_API_PROXY_TARGET ||
-      process.env.NEXT_PUBLIC_TRUST_API_URL ||
-      'http://localhost:4001/api/v1';
-    return normalizeBaseUrl(upstream);
+    return normalizeBaseUrl(resolveTrustApiBase());
   }
 
   const clientTarget = process.env.NEXT_PUBLIC_TRUST_API_URL;

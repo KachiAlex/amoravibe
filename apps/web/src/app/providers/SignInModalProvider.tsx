@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useCallback, useContext, useState } from 'react';
+import type { ReactNode } from 'react';
 import { SignInModal } from '@/app/components/SignInModal';
 
 interface SignInModalContextValue {
@@ -10,7 +11,7 @@ interface SignInModalContextValue {
 
 const SignInModalContext = createContext<SignInModalContextValue | null>(null);
 
-export function SignInModalProvider({ children }: { children: React.ReactNode }) {
+export function SignInModalProvider({ children }: { children: ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
 
   const openModal = useCallback(() => setIsOpen(true), []);

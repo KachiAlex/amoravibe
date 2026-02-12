@@ -2,12 +2,9 @@ import { NextResponse } from 'next/server';
 import { createLovedateApi } from '@lovedate/api';
 import { setSession } from '@/lib/session';
 import { preflight, withCors } from '@/lib/cors';
+import { resolveTrustApiBase } from '@/lib/trust-upstream';
 
-const upstreamBase = (
-  process.env.TRUST_API_PROXY_TARGET ||
-  process.env.NEXT_PUBLIC_TRUST_API_URL ||
-  'http://localhost:4001/api/v1'
-).replace(/\/$/, '');
+const upstreamBase = resolveTrustApiBase();
 
 // Log the resolved upstream base to help debug proxy targets during development
 console.info('[Login route] upstreamBase =', upstreamBase);

@@ -1,16 +1,16 @@
-# Deployment guide: Netlify (frontend) + Render (backend)
+# Deployment guide: Firebase Hosting (frontend) + Render (backend)
 
 Overview
-- Frontend: `apps/web` will be deployed to Netlify using the Next.js plugin.
-- Backend: backend services (example: `services/identity`, `services/profile`) will be deployed to Render. Render can build from repo using the commands in `render.yaml`.
+- Frontend: `apps/web` is deployed to Firebase Hosting using its built-in Next.js runtime.
+- Backend: backend services (example: `services/identity`, `services/profile`) continue to deploy to Render (or Vercel/other) as defined in `render.yaml` / service configs.
 
-Netlify (frontend)
-- Ensure the Netlify site is connected to this GitHub repository and branch `master`.
-- In Netlify site settings, set Base directory to the repository root (we use `netlify.toml` to target `apps/web`).
-- Add these repository secrets in Netlify or GitHub Actions:
-  - `NETLIFY_AUTH_TOKEN` — Personal access token for Netlify (used by GitHub Action)
-  - `NETLIFY_SITE_ID` — Netlify site id
-- The provided GitHub Action `/.github/workflows/deploy-netlify.yml` will build and deploy the frontend on pushes to `master`.
+Firebase Hosting (frontend)
+- Connect Firebase Hosting to this repository or deploy via the `firebase deploy` CLI. The repo includes `.github/workflows/deploy-firebase.yml` to deploy on pushes to `main`/`master`.
+- Required GitHub secrets:
+  - `FIREBASE_SERVICE_ACCOUNT` — JSON credentials (Hosting Admin role)
+  - `FIREBASE_PROJECT_ID` — project id passed to the deploy command
+- Configure `.firebaserc` + `firebase.json` with your project + site IDs. `firebase.json` already targets `apps/web`.
+- The frontend proxies API traffic to `https://api-amoravibe.vercel.app` by default; override via Firebase env vars if needed (see `DEPLOY.md`).
 
 Environment variables
 - Do NOT commit real secrets to the repository. Use the platform secrets / env var features.
@@ -20,16 +20,9 @@ Environment variables
 
 How to set `DATABASE_URL`:
 
-- Vercel (via web UI):
-  1. Open your project on Vercel → Settings → Environment Variables.
-  2. Add `DATABASE_URL` with the value and choose scope (`Production`, `Preview`, `Development`).
-
-- Vercel (CLI):
-  - Install `vercel` and authenticate, then run interactively:
-    ```bash
-    vercel env add DATABASE_URL production
-    ```
-    or use `vercel env` subcommands to set values non-interactively per Vercel docs.
+- Firebase Hosting / Functions:
+  - Use `firebase functions:secrets:set <NAME>` or Firebase console → Build → Functions → Environment variables.
+  - For Hosting-only env (Next.js runtime), use Firebase console → Hosting → Environment variables.
 
 - Render (via web UI):
   1. Open your service on Render → Environment → Environment Variables.
@@ -38,9 +31,9 @@ How to set `DATABASE_URL`:
 - Render (render CLI):
   - Use Render dashboard import of `render.yaml` then add envs in the service settings, or use the Render API/CLI to set env vars.
 
-- GitHub Actions (if using Actions to deploy):
-  1. In GitHub repo → Settings → Secrets and variables → Actions → New repository secret.
-  2. Add `DATABASE_URL` as a secret. In workflows reference it as `${{ secrets.DATABASE_URL }}`.
+- GitHub Actions (for Firebase deploy):
+  1. Add `FIREBASE_SERVICE_ACCOUNT` + `FIREBASE_PROJECT_ID` secrets.
+  2. Optional: add `DATABASE_URL`, `TRUST_API_PROXY_TARGET`, etc. for backend services or emulator use.
 
 Local development
 - Copy `.env.example` to `.env` and populate `DATABASE_URL` for local runs. Keep `.env` out of source control.
