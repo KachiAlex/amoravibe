@@ -29,5 +29,5 @@ export const lovedateApi = createLovedateApi({
 
 // Debug log for production
 if (typeof window !== 'undefined') {
-  console.log('API base URL:', lovedateApi.baseUrl);
+  console.log('API base URL:', resolveBaseUrl());
 }
