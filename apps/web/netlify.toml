@@ -2,7 +2,7 @@
 [build]
 # Use apps/web as the base directory so Netlify builds the frontend workspace
   base = "apps/web"
-  command = "yarn install && yarn build"
+  command = "pnpm install && pnpm build"
   publish = ".next"
   # Environment variables
   [build.environment]
