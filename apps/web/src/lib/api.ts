@@ -30,12 +30,14 @@ const resolveBaseUrl = () => {
   return '/api/trust';
 };
 
+const baseUrl = resolveBaseUrl();
+
 export const lovedateApi = createLovedateApi({
-  baseUrl: resolveBaseUrl(),
+  baseUrl,
   apiKey: process.env.TRUST_API_KEY,
 });
 
 // Debug log for production
 if (typeof window !== 'undefined') {
-  console.log('API base URL:', lovedateApi.baseUrl);
+  console.log('API base URL:', baseUrl);
 }
