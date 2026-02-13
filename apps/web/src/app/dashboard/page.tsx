@@ -6,6 +6,7 @@ import { Space_Grotesk } from 'next/font/google';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import * as LucideIcons from 'lucide-react';
+import { Sparkles, Compass, Heart, Star, MessageCircle, Users, ShieldCheck, Settings } from 'lucide-react';
 import type {
   EngagementDashboardResponse,
   DiscoverFeedMode,
