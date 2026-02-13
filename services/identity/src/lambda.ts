@@ -12,6 +12,12 @@ let initError: Error | null = null;
 
 async function createHandler() {
   const app = express();
+  // Enable CORS for Netlify frontend
+  app.use(require('cors')({
+    origin: 'https://amoravibe.netlify.app',
+    methods: 'GET,POST,PUT,DELETE,OPTIONS',
+    credentials: true,
+  }));
   const adapter = new ExpressAdapter(app);
   
   // Add timeout to prevent hanging during init
