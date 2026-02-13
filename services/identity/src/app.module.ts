@@ -18,6 +18,7 @@ import { EngagementModule } from './modules/engagement/engagement.module';
 import { DiscoverModule } from './modules/discover/discover.module';
 import { MessagingModule } from './modules/messaging/messaging.module';
 import { AdminModule } from './modules/admin/admin.module';
+import { DebugModule } from './common/debug.module';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { AdminModule } from './modules/admin/admin.module';
     DiscoverModule,
     MessagingModule,
     AdminModule,
+    DebugModule,
   ],
 })
 export class AppModule {}
