@@ -10,31 +10,24 @@ const normalizeBaseUrl = (value: string) => {
 };
 
 const resolveBaseUrl = () => {
+  // Always use NEXT_PUBLIC_TRUST_API_URL if set
+  const clientTarget = process.env.NEXT_PUBLIC_TRUST_API_URL;
+  if (clientTarget) {
+    return normalizeBaseUrl(clientTarget);
+  }
+  // Fallback for SSR or missing env
   if (typeof window === 'undefined') {
     return normalizeBaseUrl(resolveTrustApiBase());
   }
-
-  const clientTarget = process.env.NEXT_PUBLIC_TRUST_API_URL;
-  if (!clientTarget) {
-    return '/api/trust';
-  }
-
-  const normalized = normalizeBaseUrl(clientTarget);
-
-  try {
-    const currentOrigin = window.location.origin;
-    const targetOrigin = normalized.startsWith('/') ? currentOrigin : new URL(normalized).origin;
-    if (targetOrigin !== currentOrigin) {
-      return '/api/trust';
-    }
-  } catch {
-    return '/api/trust';
-  }
-
-  return normalized;
+  return '/api/trust';
 };
 
 export const lovedateApi = createLovedateApi({
   baseUrl: resolveBaseUrl(),
   apiKey: process.env.TRUST_API_KEY,
 });
+
+// Debug log for production
+if (typeof window !== 'undefined') {
+  console.log('API base URL:', lovedateApi.baseUrl);
+}
