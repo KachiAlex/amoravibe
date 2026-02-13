@@ -12,11 +12,22 @@ let initError: Error | null = null;
 
 async function createHandler() {
   const app = express();
-  // Enable CORS for Netlify frontend
+  // Enable configurable CORS for frontend(s)
+  const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'https://amoravibe.netlify.app,https://amoravibe.vercel.app,http://localhost:3000')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+
   app.use(require('cors')({
-    origin: 'https://amoravibe.netlify.app',
-    methods: 'GET,POST,PUT,DELETE,OPTIONS',
+    origin: (origin: string, callback: any) => {
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.indexOf(origin) !== -1) return callback(null, true);
+      return callback(new Error('CORS not allowed by list'));
+    },
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
     credentials: true,
+    optionsSuccessStatus: 204,
   }));
   const adapter = new ExpressAdapter(app);
   
