@@ -13,7 +13,15 @@ const resolveBaseUrl = () => {
   // Always use NEXT_PUBLIC_TRUST_API_URL if set
   const clientTarget = process.env.NEXT_PUBLIC_TRUST_API_URL;
   if (clientTarget) {
-    return normalizeBaseUrl(clientTarget);
+    // Normalize and ensure we point at the API prefix used by the backend.
+    // If the provided URL already contains any `/api` path, respect it.
+    // Otherwise append `/api/v1` which is the global prefix used by the identity service.
+    let normalized = normalizeBaseUrl(clientTarget);
+    if (!/\/api(\/|$)/.test(normalized)) {
+      normalized = normalized.replace(/\/+$/, '');
+      normalized = `${normalized}/api/v1`;
+    }
+    return normalized;
   }
   // Fallback for SSR or missing env
   if (typeof window === 'undefined') {
@@ -29,5 +37,5 @@ export const lovedateApi = createLovedateApi({
 
 // Debug log for production
 if (typeof window !== 'undefined') {
-  console.log('API base URL:', resolveBaseUrl());
+  console.log('API base URL:', lovedateApi.baseUrl);
 }
