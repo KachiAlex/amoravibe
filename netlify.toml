@@ -6,3 +6,6 @@
 
 [context.production.environment]
   NODE_VERSION = "18"
+  
+[build.environment]
+  YARN_ENABLE_IMMUTABLE_INSTALLS = "false"
