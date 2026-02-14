@@ -1237,6 +1237,104 @@ const StepStory = ({
     );
   };
 
+  // Interactive map component (loads Mapbox GL JS via CDN to avoid adding deps)
+  const InteractiveMap = ({
+    lat,
+    lng,
+    token,
+    onPick,
+  }: {
+    lat?: number | null;
+    lng?: number | null;
+    token?: string | null;
+    onPick: (lng: number, lat: number) => Promise<void> | void;
+  }) => {
+    const mapRef = useRef<any>(null);
+    const containerRef = useRef<HTMLDivElement | null>(null);
+    const markerRef = useRef<any>(null);
+
+    useEffect(() => {
+      if (!token) return;
+      if (typeof window === 'undefined') return;
+
+      let cancelled = false;
+
+      const ensureMapbox = async () => {
+        if (!('mapboxgl' in window)) {
+          const css = document.createElement('link');
+          css.rel = 'stylesheet';
+          css.href = 'https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css';
+          document.head.appendChild(css);
+          await new Promise((res, rej) => {
+            const s = document.createElement('script');
+            s.src = 'https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js';
+            s.async = true;
+            s.onload = res;
+            s.onerror = rej;
+            document.body.appendChild(s);
+          });
+        }
+
+        if (cancelled) return;
+
+        // @ts-ignore
+        const mapboxgl = (window as any).mapboxgl;
+        mapboxgl.accessToken = token;
+
+        if (!containerRef.current) return;
+
+        // initialize map if not already
+        if (!mapRef.current) {
+          mapRef.current = new mapboxgl.Map({
+            container: containerRef.current,
+            style: 'mapbox://styles/mapbox/streets-v11',
+            center: lng && lat ? [lng, lat] : [-73.94, 40.67],
+            zoom: lng && lat ? 10 : 9,
+          });
+
+          markerRef.current = new mapboxgl.Marker({ color: '#7c3aed' });
+
+          mapRef.current.on('click', async (e: any) => {
+            const { lng: clickedLng, lat: clickedLat } = e.lngLat;
+            if (markerRef.current) markerRef.current.setLngLat([clickedLng, clickedLat]).addTo(mapRef.current);
+            try {
+              await onPick(clickedLng, clickedLat);
+            } catch (err) {
+              console.error('reverse geocode failed', err);
+            }
+          });
+        }
+
+        // update marker/center when props change
+        if (lng && lat && mapRef.current) {
+          mapRef.current.setCenter([lng, lat]);
+          mapRef.current.setZoom(10);
+          markerRef.current.setLngLat([lng, lat]).addTo(mapRef.current);
+        }
+      };
+
+      ensureMapbox().catch((err) => console.error('Mapbox load error', err));
+
+      return () => {
+        cancelled = true;
+        if (mapRef.current) {
+          try {
+            mapRef.current.remove();
+          } catch (e) {
+            /* ignore */
+          }
+          mapRef.current = null;
+        }
+      };
+    }, [token]);
+
+    return (
+      <div className="mt-3 rounded-2xl overflow-hidden border border-gray-200">
+        <div ref={containerRef} style={{ width: '100%', height: 220 }} />
+      </div>
+    );
+  };
+
   return (
     <motion.div
       key="story"
@@ -1296,6 +1394,37 @@ const StepStory = ({
             </ul>
           )}
           {suggestionsLoading && <p className="mt-2 text-xs text-gray-500">Searching Mapbox…</p>}
+          {mapboxToken && (
+            <InteractiveMap
+              lat={data.cityLat ?? null}
+              lng={data.cityLng ?? null}
+              token={mapboxToken}
+              onPick={async (pickedLng, pickedLat) => {
+                // reverse geocode and apply suggestion
+                try {
+                  const url = new URL(
+                    `https://api.mapbox.com/geocoding/v5/mapbox.places/${pickedLng},${pickedLat}.json`
+                  );
+                  url.searchParams.set('access_token', mapboxToken);
+                  url.searchParams.set('types', 'place,locality');
+                  url.searchParams.set('limit', '1');
+                  const res = await fetch(url.toString());
+                  if (!res.ok) throw new Error('reverse geocode failed');
+                  const body = (await res.json()) as MapboxGeocodeResponse;
+                  const feature = body.features?.[0];
+                  if (feature) {
+                    applySuggestion(mapFeatureToSuggestion(feature));
+                  } else {
+                    // fallback: set lat/lng only
+                    onBulkChange({ cityLat: pickedLat, cityLng: pickedLng, locationUpdatedAt: new Date().toISOString() });
+                  }
+                } catch (err) {
+                  console.error('reverse geocode error', err);
+                  onBulkChange({ cityLat: pickedLat, cityLng: pickedLng, locationUpdatedAt: new Date().toISOString() });
+                }
+              }}
+            />
+          )}
         </Field>
         <Field label="Bio (min 20 characters)">
           <textarea
