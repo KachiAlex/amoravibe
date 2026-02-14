@@ -1,0 +1,10 @@
+HTTP/1.1 404 Not Found
+Cache-Control: private, max-age=0
+Content-Type: text/plain; charset=utf-8
+Date: Sat, 14 Feb 2026 06:08:13 GMT
+Server: Netlify
+Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+X-Nf-Request-Id: 01KHDC75GHCX8BK6RMD7AZ7VDJ
+Content-Length: 50
+
+Not Found - Request ID: 01KHDC75GHCX8BK6RMD7AZ7VDJ

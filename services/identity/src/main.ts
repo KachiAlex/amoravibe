@@ -2,10 +2,25 @@ import 'reflect-metadata';
 import { RequestMethod, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import type { Request, Response, NextFunction } from 'express';
 
 async function bootstrap() {
+
   const app = await NestFactory.create(AppModule, {
     logger: ['log', 'warn', 'error'],
+  });
+
+  // Universal CORS middleware for all requests (including OPTIONS)
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    res.header('Access-Control-Allow-Origin', (req.headers.origin as string) || '*');
+    res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    if (req.method === 'OPTIONS') {
+      res.sendStatus(204);
+    } else {
+      next();
+    }
   });
 
   app.setGlobalPrefix('api/v1', {

@@ -1,0 +1,1 @@
+"use strict";exports.id=604,exports.ids=[604],exports.modules={97604:(e,a,r)=>{r.r(a),r.d(a,{$$typeof:()=>d,__esModule:()=>p,default:()=>o});var t=r(53189);let s=(0,t.createProxy)(String.raw`D:\amoravibe\apps\web\src\app\admin\UserTable.tsx`),{__esModule:p,$$typeof:d}=s;s.default;let o=(0,t.createProxy)(String.raw`D:\amoravibe\apps\web\src\app\admin\UserTable.tsx#default`)}};

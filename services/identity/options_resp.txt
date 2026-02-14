@@ -1,0 +1,14 @@
+HTTP/1.1 200 OK
+Access-Control-Allow-Methods: GET, HEAD, POST, PUT, DELETE, OPTIONS, PATCH
+Access-Control-Allow-Origin: *
+Access-Control-Expose-Headers: WWW-Authenticate, Link, Total, X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset, x-request-id, x-nf-srv-version
+Access-Control-Max-Age: 7200
+Age: 0
+Cache-Control: no-cache
+Cache-Status: "Netlify Edge"; fwd=method
+Content-Length: 0
+Date: Sat, 14 Feb 2026 06:23:46 GMT
+Server: Netlify
+Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+X-Nf-Request-Id: 01KHDD3MZ3BQHPE2BQ2NM7B8CB
+

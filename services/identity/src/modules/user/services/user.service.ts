@@ -79,6 +79,15 @@ export class UserService {
     return this.prisma.user.findUnique({ where: { id } });
   }
 
+  async findByContact(contact: { email?: string | null; phone?: string | null }): Promise<UserProfile | null> {
+    const or: any[] = [];
+    if (contact.email) or.push({ email: contact.email });
+    if (contact.phone) or.push({ phone: contact.phone });
+    if (!or.length) return null;
+
+    return this.prisma.user.findFirst({ where: { OR: or } });
+  }
+
   markVerified(id: string): Promise<UserProfile> {
     return this.prisma.user.update({
       where: { id },

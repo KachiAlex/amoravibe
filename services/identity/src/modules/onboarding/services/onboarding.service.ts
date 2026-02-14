@@ -43,18 +43,34 @@ export class OnboardingService {
     const { legalLastName, ...userPayload } = dto;
     const legalName = legalLastName ? `${dto.legalName} ${legalLastName}`.trim() : dto.legalName;
 
-    const user = await this.userService.create({
-      ...userPayload,
-      legalName,
-    });
+    // If a user already exists for this email/phone, reuse it so they don't re-onboard
+    let user = await this.userService.findByContact({ email: dto.email ?? null, phone: dto.phone ?? null });
+
+    if (!user) {
+      user = await this.userService.create({
+        ...userPayload,
+        legalName,
+      });
+    }
 
     const shouldVerifyNow = dto.verificationIntent === VerificationIntent.VERIFY_NOW;
 
-    const verification = await this.kycAdapter.initiate({
-      userId: user.id,
-      kycProvider: this.config.kyc.provider,
-      targetStatus: shouldVerifyNow ? VerificationStatus.PENDING : VerificationStatus.UNVERIFIED,
+    // Check for an existing verification to avoid creating duplicates
+    const latestVerification = await this.prisma.verification.findFirst({
+      where: { userId: user.id },
+      orderBy: { createdAt: 'desc' },
     });
+
+    let verification = latestVerification;
+    if (shouldVerifyNow) {
+      if (!latestVerification || (latestVerification.status !== VerificationStatus.PENDING && latestVerification.status !== VerificationStatus.VERIFIED)) {
+        verification = await this.kycAdapter.initiate({
+          userId: user.id,
+          kycProvider: this.config.kyc.provider,
+          targetStatus: VerificationStatus.PENDING,
+        });
+      }
+    }
 
     return {
       user,

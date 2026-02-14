@@ -1,0 +1,1 @@
+"use strict";exports.id=285,exports.ids=[285],exports.modules={45285:(e,t,a)=>{a.r(t),a.d(t,{$$typeof:()=>o,__esModule:()=>i,default:()=>p});var r=a(53189);let s=(0,r.createProxy)(String.raw`D:\amoravibe\apps\web\src\app\admin\ActivityLog.tsx`),{__esModule:i,$$typeof:o}=s;s.default;let p=(0,r.createProxy)(String.raw`D:\amoravibe\apps\web\src\app\admin\ActivityLog.tsx#default`)}};
