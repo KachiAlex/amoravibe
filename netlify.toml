@@ -1,6 +1,8 @@
 [build]
   base = "apps/web"
-  command = "yarn install && yarn build"
+  # Build identity first (relative to base), generate Prisma client for rhel runtime,
+  # then build the web app. Netlify runs this command from the `base` directory.
+  command = "cd ../services/identity && yarn install && yarn prisma generate && yarn build && cd - && yarn install && yarn build"
   publish = "apps/web/.next"
   functions = "services/identity/netlify/functions"
 
