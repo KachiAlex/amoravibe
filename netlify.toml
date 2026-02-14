@@ -1,0 +1,8 @@
+[build]
+  base = "apps/web"
+  command = "yarn install && yarn build"
+  publish = "apps/web/.next"
+  functions = "netlify/functions"
+
+[context.production.environment]
+  NODE_VERSION = "18"
