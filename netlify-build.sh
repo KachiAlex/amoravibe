@@ -3,17 +3,21 @@ set -e
 
 echo "Starting custom Netlify build script..."
 
-# Install root dependencies
-npm install
+# Use Corepack to ensure the correct Yarn is activated, and allow lockfile updates
+corepack enable
+corepack prepare yarn@stable --activate
+
+# Install root dependencies with Yarn (allow updates when Netlify's environment requires it)
+yarn install --mode=update
 
 # Build identity service first (with Prisma generation)
 cd services/identity
-npm install
-npm run prisma:generate
-npm run build
+yarn install --mode=update
+yarn prisma:generate
+yarn build
 cd -
 
 # Build web app
-npm run build
+yarn build
 
 echo "Build completed successfully"
