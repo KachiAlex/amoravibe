@@ -10,6 +10,13 @@ corepack prepare yarn@stable --activate
 # Ensure Yarn allows lockfile updates in CI environments that enforce immutability
 export YARN_ENABLE_IMMUTABLE_INSTALLS=false
 
+# Persist a build log into the frontend publish directory so Netlify deploys include it
+# (helps debugging when API logs are not available). Tee both stdout and stderr.
+LOG_DIR="apps/web/.next"
+mkdir -p "$LOG_DIR"
+LOG_FILE="$LOG_DIR/netlify-build-script.log"
+exec > >(tee -a "$LOG_FILE") 2>&1
+
 # Choose the correct Yarn install mode depending on Yarn major version.
 # Yarn v4+ accepts `--mode=update-lockfile`; older Yarn used `--mode=update`.
 YARN_VERSION="$(yarn -v 2>/dev/null || true)"
