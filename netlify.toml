@@ -11,3 +11,5 @@
   
 [build.environment]
   PNPM_HOME = "/usr/local/bin"
+  NPM_FLAGS = "--version"  # Prevent npm usage
+  YARN_FLAGS = "--version"  # Prevent yarn usage
