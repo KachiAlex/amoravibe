@@ -1,15 +1,14 @@
 [build]
   base = "."
-  # Build identity first, generate Prisma client for rhel runtime,
+  # Force pnpm usage and build identity first, generate Prisma client for rhel runtime,
   # then build the web app. Netlify runs this command from the `base` directory.
-  command = "cd services/identity && pnpm install && pnpm prisma:generate && pnpm build && cd - && pnpm install && pnpm build"
+  command = "corepack use pnpm && cd services/identity && pnpm install --frozen-lockfile && pnpm prisma:generate && pnpm build && cd - && pnpm install --frozen-lockfile && pnpm build"
   publish = "apps/web/.next"
   functions = "services/identity/netlify/functions"
 
 [context.production.environment]
   NODE_VERSION = "20"
-  
+
 [build.environment]
   PNPM_HOME = "/usr/local/bin"
-  NPM_FLAGS = "--version"  # Prevent npm usage
-  YARN_FLAGS = "--version"  # Prevent yarn usage
+  COREPACK_ENABLE_DOWNLOAD_PROMPT = "0"
