@@ -3,7 +3,8 @@
 # Use apps/web as the base directory so Netlify builds the frontend workspace
   base = "apps/web"
   # Use the repository root custom build script to ensure identity build + prisma generation
-  command = "chmod +x ../netlify-build.sh && ../netlify-build.sh"
+  # From apps/web the repo root is two levels up
+  command = "chmod +x ../../netlify-build.sh && ../../netlify-build.sh"
   publish = ".next"
   # Environment variables
   [build.environment]
