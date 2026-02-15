@@ -1,13 +1,13 @@
 [build]
-  base = "apps/web"
-  # Build identity first (relative to base), generate Prisma client for rhel runtime,
+  base = "."
+  # Build identity first, generate Prisma client for rhel runtime,
   # then build the web app. Netlify runs this command from the `base` directory.
-  command = "cd ../services/identity && yarn install && yarn prisma generate && yarn build && cd - && yarn install && yarn build"
+  command = "cd services/identity && pnpm install && pnpm prisma:generate && pnpm build && cd - && pnpm install && pnpm build"
   publish = "apps/web/.next"
   functions = "services/identity/netlify/functions"
 
 [context.production.environment]
-  NODE_VERSION = "18"
+  NODE_VERSION = "20"
   
 [build.environment]
-  YARN_ENABLE_IMMUTABLE_INSTALLS = "false"
+  PNPM_HOME = "/usr/local/bin"
