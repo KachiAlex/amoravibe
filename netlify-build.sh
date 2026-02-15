@@ -7,6 +7,9 @@ echo "Starting custom Netlify build script..."
 corepack enable
 corepack prepare yarn@stable --activate
 
+# Ensure Yarn allows lockfile updates in CI environments that enforce immutability
+export YARN_ENABLE_IMMUTABLE_INSTALLS=false
+
 # Install root dependencies with Yarn (allow updates when Netlify's environment requires it)
 yarn install --mode=update
 
