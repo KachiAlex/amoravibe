@@ -32,6 +32,18 @@ async function main() {
   const files = await readdir(siteDir);
   const manifest = files.map((file) => relative(siteDir, join(siteDir, file)));
   console.log(`[copy-site] copied ${manifest.length} asset(s) to dist/`);
+
+  // Also copy the generated Prisma client so deployed functions can find the
+  // native query engine binaries at runtime (e.g. libquery_engine-rhel-openssl-3.0.x.so.node).
+  const generatedClient = join(projectRoot, 'generated', 'identity-client');
+  if (await exists(generatedClient)) {
+    const target = join(distDir, 'generated', 'identity-client');
+    await mkdir(dirname(target), { recursive: true });
+    await cp(generatedClient, target, { recursive: true });
+    console.log('[copy-site] copied generated identity-client to dist/generated/identity-client');
+  } else {
+    console.warn('[copy-site] generated identity-client not found; ensure prisma generate ran');
+  }
 }
 
 main().catch((error) => {
