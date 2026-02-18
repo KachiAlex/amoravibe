@@ -17,7 +17,9 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-
+      - name: Run duplicate-route checker (apps/web)
+        # Fail fast: detect src/pages/api vs src/app/api duplicates before install/build
+        run: node apps/web/scripts/check-duplicate-api-routes.js
       - name: Setup pnpm
         uses: pnpm/action-setup@v2
         with:
