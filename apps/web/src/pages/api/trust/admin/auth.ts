@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { findUser } from './mockStore';
+import { findUser, findUserByEmail } from './mockStore';
 import { verifyToken } from '@/lib/jwt';
 
 /**
@@ -16,12 +16,12 @@ export async function requireAdmin(req: NextApiRequest, res: NextApiResponse): P
       res.status(401).json({ message: 'Invalid token' });
       return null;
     }
-    const user = findUser(payload.userId);
+    let user = findUser(payload.userId) || findUserByEmail(payload.userId);
     if (!user || user.role !== 'admin') {
       res.status(403).json({ message: 'Admin access required' });
       return null;
     }
-    return payload.userId as string;
+    return user.id as string;
   }
 
   // 2) Check signed token cookie
@@ -32,12 +32,12 @@ export async function requireAdmin(req: NextApiRequest, res: NextApiResponse): P
       res.status(401).json({ message: 'Invalid token cookie' });
       return null;
     }
-    const user = findUser(payload.userId);
+    let user = findUser(payload.userId) || findUserByEmail(payload.userId);
     if (!user || user.role !== 'admin') {
       res.status(403).json({ message: 'Admin access required' });
       return null;
     }
-    return payload.userId as string;
+    return user.id as string;
   }
 
   // 3) Fallback to legacy session cookie
@@ -61,11 +61,11 @@ export async function requireAdmin(req: NextApiRequest, res: NextApiResponse): P
     return null;
   }
 
-  const user = findUser(userId);
+  let user = findUser(userId) || findUserByEmail(userId);
   if (!user || user.role !== 'admin') {
     res.status(403).json({ message: 'Admin access required' });
     return null;
   }
 
-  return userId;
+  return user.id;
 }

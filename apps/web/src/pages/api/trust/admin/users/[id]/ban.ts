@@ -24,5 +24,14 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
 
   addAuditEntry({ actorId, action: ban ? 'ban_user' : 'unban_user', targetId: id, message: `User ${id} ${ban ? 'banned' : 'unbanned'} by ${actorId}` });
 
+  // persist to DB if available
+  try {
+    const { persistAudit, persistUser } = require('@/lib/persistence');
+    await persistUser({ id: updated.id, email: updated.email, displayName: updated.displayName, role: updated.role, isVerified: updated.isVerified, banned: updated.banned });
+    await persistAudit({ actorId, action: ban ? 'ban_user' : 'unban_user', targetId: id, message: `User ${id} ${ban ? 'banned' : 'unbanned'} by ${actorId}` });
+  } catch (e) {
+    /* ignore persistence failures in dev */
+  }
+
   return res.status(200).json({ user: updated });
 }
