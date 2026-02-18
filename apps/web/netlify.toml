@@ -1,0 +1,17 @@
+# Netlify config for the Next.js frontend (apps/web)
+[build]
+# Use apps/web as the base directory so Netlify builds the frontend workspace
+  base = "apps/web"
+  # Use the repository root custom build script to ensure identity build + prisma generation
+  # From apps/web the repo root is two levels up
+  command = "chmod +x ../../netlify-build.sh && ../../netlify-build.sh"
+  publish = ".next"
+  # Environment variables
+  [build.environment]
+    NEXT_PUBLIC_TRUST_API_URL = "https://api-amoravibe.vercel.app"
+
+[functions]
+  directory = "../../services/identity"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"

@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+    branches: [ master, main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 10.29.2
+
+      - name: Verify pnpm
+        run: |
+          echo "PNPM_HOME=$PNPM_HOME"
+          # Prefer the action-installed pnpm binary if present, and don't fail if
+          # pnpm exits due to project-level package manager configuration.
+          if [ -x "$HOME/setup-pnpm/node_modules/.bin/pnpm" ]; then
+            "$HOME/setup-pnpm/node_modules/.bin/pnpm" -v || true
+          else
+            pnpm -v || true
+          fi
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build workspace
+        run: pnpm -w -r run build
+
+      - name: Run tests
+        run: pnpm -w -r test

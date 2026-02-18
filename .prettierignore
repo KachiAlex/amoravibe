@@ -1,0 +1,4 @@
+services/identity/site/index.html
+services/profile/generated/
+services/profile/dist/
+**/node_modules/

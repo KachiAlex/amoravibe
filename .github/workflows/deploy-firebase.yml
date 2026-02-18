@@ -1,0 +1,53 @@
+name: Deploy Web to Firebase Hosting
+
+on:
+  push:
+    branches:
+      - master
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: firebase-hosting-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PNPM_VERSION: 10.29.2
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Authenticate with Firebase
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+
+      - name: Deploy to Firebase Hosting
+        env:
+          FIREBASE_DEBUG: 'true'
+          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+        run: |
+          PROJECT_ID=${FIREBASE_PROJECT_ID:-amoravibeapp}
+          echo "Deploying to Firebase project: $PROJECT_ID"
+          pnpm deploy:web:firebase -- --project "$PROJECT_ID" --non-interactive

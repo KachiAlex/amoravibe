@@ -1,0 +1,9 @@
+[build]
+  base = "."
+  # Use custom build script to avoid package manager auto-detection issues
+  command = "chmod +x netlify-build.sh && ./netlify-build.sh"
+  publish = "apps/web/.next"
+  functions = "services/identity/netlify/functions"
+
+[context.production.environment]
+  NODE_VERSION = "20"

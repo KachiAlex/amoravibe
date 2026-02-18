@@ -1,0 +1,25 @@
+# Render service definitions for backend services in the monorepo
+# Connect this repository to Render and Render will use these settings
+# for creating services. Update `repo`, `env` and `plan` as needed.
+services:
+  - type: web_service
+    name: identity-service
+    env: node
+    repo: https://github.com/KachiAlex/amoravibe
+    branch: master
+    buildCommand: cd services/identity && npm ci && npm run build
+    startCommand: cd services/identity && npm run start
+    plan: free
+    autoDeploy: true
+
+  - type: web_service
+    name: profile-service
+    env: node
+    repo: https://github.com/KachiAlex/amoravibe
+    branch: master
+    buildCommand: cd services/profile && npm ci && npm run build
+    startCommand: cd services/profile && npm run start
+    plan: free
+    autoDeploy: true
+
+# Add additional backend services below following the same pattern.
