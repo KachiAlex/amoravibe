@@ -76,7 +76,7 @@ export interface DiscoverFilterOption {
 
 export interface DiscoverCard {
   id: string;
-  name?: string;
+  name: string;
   age?: number | null;
   city?: string | null;
   cityRegion?: string | null;
