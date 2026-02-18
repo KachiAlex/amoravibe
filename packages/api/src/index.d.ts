@@ -30,6 +30,17 @@ export interface MatchCandidate {
   id: string;
   displayName?: string;
   avatarUrl?: string;
+  age?: number | null;
+  city?: string | null;
+  cityRegion?: string | null;
+  orientation?: string | null;
+  discoverySpace?: DiscoverySpace | null;
+  matchPreferences?: MatchPreference[];
+  compatibilityScore?: number;
+  isVerified?: boolean;
+  photos?: string[];
+  bio?: string | null;
+  distanceKm?: number | null;
 }
 
 export type VerificationStatus = 'unverified' | 'pending' | 'verified';
@@ -38,14 +49,64 @@ export interface TrustPreviewResponse {
   summary?: string;
 }
 
-export type MessagingStatusTone = 'neutral' | 'positive' | 'negative';
+export type MessagingStatusTone = 'violet' | 'rose' | 'amber' | 'emerald' | 'neutral' | 'positive' | 'negative';
 
 export interface MessagingThread {
   id: string;
-  participants?: Array<{ id: string; name?: string }>;
-  lastMessage?: string;
-  tone?: MessagingStatusTone;
+  name?: string;
+  avatar?: string;
+  route?: string;
+  lastActive?: string;
+  snippet?: string;
+  vibeLine?: string;
+  unread?: boolean;
+  quickReplies?: string[];
+  status?: { tone: MessagingStatusTone; label?: string };
 }
+
+export type DiscoverFeedMode = 'default' | 'verified' | 'nearby' | 'fresh' | 'premium' | 'shared';
+
+export interface DiscoverFilterOption {
+  label: string;
+  helper?: string;
+  value?: string;
+  premium?: boolean;
+  active?: boolean;
+}
+
+export interface DiscoverCard {
+  id: string;
+  name?: string;
+  age?: number | null;
+  city?: string | null;
+  cityRegion?: string | null;
+  distance?: string | null;
+  distanceKm?: number | null;
+  tags?: string[];
+  image?: string;
+  compatibility?: number;
+  verified?: boolean;
+  premiumOnly?: boolean;
+  receiverId?: string;
+  actionable?: boolean;
+}
+
+export type DiscoverEventAction = 'view' | 'like' | 'pass' | 'save' | 'dismiss' | 'filter';
+export type LikeActionType = 'like' | 'pass' | 'nudge' | 'unlike';
+export type DiscoverEventPayload = any;
+
+export interface DiscoverFeedResponse {
+  hero: DiscoverCard | null;
+  featured: DiscoverCard[];
+  grid: DiscoverCard[];
+  filters: DiscoverFilterOption[];
+  total: number;
+  mode: DiscoverFeedMode;
+  generatedAt?: string;
+}
+
+export interface EngagementDashboardResponse { [k: string]: any }
+export interface TrustCenterSnapshotResponse { [k: string]: any }
 
 export interface LovedateApi {
   fetchMatches(opts?: any): Promise<MatchCandidate[]>;
