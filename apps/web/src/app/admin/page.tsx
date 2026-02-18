@@ -1,4 +1,3 @@
-
 import { getSession } from '@/lib/session';
 import { redirect } from 'next/navigation';
 import { Card } from '@lovedate/ui';
@@ -20,15 +19,13 @@ export default async function AdminDashboardPage() {
     redirect('/login?next=/admin');
   }
 
-  // Fetch user by ID to check email
+  // Ensure user is an admin based on the local mock store/session
   const api = createLovedateApi({ baseUrl: upstreamBase });
   let user: any = null;
   try {
-    // Use fetchTrustSnapshot to get user details
     const snapshot = await api.fetchTrustSnapshot(session!.userId);
     user = snapshot.user;
   } catch (e) {
-    // If user fetch fails, treat as not authorized
     redirect('/login?next=/admin');
   }
   if (!user || user.email !== 'admin@amoravibe.com') {
@@ -37,9 +34,11 @@ export default async function AdminDashboardPage() {
 
   return (
     <main className="mx-auto max-w-4xl px-6 py-24">
+      <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>
       <Card className="space-y-4 mb-8">
-        <h1 className="font-display text-3xl text-ink-900">Admin Dashboard</h1>
-        <p className="text-ink-700">Welcome, admin! Here you can manage users, view metrics, and perform admin actions.</p>
+        <div id="user-table-placeholder">
+          <p>Loading user data...</p>
+        </div>
       </Card>
       <AdminMetrics />
       <UserTable />

@@ -114,7 +114,19 @@ function makeStub() {
         requestAuditExport: async () => ({ status: 'ok' }),
         requestAuditPurge: async () => ({ status: 'ok' }),
         requestReverification: async () => ({ status: 'ok' }),
-        fetchTrustSnapshot: async () => ({ snapshotLabel: 'Seeded snapshot' }),
+        fetchTrustSnapshot: async (userId) => {
+            // If a userId is provided, return a lightweight user object for admin/local sessions
+            if (userId && typeof userId === 'string') {
+                if (userId === 'admin@amoravibe.com' || userId === 'admin') {
+                    return { snapshotLabel: 'Seeded snapshot', user: { id: 'admin@amoravibe.com', email: 'admin@amoravibe.com', displayName: 'Admin' } };
+                }
+                const found = seedProfiles.find((p) => p.id === userId);
+                if (found) {
+                    return { snapshotLabel: 'Seeded snapshot', user: { id: found.id, email: `${found.id}@example.com`, displayName: found.displayName } };
+                }
+            }
+            return { snapshotLabel: 'Seeded snapshot' };
+        },
         fetchEngagementDashboard: async () => ({ summary: 'engagement stub' }),
         fetchMessagingThreads: async () => threads,
         fetchDiscoverFeed: async ({ mode = 'default', limit = 12 } = {}) => ({

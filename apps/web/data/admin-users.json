@@ -1,0 +1,50 @@
+[
+  {
+    "id": "admin",
+    "displayName": "Administrator",
+    "email": "admin@amoravibe.com",
+    "city": "Headquarters",
+    "isVerified": true,
+    "createdAt": "2026-02-18T00:00:00.000Z"
+  },
+  {
+    "id": "alice",
+    "displayName": "Alice Walker",
+    "email": "alice@example.com",
+    "city": "Brooklyn",
+    "isVerified": true,
+    "createdAt": "2026-02-18T00:00:00.000Z"
+  },
+  {
+    "id": "ben",
+    "displayName": "Ben Hayes",
+    "email": "ben@example.com",
+    "city": "Long Island City",
+    "isVerified": false,
+    "createdAt": "2026-02-18T00:00:00.000Z"
+  },
+  {
+    "id": "chloe",
+    "displayName": "Chloe Park",
+    "email": "chloe@example.com",
+    "city": "SoHo",
+    "isVerified": true,
+    "createdAt": "2026-02-18T00:00:00.000Z"
+  },
+  {
+    "id": "dani",
+    "displayName": "Dani Rivera",
+    "email": "dani@example.com",
+    "city": "Williamsburg",
+    "isVerified": false,
+    "createdAt": "2026-02-18T00:00:00.000Z"
+  },
+  {
+    "id": "emily",
+    "displayName": "Emily Stone",
+    "email": "emily@example.com",
+    "city": "SoHo",
+    "isVerified": true,
+    "createdAt": "2026-02-18T00:00:00.000Z"
+  }
+]

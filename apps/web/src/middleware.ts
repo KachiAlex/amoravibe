@@ -9,6 +9,12 @@ export async function middleware(request: NextRequest) {
 
   // Handle /api/trust/* requests
   if (pathname.startsWith('/api/trust/')) {
+    // Allow local mock mode to bypass upstream proxy (set TRUST_API_MOCK=1)
+    if (process.env.TRUST_API_MOCK === '1' || process.env.TRUST_API_MOCK === 'true') {
+      console.info('[Trust API Proxy] TRUST_API_MOCK enabled — skipping proxy to upstream');
+      return NextResponse.next();
+    }
+
     const path = pathname.replace(/^\/api\/trust/, '');
     const url = `${upstreamBase}${path}${request.nextUrl.search}`;
 
