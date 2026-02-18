@@ -1,0 +1,7 @@
+{
+  "name": "@lovedate/api",
+  "version": "0.0.0-stub",
+  "private": true,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts"
+}
