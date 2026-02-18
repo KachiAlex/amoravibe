@@ -3,6 +3,29 @@ export interface ApiClientOptions {
   apiKey?: string;
 }
 
+export type Gender =
+  | 'woman'
+  | 'man'
+  | 'non_binary'
+  | 'trans_woman'
+  | 'trans_man'
+  | 'self_describe';
+
+export type Orientation =
+  | 'heterosexual'
+  | 'gay'
+  | 'lesbian'
+  | 'bisexual'
+  | 'pansexual'
+  | 'asexual'
+  | 'queer';
+
+export type DiscoverySpace = 'straight' | 'lgbtq' | 'both';
+
+export type MatchPreference = 'women' | 'men' | 'everyone';
+
+export type VerificationIntent = 'verify_now' | 'verify_later' | 'skip';
+
 export interface MatchCandidate {
   id: string;
   displayName?: string;
