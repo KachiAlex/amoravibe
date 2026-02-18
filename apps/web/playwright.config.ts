@@ -9,4 +9,10 @@ export default defineConfig({
     trace: 'on-first-retry',
     ...devices['Desktop Chrome'],
   },
+  // Start the built Next.js server automatically for CI / local runs.
+  webServer: {
+    command: 'npm run start',
+    port: 3000,
+    reuseExistingServer: !process.env.CI,
+  },
 });

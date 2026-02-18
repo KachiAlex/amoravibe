@@ -6,6 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "test": "playwright test",
+    "test:e2e": "playwright test",
     "check:duplicate-api-routes": "node scripts/check-duplicate-api-routes.js",
     "prelint": "npm run check:duplicate-api-routes",
     "lint": "next lint",
