@@ -85,7 +85,7 @@ export interface DiscoverCard {
   tags?: string[];
   image: string;
   compatibility?: number;
-  verified?: boolean;
+  verified: boolean;
   premiumOnly?: boolean;
   receiverId?: string;
   actionable?: boolean;
