@@ -83,7 +83,7 @@ export interface DiscoverCard {
   distance?: string | null;
   distanceKm?: number | null;
   tags?: string[];
-  image?: string;
+  image: string;
   compatibility?: number;
   verified?: boolean;
   premiumOnly?: boolean;
