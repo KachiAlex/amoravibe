@@ -3,7 +3,7 @@ import { findUser, updateUser } from '../mockStore';
 import { requireAdmin } from '../../auth';
 import { addAuditEntry } from '../../auditStore';
 
-export default function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { id } = req.query as { id: string };
   // auth
   const actorId = requireAdmin(req, res);

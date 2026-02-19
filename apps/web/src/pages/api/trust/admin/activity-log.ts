@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { requireAdmin } from './auth';
 import { getAuditEntries } from './auditStore';
 
-export default function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const actor = requireAdmin(req, res);
   if (!actor) return;
   if (req.method !== 'GET') {
