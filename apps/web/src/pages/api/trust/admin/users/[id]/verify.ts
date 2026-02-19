@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { findUser, updateUser } from '../mockStore';
+import { findUser, updateUser } from '../../mockStore';
 import { requireAdmin } from '../../auth';
 import { addAuditEntry } from '../../auditStore';
 

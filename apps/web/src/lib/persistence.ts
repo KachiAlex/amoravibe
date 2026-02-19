@@ -11,7 +11,9 @@ export async function withPrisma<T>(fn: (prisma: any) => Promise<T>): Promise<T 
     } catch (e) {
       // fallback to generated client inside prisma folder (created by `prisma generate --schema=prisma/schema.prisma`)
       try {
-        PrismaClientModule = require('./prisma/node_modules/.prisma/client');
+        const path = require('path');
+        const modulePath = path.join(process.cwd(), 'prisma', 'node_modules', '.prisma', 'client');
+        PrismaClientModule = require(modulePath);
       } catch (e2) {
         throw e; // rethrow original error to be handled below
       }
