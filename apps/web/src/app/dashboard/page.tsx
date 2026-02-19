@@ -1222,7 +1222,7 @@ export default async function DashboardPage(props: DashboardPageProps) {
     loadDiscoverFeed(userId, discoverMode, DISCOVER_FEED_LIMIT),
   ]);
 
-  if (!snapshot) {
+  if (!snapshot || !snapshot.user) {
     return (
       <main className="mx-auto max-w-3xl px-6 py-24 text-center">
         <Card className="space-y-4">
@@ -1344,8 +1344,8 @@ export default async function DashboardPage(props: DashboardPageProps) {
   const verificationTimeline: { title: string; helper: string; status: 'done' | 'pending' }[] = [
     {
       title: 'Photo verification',
-      helper: snapshot.user.isVerified ? 'Completed' : 'Pending selfie check',
-      status: snapshot.user.isVerified ? 'done' : 'pending',
+      helper: snapshot.user?.isVerified ? 'Completed' : 'Pending selfie check',
+      status: snapshot.user?.isVerified ? 'done' : 'pending',
     },
     {
       title: 'ID verification',
@@ -1656,7 +1656,7 @@ export default async function DashboardPage(props: DashboardPageProps) {
                   Verified orbit
                 </span>
                 <span className="rounded-full bg-white/80 px-3 py-1 text-[#475569]">
-                  Trust score {snapshot.user.trustScore}
+                  Trust score {snapshot.user?.trustScore ?? 0}
                 </span>
               </div>
             </div>
@@ -1669,7 +1669,7 @@ export default async function DashboardPage(props: DashboardPageProps) {
                 <div className="min-w-0">
                   <p className="text-sm font-medium text-[#6b7280]">Welcome back,</p>
                   <h1 className="mt-1 hero-title text-[#0f172a]">
-                    <span className="inline-block truncate">{snapshot.user.displayName}</span>
+                    <span className="inline-block truncate">{snapshot.user?.displayName ?? userId}</span>
                     <span className="ml-3 inline-block gradient-clip">👋</span>
                   </h1>
                   <p className="mt-2 text-sm text-[#94a3b8]">
@@ -1683,7 +1683,7 @@ export default async function DashboardPage(props: DashboardPageProps) {
                     userId={userId}
                     initialMatches={matches.length}
                     initialChats={messageThreads.length}
-                    initialProfileViews={(snapshot.user as any).profileViews ?? 156}
+                    initialProfileViews={snapshot.user?.profileViews ?? 156}
                   />
                 </div>
               </div>
@@ -1712,8 +1712,8 @@ export default async function DashboardPage(props: DashboardPageProps) {
             <ProfileManager
               completion={profileCompletion}
               photos={profilePhotos}
-              trustScore={snapshot.user.trustScore ?? 0}
-              verified={snapshot.user.isVerified ?? false}
+              trustScore={snapshot.user?.trustScore ?? 0}
+              verified={snapshot.user?.isVerified ?? false}
             />
             <VerificationPanel timeline={verificationTimeline} verifiedLabel={verifiedLabel} />
           </section>
