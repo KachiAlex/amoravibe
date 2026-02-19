@@ -7,3 +7,12 @@
 
 [context.production.environment]
   NODE_VERSION = "20"
+  # TEMPORARY: enable preview/CI test seeds in production until identity is fully
+  # restored. Remove as soon as real snapshots exist in the identity DB.
+  ENABLE_TEST_SEEDS = "1"
+
+[[redirects]]
+  from = "/api/v1/trust/center/:userId"
+  to = "/.netlify/functions/trust-center?userId=:userId"
+  status = 200
+  force = false
