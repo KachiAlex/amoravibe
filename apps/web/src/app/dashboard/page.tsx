@@ -1246,10 +1246,10 @@ export default async function DashboardPage(props: DashboardPageProps) {
     );
   }
 
-  const devicesTrusted = snapshot.devices.length;
-  const verifiedLabel = snapshot.user.isVerified ? 'Verified' : 'Pending review';
+  const devicesTrusted = Array.isArray(snapshot.devices) ? snapshot.devices.length : 0;
+  const verifiedLabel = snapshot.user?.isVerified ? 'Verified' : 'Pending review';
   const profileCompletionRaw =
-    64 + (snapshot.user.isVerified ? 18 : 0) + Math.min(12, devicesTrusted * 3);
+    64 + (snapshot.user?.isVerified ? 18 : 0) + Math.min(12, devicesTrusted * 3);
   const profileCompletion = Math.min(98, Math.round(profileCompletionRaw));
 
   const matches = (await loadMatches(userId, 18)) ?? [];
