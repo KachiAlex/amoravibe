@@ -1,0 +1,16 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+# Prevent pushing while there are untracked TypeScript source files in the repo.
+# This helps avoid the "works locally but CI fails" situation where a developer
+# forgets to `git add` new source files.
+UNTRACKED_TS=$(git ls-files --others --exclude-standard | grep -E "\.tsx?$" || true)
+if [ -n "$UNTRACKED_TS" ]; then
+  echo "\nError: Untracked TypeScript files detected (commit them before pushing):\n"
+  echo "$UNTRACKED_TS"
+  echo "\nIf these files are intentionally untracked, add them to .gitignore.\n"
+  exit 1
+fi
+
+# Run lint-staged as well (keeps pre-commit behaviour consistent)
+npx lint-staged

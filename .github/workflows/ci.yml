@@ -39,8 +39,17 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Run typecheck (web)
+        run: pnpm -w -r --filter web typecheck
+
       - name: Build workspace
         run: pnpm -w -r run build
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+
+      - name: Run Playwright E2E (web)
+        run: pnpm -w -r --filter web test:e2e
 
       - name: Run tests
         run: pnpm -w -r test
