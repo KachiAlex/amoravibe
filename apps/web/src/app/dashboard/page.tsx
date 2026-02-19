@@ -1313,14 +1313,14 @@ export default async function DashboardPage(props: DashboardPageProps) {
 
   const liveFeedProfiles = matches.map(mapMatchToFeedProfile);
 
-  const engagementFallback: EngagementDashboardResponse = engagement ?? {
-    receivedLikes: [],
-    sentLikes: [],
-    notificationPreferences: [],
-    premiumPerks: [],
-    safetyResources: [],
-    settingsShortcuts: [],
-    discoverFilters: [],
+  const engagementFallback: EngagementDashboardResponse = {
+    receivedLikes: engagement?.receivedLikes ?? [],
+    sentLikes: engagement?.sentLikes ?? [],
+    notificationPreferences: engagement?.notificationPreferences ?? [],
+    premiumPerks: engagement?.premiumPerks ?? [],
+    safetyResources: engagement?.safetyResources ?? [],
+    settingsShortcuts: engagement?.settingsShortcuts ?? [],
+    discoverFilters: engagement?.discoverFilters ?? [],
   };
 
   const likesGiven: LikePerson[] = engagementFallback.sentLikes.map((like) => ({
