@@ -1279,33 +1279,37 @@ export default async function DashboardPage(props: DashboardPageProps) {
     return `${Math.round(distanceKm)} km`;
   };
 
-  const mapMatchToFeedProfile = (match: MatchCandidate): FeedProfile => ({
-    id: match.id,
-    name: match.displayName,
-    age: undefined,
-    distance: formatDistance(match.distanceKm),
-    location: match.cityRegion ? `${match.city} · ${match.cityRegion}` : match.city,
-    orientation: formatOrientation(match.orientation),
-    intent: match.matchPreferences.includes('everyone')
-      ? 'Open to everyone'
-      : match.matchPreferences.includes('women')
-        ? 'Prefers women'
-        : 'Prefers men',
-    bio: match.bio ?? 'Prefers to reveal more in chat.',
-    photo: match.photos[0] ?? fallbackProfilePhoto,
-    verified: match.isVerified,
-    premiumOnly: false,
-    interests: [
-      match.discoverySpace === 'both'
-        ? 'All vibes'
-        : match.discoverySpace === 'lgbtq'
-          ? 'LGBTQ+ orbit'
-          : 'Straight orbit',
-      `${match.compatibilityScore}% vibe`,
-    ],
-    receiverId: match.id,
-    actionable: true,
-  });
+  const mapMatchToFeedProfile = (match: MatchCandidate): FeedProfile => {
+    const prefs = Array.isArray(match.matchPreferences) ? match.matchPreferences : [];
+
+    return {
+      id: match.id,
+      name: match.displayName,
+      age: undefined,
+      distance: formatDistance(match.distanceKm),
+      location: match.cityRegion ? `${match.city} · ${match.cityRegion}` : match.city,
+      orientation: formatOrientation(match.orientation),
+      intent: prefs.includes('everyone')
+        ? 'Open to everyone'
+        : prefs.includes('women')
+          ? 'Prefers women'
+          : 'Prefers men',
+      bio: match.bio ?? 'Prefers to reveal more in chat.',
+      photo: match.photos[0] ?? fallbackProfilePhoto,
+      verified: match.isVerified,
+      premiumOnly: false,
+      interests: [
+        match.discoverySpace === 'both'
+          ? 'All vibes'
+          : match.discoverySpace === 'lgbtq'
+            ? 'LGBTQ+ orbit'
+            : 'Straight orbit',
+        `${match.compatibilityScore}% vibe`,
+      ],
+      receiverId: match.id,
+      actionable: true,
+    };
+  };
 
   const liveFeedProfiles = matches.map(mapMatchToFeedProfile);
 
