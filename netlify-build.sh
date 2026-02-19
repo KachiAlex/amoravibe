@@ -92,8 +92,20 @@ run_workspace_if_present "@lovedate/profile-service" prisma:generate
 run_workspace_if_present "@lovedate/profile-service" build
 
 # Build API package using yarn workspace
-echo "Building API package using yarn workspace..."
-yarn workspace @lovedate/api run build
+# Only run if the workspace exists and provides a `build` script (some workspaces
+# are stubs in this repo and don't need a build step).
+echo "(workspace) @lovedate/api"
+if [ -f "packages/api/package.json" ]; then
+  HAS_BUILD_SCRIPT=$(node -e "try{console.log(Boolean(require('./packages/api/package.json').scripts && require('./packages/api/package.json').scripts.build))}catch(e){console.log(false)}")
+  if [ "$HAS_BUILD_SCRIPT" = "true" ]; then
+    echo "Running @lovedate/api build"
+    yarn workspace @lovedate/api run build
+  else
+    echo "Skipping @lovedate/api build: no build script defined"
+  fi
+else
+  echo "Skipping @lovedate/api: workspace not present"
+fi
 
 # Build web app
 yarn build
