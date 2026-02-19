@@ -8,7 +8,10 @@
   publish = ".next"
   # Environment variables
   [build.environment]
-    NEXT_PUBLIC_TRUST_API_URL = "https://api-amoravibe.vercel.app"
+    # Primary API base used by the frontend (points at the Netlify identity backend)
+    NEXT_PUBLIC_API_BASE_URL = "https://amoravibe-identity.netlify.app/api/v1"
+    # Legacy/auxiliary trust API setting (kept for compatibility)
+    NEXT_PUBLIC_TRUST_API_URL = "https://amoravibe-identity.netlify.app/api/v1"
 
 [functions]
   directory = "../../services/identity"
