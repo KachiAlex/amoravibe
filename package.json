@@ -18,6 +18,9 @@
     "deploy:web:firebase": "cross-env npm_config_loglevel=silent npm_config_optional=true firebase deploy --only hosting --config firebase.json",
     "guard:firebase": "node scripts/ensure-firebase-config.mjs"
   },
+  "resolutions": {
+    "jose": "6.1.3"
+  },
   "devDependencies": {
     "@playwright/test": "^1.58.2",
     "@storybook/react": "^7.0.0",
