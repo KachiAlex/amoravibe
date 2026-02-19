@@ -28,3 +28,11 @@ export default function DevToolsPage() {
     </main>
   );
 }
+
+// Prevent this page from being visible outside of development + mock mode.
+export async function getServerSideProps() {
+  if (process.env.NODE_ENV !== 'development' || process.env.TRUST_API_MOCK !== '1') {
+    return { notFound: true };
+  }
+  return { props: {} };
+}
