@@ -1,0 +1,16 @@
+{
+  "name": "@amoravibe/identity-service",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "echo 'build (identity service)'",
+    "prisma:generate": "prisma generate --schema=prisma/schema.prisma",
+    "seed": "node scripts/seed-identity.js"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.22.0"
+  },
+  "devDependencies": {
+    "prisma": "^5.22.0"
+  }
+}

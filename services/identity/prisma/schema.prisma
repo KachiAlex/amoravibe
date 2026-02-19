@@ -1,0 +1,27 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "./node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id           String  @id
+  email        String?
+  displayName  String?
+  role         String  @default("user")
+  isVerified   Boolean @default(false)
+  banned       Boolean @default(false)
+}
+
+model Audit {
+  id        String   @id @default(cuid())
+  actorId   String
+  action    String
+  message   String
+  details   String?
+  timestamp DateTime @default(now())
+}

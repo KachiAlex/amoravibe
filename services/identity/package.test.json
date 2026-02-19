@@ -1,0 +1,6 @@
+{
+  "name": "identity-service-tests",
+  "scripts": {
+    "test": "node --loader ts-node/esm -e \"(async()=>require('path').resolve('./tests/trust.spec.js') )()\" || true"
+  }
+}

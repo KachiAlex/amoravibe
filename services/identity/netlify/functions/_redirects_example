@@ -1,0 +1,2 @@
+# Example Netlify rewrite to map /api/v1/trust/center/:userId to function
+# /api/v1/trust/center/:userId /.netlify/functions/trust-center 200
