@@ -58,7 +58,8 @@ const DISCOVER_EVENT_ACTIONS: DiscoverEventAction[] = [
   'filter',
 ];
 
-const deriveModeFromLabel = (label: string): DiscoverFeedMode => {
+const deriveModeFromLabel = (label?: string): DiscoverFeedMode => {
+  if (!label || typeof label !== 'string') return 'default';
   const normalized = label.toLowerCase();
   if (normalized.includes('verified')) return 'verified';
   if (normalized.includes('near')) return 'nearby';
@@ -968,7 +969,37 @@ interface DashboardPageProps {
     | { userId?: string; section?: string; discoverMode?: string };
 }
 
+async function getSeedSnapshot(userId: string): Promise<TrustCenterSnapshotResponse> {
+  // Minimal seeded snapshot used for E2E / CI when the identity backend is unavailable.
+  return {
+    snapshotLabel: 'seeded-e2e-snapshot',
+    user: {
+      id: userId,
+      email: `${userId}@example.com`,
+      displayName: userId === 'user_2' ? 'E2E Test User' : 'Seed User',
+      isVerified: true,
+    } as any,
+    devices: [],
+    engagements: {
+      sentLikes: [],
+      receivedLikes: [],
+      recentMatches: [],
+    } as any,
+    matches: [],
+  } as TrustCenterSnapshotResponse;
+}
+
 async function loadSnapshot(userId: string): Promise<TrustCenterSnapshotResponse | null> {
+  // E2E / CI-only override: return a seeded snapshot when the test runner enables it.
+  if (process.env.NEXT_PUBLIC_USE_SEED_SNAPSHOT === '1') {
+    try {
+      return await getSeedSnapshot(userId);
+    } catch (error) {
+      console.error('Failed to load seeded snapshot', error);
+      return null;
+    }
+  }
+
   try {
     return await lovedateApi.fetchTrustSnapshot(userId);
   } catch (error) {
@@ -1182,8 +1213,9 @@ const serverActionRegistry = [
 void serverActionRegistry;
 
 export default async function DashboardPage(props: DashboardPageProps) {
-  const resolvedParams = await Promise.resolve(props.searchParams ?? {});
-  const session = getSession();
+  try {
+    const resolvedParams = await Promise.resolve(props.searchParams ?? {});
+    const session = getSession();
   const userId = resolvedParams?.userId ?? session?.userId ?? null;
   const sectionParam =
     typeof resolvedParams?.section === 'string' ? resolvedParams.section.toLowerCase() : 'home';
@@ -1740,7 +1772,23 @@ export default async function DashboardPage(props: DashboardPageProps) {
       </div>
     </main>
   );
-}
+  } catch (err) {
+    console.error('Dashboard server render error', err);
+
+    return (
+      <main className="mx-auto max-w-3xl px-6 py-24 text-center">
+        <Card className="space-y-4">
+          <h1 className="font-display text-3xl text-ink-900">Trust dashboard</h1>
+          <p className="text-ink-700">An unexpected error occurred while rendering the dashboard. Please refresh or try again later.</p>
+          <div className="flex justify-center gap-3">
+            <PillButton asChild>
+              <Link href="/onboarding">Return to onboarding</Link>
+            </PillButton>
+          </div>
+        </Card>
+      </main>
+    );
+  }
 
 function SidebarNav({
   items,
@@ -2045,7 +2093,25 @@ function LikeCard({ like }: { like: LikePerson }) {
       </Link>
     </div>
   );
-}
+  } catch (err) {
+    // Defensive catch to prevent unexpected server-render crashes from bringing down the
+    // dashboard. We log and show a friendly fallback so users can continue.
+    console.error('Dashboard server render error', err);
+
+    return (
+      <main className="mx-auto max-w-3xl px-6 py-24 text-center">
+        <Card className="space-y-4">
+          <h1 className="font-display text-3xl text-ink-900">Trust dashboard</h1>
+          <p className="text-ink-700">An unexpected error occurred while rendering the dashboard. Please refresh or try again later.</p>
+          <div className="flex justify-center gap-3">
+            <PillButton asChild>
+              <Link href="/onboarding">Return to onboarding</Link>
+            </PillButton>
+          </div>
+        </Card>
+      </main>
+    );
+  }
 
 function RightRail({
   matches,

@@ -34,6 +34,13 @@ fi
 corepack enable
 # corepack prepare yarn@stable --activate  # Already active
 
+# Build environment diagnostics (helpful when Netlify build fails)
+echo "node: $(node -v)" || true
+echo "yarn: $(yarn -v)" || true
+corepack --version 2>/dev/null || true
+echo "yarn workspaces info:" 
+(yarn workspaces info 2>/dev/null || true)
+
 # Ensure Yarn allows lockfile updates in CI environments that enforce immutability
 export YARN_ENABLE_IMMUTABLE_INSTALLS=false
 
@@ -42,7 +49,7 @@ export YARN_ENABLE_IMMUTABLE_INSTALLS=false
 LOG_DIR="apps/web/.next"
 mkdir -p "$LOG_DIR"
 LOG_FILE="$LOG_DIR/netlify-build-script.log"
-# exec > >(tee -a "$LOG_FILE") 2>&1  # Temporarily disabled to show output in build log
+exec > >(tee -a "$LOG_FILE") 2>&1
 
 # Choose the correct Yarn install mode depending on Yarn major version.
 # Yarn v4+ accepts `--mode=update-lockfile`; older Yarn used `--mode=update`.
