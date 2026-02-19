@@ -3,8 +3,32 @@ set -e
 
 echo "Starting custom Netlify build script..."
 
-# Change to repo root since script is executed from apps/web
-cd ../../
+# Ensure we are at the repository root. The script may be executed from either
+# - the repo root (Netlify) or
+# - the apps/web directory (local runs that invoke the script from there).
+# Only change directory when necessary.
+if [ -f "netlify.toml" ] || [ -d "apps" ]; then
+  # already at repo root
+  echo "Detected repo root: $(pwd)"
+else
+  # walk up a few levels to find repo root
+  CUR="$(pwd)"
+  FOUND=""
+  for i in 1 2 3 4; do
+    PARENT="$(cd "$(dirname "$CUR")" && pwd)"
+    if [ -f "$PARENT/netlify.toml" ] || [ -d "$PARENT/apps" ]; then
+      FOUND="$PARENT"
+      break
+    fi
+    CUR="$PARENT"
+  done
+  if [ -n "$FOUND" ]; then
+    echo "Changing to repo root: $FOUND"
+    cd "$FOUND"
+  else
+    echo "Warning: repo root not found, continuing from $(pwd)"
+  fi
+fi
 
 # Use Corepack to ensure the correct Yarn is activated, and allow lockfile updates
 corepack enable
