@@ -10,6 +10,9 @@
   # TEMPORARY: enable preview/CI test seeds in production until identity is fully
   # restored. Remove as soon as real snapshots exist in the identity DB.
   ENABLE_TEST_SEEDS = "1"
+  # Emergency frontend fallback: serve seeded snapshot client-side until identity
+  # backend is fully restored. Remove after identity / DB seeding is complete.
+  NEXT_PUBLIC_USE_SEED_SNAPSHOT = "1"
 
 [[redirects]]
   from = "/api/v1/trust/center/:userId"
