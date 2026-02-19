@@ -23,6 +23,24 @@ export function findUser(id: string) {
   return mockUsers.find((u) => u.id === id) ?? null;
 }
 
+export function findUserByEmail(email: string) {
+  return mockUsers.find((u) => u.email === email) ?? null;
+}
+
+export function createUser(user: Partial<MockUser>) {
+  const id = user.id ?? `user_${Math.random().toString(36).slice(2, 9)}`;
+  const newUser: MockUser = {
+    id,
+    email: user.email ?? `user+${id}@local`,
+    displayName: user.displayName ?? (user.email ? user.email.split('@')[0] : id),
+    role: user.role ?? 'user',
+    isVerified: user.isVerified ?? false,
+    banned: user.banned ?? false,
+  };
+  mockUsers.unshift(newUser);
+  return newUser;
+}
+
 export function updateUser(id: string, patch: Partial<MockUser>) {
   const idx = mockUsers.findIndex((u) => u.id === id);
   if (idx === -1) return null;

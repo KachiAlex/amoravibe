@@ -17,15 +17,15 @@
   "dependencies": {
     "@lovedate/api": "file:../../packages/api",
     "@lovedate/ui": "file:../../packages/ui",
+    "@prisma/client": "^5.22.0",
     "@upstash/ratelimit": "^2.0.8",
     "@upstash/redis": "^1.36.1",
+    "jose": "^6.1.3",
     "lucide-react": "^0.344.0",
     "motion": "^12.23.24",
     "next": "14.2.7",
     "react": "18.3.1",
-    "react-dom": "18.3.1",
-    "@prisma/client": "^5.22.0",
-    "jose": "^6.1.3"
+    "react-dom": "18.3.1"
   },
   "devDependencies": {
     "@types/node": "^20",
@@ -36,8 +36,8 @@
     "eslint": "^8",
     "eslint-config-next": "14.2.7",
     "postcss": "^8",
+    "prisma": "^5.22.0",
     "tailwindcss": "^3.4.1",
-    "typescript": "^5",
-    "prisma": "^5.22.0"
+    "typescript": "^5"
   }
 }

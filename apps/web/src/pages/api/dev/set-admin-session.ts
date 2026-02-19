@@ -1,8 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 
 // Dev-only: set a session cookie for the admin user (user_1 in mockStore)
+// Hardened: only available when running in development _and_ the mock trust API is enabled.
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (process.env.NODE_ENV !== 'development') {
+  if (process.env.NODE_ENV !== 'development' || process.env.TRUST_API_MOCK !== '1') {
     return res.status(404).end('Not available');
   }
 

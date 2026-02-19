@@ -221,6 +221,62 @@ export function SignInModal({ isOpen, onClose }: SignInModalProps) {
                         'Sign in'
                       )}
                     </button>
+
+                    <div className="mt-3">
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          // Try to use Netlify Identity widget if present, otherwise fall back to dev helper
+                          const netlify = (window as any).netlifyIdentity;
+                          if (netlify && typeof netlify.open === 'function') {
+                            netlify.open();
+                            netlify.on('login', async (user: any) => {
+                              try {
+                                const token = user?.token?.access_token || user?.token?.id_token || null;
+                                // exchange with our backend to get lovedate session/jwt
+                                const resp = await fetch('/api/auth/netlify', {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ id_token: token }),
+                                });
+                                if (resp.ok) {
+                                  const body = await resp.json();
+                                  setSuccess(`Welcome back, ${body.user.displayName}! Redirecting…`);
+                                  setTimeout(() => {
+                                    onClose();
+                                    window.location.href = body.nextRoute || '/dashboard';
+                                  }, 900);
+                                }
+                              } catch (err) {
+                                setError('Netlify Identity signin failed');
+                              }
+                            });
+                          } else {
+                            // Dev fallback: call our auth endpoint with provided email (only works locally)
+                            try {
+                              const email = form.email.trim() || prompt('Enter email for dev Netlify login (e.g. admin@amoravibe.com)') || '';
+                              const resp = await fetch('/api/auth/netlify', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ email }),
+                              });
+                              if (!resp.ok) throw new Error('Auth failed');
+                              const body = await resp.json();
+                              setSuccess(`Welcome back, ${body.user.displayName}! Redirecting…`);
+                              setTimeout(() => {
+                                onClose();
+                                window.location.href = body.nextRoute || '/dashboard';
+                              }, 900);
+                            } catch (err) {
+                              setError('Netlify Identity (dev) signin failed');
+                            }
+                          }
+                        }}
+                        className="mt-2 flex w-full items-center justify-center gap-2 rounded-2xl border border-ink-200 bg-white py-3 text-sm text-ink-700 shadow-sm hover:shadow-md"
+                      >
+                        Sign in with Netlify Identity
+                      </button>
+                    </div>
                   </form>
                 </div>
               </motion.div>
