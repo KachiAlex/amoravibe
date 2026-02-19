@@ -1,0 +1,38 @@
+name: Check — web build (Ubuntu)
+
+on:
+  workflow_dispatch: {}
+  push:
+    branches: [ master, main ]
+
+jobs:
+  web-build:
+    name: apps/web — build (ubuntu)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies (apps/web)
+        working-directory: apps/web
+        run: |
+          npm ci
+
+      - name: Build (apps/web)
+        working-directory: apps/web
+        env:
+          CI: true
+        run: |
+          npm run build --if-present
+
+      - name: Show pages-manifest (sanity)
+        if: success()
+        working-directory: apps/web
+        run: |
+          echo '--- .next/server/pages-manifest.json ---'
+          cat .next/server/pages-manifest.json || true
