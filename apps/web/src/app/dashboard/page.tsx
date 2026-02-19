@@ -1323,7 +1323,7 @@ export default async function DashboardPage(props: DashboardPageProps) {
     discoverFilters: engagement?.discoverFilters ?? [],
   };
 
-  const likesGiven: LikePerson[] = engagementFallback.sentLikes.map((like) => ({
+  const likesGiven: LikePerson[] = (engagementFallback.sentLikes ?? []).map((like) => ({
     id: like.id,
     likeEdgeId: like.id,
     name: like.name,
