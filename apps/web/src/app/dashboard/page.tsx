@@ -1295,7 +1295,7 @@ export default async function DashboardPage(props: DashboardPageProps) {
           ? 'Prefers women'
           : 'Prefers men',
       bio: match.bio ?? 'Prefers to reveal more in chat.',
-      photo: match.photos[0] ?? fallbackProfilePhoto,
+      photo: (Array.isArray(match.photos) && match.photos[0]) ?? fallbackProfilePhoto,
       verified: match.isVerified,
       premiumOnly: false,
       interests: [
@@ -1525,7 +1525,7 @@ export default async function DashboardPage(props: DashboardPageProps) {
         highlight: match.city ?? 'Ready to connect',
         compatibility: match.compatibilityScore,
         avatar:
-          match.photos[0] ??
+          (Array.isArray(match.photos) && match.photos[0]) ??
           'https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=crop&w=200&q=80',
         verified: match.isVerified,
       }))
