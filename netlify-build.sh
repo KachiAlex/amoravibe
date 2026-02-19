@@ -63,21 +63,33 @@ yarn install $INSTALL_MODE
 export PRISMA_GENERATE_SKIP_POSTINSTALL=true
 export YARN_ENABLE_SCRIPTS=false
 
-# Build identity service and generate Prisma client using yarn workspace (never expect local node_modules)
-echo "Building identity service and generating Prisma client using yarn workspace..."
-yarn workspace @amoravibe/identity-service run prisma:generate
+# Helper to run a workspace command only when the workspace exists in the repo
+run_workspace_if_present() {
+  WS_NAME="$1"
+  shift
+  # `yarn workspaces info` lists all workspace names; grep for the exact key
+  if yarn workspaces info 2>/dev/null | grep -q "\"${WS_NAME}\""; then
+    echo "Running workspace ${WS_NAME} -> $*"
+    yarn workspace "${WS_NAME}" run "$@"
+  else
+    echo "Skipping workspace ${WS_NAME}: not present in this repository"
+  fi
+}
 
-yarn workspace @amoravibe/identity-service run build
+# Build identity service (if present) and generate Prisma client using yarn workspace
+echo "(workspace) identity-service"
+run_workspace_if_present "@amoravibe/identity-service" prisma:generate
+run_workspace_if_present "@amoravibe/identity-service" build
 
-# Build moderation service and generate Prisma client using yarn workspace
-echo "Building moderation service and generating Prisma client using yarn workspace..."
-yarn workspace @lovedate/moderation-service run prisma:generate
-yarn workspace @lovedate/moderation-service run build
+# Build moderation service (if present) and generate Prisma client using yarn workspace
+echo "(workspace) moderation-service"
+run_workspace_if_present "@lovedate/moderation-service" prisma:generate
+run_workspace_if_present "@lovedate/moderation-service" build
 
-# Build profile service and generate Prisma client using yarn workspace
-echo "Building profile service and generating Prisma client using yarn workspace..."
-yarn workspace @lovedate/profile-service run prisma:generate
-yarn workspace @lovedate/profile-service run build
+# Build profile service (if present) and generate Prisma client using yarn workspace
+echo "(workspace) profile-service"
+run_workspace_if_present "@lovedate/profile-service" prisma:generate
+run_workspace_if_present "@lovedate/profile-service" build
 
 # Build API package using yarn workspace
 echo "Building API package using yarn workspace..."
