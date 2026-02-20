@@ -1254,34 +1254,34 @@ export default async function DashboardPage(props: DashboardPageProps) {
     loadDiscoverFeed(userId, discoverMode, DISCOVER_FEED_LIMIT),
   ]);
 
-  if (!snapshot || !snapshot.user) {
-    return (
-      <main className="mx-auto max-w-3xl px-6 py-24 text-center">
-        <Card className="space-y-4">
-          <h1 className="font-display text-3xl text-ink-900">Trust dashboard</h1>
-          <p className="text-ink-700">
-            We couldn’t load the trust center snapshot for this user yet.
-          </p>
-          <p className="text-sm text-ink-600">
-            Give our identity service a few seconds, then refresh or re-run onboarding.
-          </p>
-          <div className="flex justify-center gap-3">
-            <PillButton asChild>
-              <Link href="/onboarding">Retry onboarding</Link>
-            </PillButton>
-            <PillButton variant="outline" asChild>
-              <Link href="/trust-center">View trust preview</Link>
-            </PillButton>
-          </div>
-        </Card>
-      </main>
-    );
+  // If identity snapshot failed to load, create a minimal fallback so the user
+  // still lands on their dashboard after sign-in/onboarding (limited view).
+  const snapshotMissing = !snapshot || !snapshot.user;
+  if (snapshotMissing) {
+    console.warn(`[Dashboard] Trust snapshot missing for user ${userId} — rendering limited dashboard`);
   }
 
-  const devicesTrusted = Array.isArray(snapshot.devices) ? snapshot.devices.length : 0;
-  const verifiedLabel = snapshot.user?.isVerified ? 'Verified' : 'Pending review';
+  const effectiveSnapshot: TrustCenterSnapshotResponse = snapshotMissing
+    ? {
+        snapshotLabel: 'fallback',
+        user: {
+          id: userId,
+          displayName: session?.userId ?? userId,
+          isVerified: false,
+          profileViews: 0,
+        } as any,
+        devices: [],
+        engagements: { sentLikes: [], receivedLikes: [], recentMatches: [] } as any,
+        matches: [],
+      }
+    : (snapshot as TrustCenterSnapshotResponse);
+
+  // continue rendering the dashboard using `effectiveSnapshot`
+
+  const devicesTrusted = Array.isArray(effectiveSnapshot.devices) ? effectiveSnapshot.devices.length : 0;
+  const verifiedLabel = effectiveSnapshot.user?.isVerified ? 'Verified' : 'Pending review';
   const profileCompletionRaw =
-    64 + (snapshot.user?.isVerified ? 18 : 0) + Math.min(12, devicesTrusted * 3);
+    64 + (effectiveSnapshot.user?.isVerified ? 18 : 0) + Math.min(12, devicesTrusted * 3);
   const profileCompletion = Math.min(98, Math.round(profileCompletionRaw));
 
   const matches = (await loadMatches(userId, 18)) ?? [];
@@ -1369,15 +1369,15 @@ export default async function DashboardPage(props: DashboardPageProps) {
     verified: like.verified ?? false,
   }));
 
-  const profilePhotos = Array.isArray((snapshot as any)?.user?.photos)
-    ? ((snapshot as any).user.photos as string[])
-    : [];
+  const profilePhotos = Array.isArray((effectiveSnapshot as any).user?.photos)
+    ? ((effectiveSnapshot as any).user.photos as string[])
+    : []; 
 
   const verificationTimeline: { title: string; helper: string; status: 'done' | 'pending' }[] = [
     {
       title: 'Photo verification',
-      helper: snapshot.user?.isVerified ? 'Completed' : 'Pending selfie check',
-      status: snapshot.user?.isVerified ? 'done' : 'pending',
+      helper: effectiveSnapshot.user?.isVerified ? 'Completed' : 'Pending selfie check',
+      status: effectiveSnapshot.user?.isVerified ? 'done' : 'pending',
     },
     {
       title: 'ID verification',
@@ -1688,7 +1688,7 @@ export default async function DashboardPage(props: DashboardPageProps) {
                   Verified orbit
                 </span>
                 <span className="rounded-full bg-white/80 px-3 py-1 text-[#475569]">
-                  Trust score {snapshot.user?.trustScore ?? 0}
+                  Trust score {effectiveSnapshot.user?.trustScore ?? 0}
                 </span>
               </div>
             </div>
@@ -1701,7 +1701,7 @@ export default async function DashboardPage(props: DashboardPageProps) {
                 <div className="min-w-0">
                   <p className="text-sm font-medium text-[#6b7280]">Welcome back,</p>
                   <h1 className="mt-1 hero-title text-[#0f172a]">
-                    <span className="inline-block truncate"><span className="gradient-clip">{snapshot.user?.displayName ?? userId}</span></span>
+                    <span className="inline-block truncate"><span className="gradient-clip">{effectiveSnapshot.user?.displayName ?? userId}</span></span>
                     <span className="ml-3 inline-block gradient-clip">👋</span>
                   </h1>
                   <p className="mt-2 text-sm text-[#94a3b8]">
@@ -1715,7 +1715,7 @@ export default async function DashboardPage(props: DashboardPageProps) {
                     userId={userId}
                     initialMatches={matches.length}
                     initialChats={messageThreads.length}
-                    initialProfileViews={snapshot.user?.profileViews ?? 156}
+                    initialProfileViews={effectiveSnapshot.user?.profileViews ?? 156}
                   />
                 </div>
               </div>
@@ -1744,8 +1744,8 @@ export default async function DashboardPage(props: DashboardPageProps) {
             <ProfileManager
               completion={profileCompletion}
               photos={profilePhotos}
-              trustScore={snapshot.user?.trustScore ?? 0}
-              verified={snapshot.user?.isVerified ?? false}
+              trustScore={effectiveSnapshot.user?.trustScore ?? 0}
+              verified={effectiveSnapshot.user?.isVerified ?? false}
             />
             <VerificationPanel timeline={verificationTimeline} verifiedLabel={verifiedLabel} />
           </section>
