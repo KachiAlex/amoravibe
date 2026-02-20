@@ -513,7 +513,7 @@ function MatchesPanel({ candidates }: { candidates: MatchCandidatePreview[] }) {
                     ? 'Active chat'
                     : 'Expiring soon'}
               </span>
-              <p className="text-xs text-[#94a3b8]">{candidate.compatibility}% vibe match</p>
+              <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-br from-[#8f63ff] to-[#ff79c6] px-3 py-1 text-xs font-semibold text-white shadow-sm">{candidate.compatibility}% match</span>
             </div>
           </div>
         ))}
@@ -1696,17 +1696,17 @@ export default async function DashboardPage(props: DashboardPageProps) {
           </section>
 
           <section className="grid gap-6 xl:grid-cols-[1.8fr,1fr]" id="overview">
-            <Card className="space-y-6 border border-white/70 bg-white/90 p-6 shadow-[0_20px_60px_rgba(21,33,76,0.08)]">
+            <Card className="space-y-6 border-none bg-gradient-to-br from-[#fff5fb] via-[#fff0f6] to-white p-8 shadow-[0_30px_80px_rgba(21,33,76,0.10)]">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
                 <div className="min-w-0">
                   <p className="text-sm font-medium text-[#6b7280]">Welcome back,</p>
                   <h1 className="mt-1 hero-title text-[#0f172a]">
-                    <span className="inline-block truncate">{snapshot.user?.displayName ?? userId}</span>
+                    <span className="inline-block truncate"><span className="gradient-clip">{snapshot.user?.displayName ?? userId}</span></span>
                     <span className="ml-3 inline-block gradient-clip">👋</span>
                   </h1>
                   <p className="mt-2 text-sm text-[#94a3b8]">
-                    You have <span className="font-semibold text-[#0f172a]">{matches.length}</span> matches and{' '}
-                    <span className="font-semibold text-[#0f172a]">{unreadCount}</span> unread messages
+                    You have <span className="font-semibold gradient-clip">{matches.length}</span> matches and{' '}
+                    <span className="font-semibold gradient-clip">{unreadCount}</span> unread messages
                   </p>
                 </div>
 
@@ -1820,7 +1820,7 @@ function SidebarNav({
                 href={item.href}
                 className={`flex w-full items-center justify-between rounded-2xl px-4 py-3 text-[0.95rem] font-medium transition ${
                   item.section && item.section === activeSection
-                    ? 'bg-[#eef2ff] text-[#312e81]'
+                    ? 'bg-gradient-to-br from-[#8f63ff] to-[#ff79c6] text-white shadow-sm'
                     : 'text-[#475569] hover:bg-[#f8fafc]'
                 }`}
                 aria-current={item.section && item.section === activeSection ? 'page' : undefined}
@@ -1829,7 +1829,7 @@ function SidebarNav({
                   {React.createElement(item.icon, {
                     className: `$
                       item.section && item.section === activeSection
-                        ? 'text-[#5b21b6]'
+                        ? 'text-white'
                         : 'text-[#cbd5f5]'
                     } size-4`
                   })}
@@ -1935,6 +1935,16 @@ function DiscoverCard({
           className="object-cover"
           loading="lazy"
         />
+        {person.compatibility ? (
+          <div className="absolute top-3 left-3 inline-flex items-center gap-2 rounded-full bg-gradient-to-br from-[#8f63ff] to-[#ff79c6] px-3 py-1 text-xs font-bold text-white shadow-sm">
+            {person.compatibility}% match
+          </div>
+        ) : null}
+        {person.compatibility && person.compatibility >= 90 ? (
+          <div className="absolute top-3 right-3 rounded-full bg-[#fef3f2] px-2 py-1 text-xs font-semibold text-[#b91c1c]">
+            New
+          </div>
+        ) : null}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
         <div className="absolute bottom-3 left-3 flex gap-1 text-[11px] font-semibold uppercase tracking-wide text-white">
           {person.tags.slice(0, 2).map((tag) => (

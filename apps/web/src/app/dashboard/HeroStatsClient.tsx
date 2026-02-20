@@ -65,7 +65,7 @@ export default function HeroStatsClient({
       <div className="flex-1 sm:flex-none stat-card w-full sm:w-40 transition-transform hover:scale-[1.01]">
         <p className="text-xs text-[#94a3b8]">Total Matches</p>
         <p className="mt-2 text-2xl lg:text-3xl font-bold text-[#0f172a]">
-          {loading ? '—' : metrics.matches}
+          {loading ? '—' : <span className="gradient-clip">{metrics.matches}</span>}
         </p>
         <p className="text-xs text-[#10b981]">+12 this week</p>
       </div>
@@ -73,7 +73,7 @@ export default function HeroStatsClient({
       <div className="flex-1 sm:flex-none stat-card w-full sm:w-40 transition-transform hover:scale-[1.01]">
         <p className="text-xs text-[#94a3b8]">Active Chats</p>
         <p className="mt-2 text-2xl lg:text-3xl font-bold text-[#0f172a]">
-          {loading ? '—' : metrics.activeChats}
+          {loading ? '—' : <span className="gradient-clip">{metrics.activeChats}</span>}
         </p>
         <p className="text-xs text-[#10b981]">+5 today</p>
       </div>
@@ -81,7 +81,7 @@ export default function HeroStatsClient({
       <div className="flex-1 sm:flex-none stat-card w-full sm:w-40 transition-transform hover:scale-[1.01]">
         <p className="text-xs text-[#94a3b8]">Profile Views</p>
         <p className="mt-2 text-2xl lg:text-3xl font-bold text-[#0f172a]">
-          {loading ? '—' : metrics.profileViews}
+          {loading ? '—' : <span className="gradient-clip">{metrics.profileViews}</span>}
         </p>
         <p className="text-xs text-[#8b5cf6]">Top 10%</p>
       </div>
