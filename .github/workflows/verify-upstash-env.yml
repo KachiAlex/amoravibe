@@ -1,0 +1,35 @@
+name: Verify Upstash env
+
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check UPSTASH_REDIS_REST_URL
+        run: |
+          if [ -z "${{ secrets.UPSTASH_REDIS_REST_URL }}" ]; then
+            echo "ERROR: UPSTASH_REDIS_REST_URL is not configured in repository secrets" >&2
+            exit 1
+          fi
+          echo "UPSTASH_REDIS_REST_URL present"
+      - name: Check UPSTASH_REDIS_REST_TOKEN
+        run: |
+          if [ -z "${{ secrets.UPSTASH_REDIS_REST_TOKEN }}" ]; then
+            echo "ERROR: UPSTASH_REDIS_REST_TOKEN is not configured in repository secrets" >&2
+            exit 1
+          fi
+          echo "UPSTASH_REDIS_REST_TOKEN present"
+      - name: Check NEXT_PUBLIC_TRUST_API_URL
+        run: |
+          if [ -z "${{ secrets.NEXT_PUBLIC_TRUST_API_URL }}" ]; then
+            echo "WARNING: NEXT_PUBLIC_TRUST_API_URL secret is not set; check hosting env vars instead"
+          else
+            echo "NEXT_PUBLIC_TRUST_API_URL present"
+          fi
+      - name: Success
+        run: echo "Upstash env secrets verified (if set)"

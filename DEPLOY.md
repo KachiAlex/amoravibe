@@ -17,6 +17,17 @@ pnpm deploy:web:firebase
 
 The Firebase config in `firebase.json` uses framework detection to build and host the `apps/web` Next.js app. Adjust the `site` field to your Hosting Site ID (find/create in the Firebase console). Use `firebase target:apply hosting <alias> <siteId>` if you prefer aliases.
 
+Enable Upstash Redis for snapshot caching
+- Required env vars (production): `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`.
+- Purpose: provides a durable, globally-available cache for `TrustCenter` snapshots so the dashboard can serve a stale snapshot when the identity API is intermittently unavailable.
+- How to set (examples):
+  - Firebase Hosting / Functions: set `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` in the Cloud Run / Functions environment or via the Firebase console > Project Settings > Environment Variables.
+  - Netlify: add the two env vars under Site settings → Build & deploy → Environment.
+  - Vercel: add the two env vars under Project Settings → Environment Variables.
+
+Notes:
+
+
 By default, all Next.js API routes and server components running on Firebase Hosting proxy to the Vercel backend at `https://api-amoravibe.vercel.app`. Override this by setting `TRUST_API_PROXY_TARGET` (server-only) or `NEXT_PUBLIC_TRUST_API_URL` (client/server) in Firebase if you need a different upstream (e.g., staging).
 
 Legacy Vercel deployment:
