@@ -1789,6 +1789,7 @@ export default async function DashboardPage(props: DashboardPageProps) {
       </main>
     );
   }
+}
 
 function SidebarNav({
   items,
@@ -2093,25 +2094,7 @@ function LikeCard({ like }: { like: LikePerson }) {
       </Link>
     </div>
   );
-  } catch (err) {
-    // Defensive catch to prevent unexpected server-render crashes from bringing down the
-    // dashboard. We log and show a friendly fallback so users can continue.
-    console.error('Dashboard server render error', err);
-
-    return (
-      <main className="mx-auto max-w-3xl px-6 py-24 text-center">
-        <Card className="space-y-4">
-          <h1 className="font-display text-3xl text-ink-900">Trust dashboard</h1>
-          <p className="text-ink-700">An unexpected error occurred while rendering the dashboard. Please refresh or try again later.</p>
-          <div className="flex justify-center gap-3">
-            <PillButton asChild>
-              <Link href="/onboarding">Return to onboarding</Link>
-            </PillButton>
-          </div>
-        </Card>
-      </main>
-    );
-  }
+}
 
 function RightRail({
   matches,
@@ -2225,11 +2208,11 @@ function MessageSnippet({ thread }: { thread: MessagingThread }) {
           {thread.status.label}
         </span>
       </div>
-      {thread.unread ? (
+      {thread.unread && (
         <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#f43f5e] text-[11px] font-semibold text-white">
           {thread.unread}
         </span>
-      ) : null}
+      )}
     </Link>
   );
 }
