@@ -79,3 +79,19 @@ export function updateSettings(userId: string, data: Record<string, any>) {
   Object.assign(settings, data);
   return settings;
 }
+
+// E2E helpers
+export function seedUser(userId: string) {
+  // replace store entry for userId with fresh seed copies
+  store[userId] = {
+    matches: JSON.parse(JSON.stringify(seedMatches)),
+    messages: JSON.parse(JSON.stringify(seedMessages)),
+    profile: { displayName: userId, bio: 'This is your profile.' },
+    settings: { emailNotifications: true },
+  };
+  return store[userId];
+}
+
+export function clearStore() {
+  for (const k of Object.keys(store)) delete store[k];
+}

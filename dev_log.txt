@@ -1,0 +1,19 @@
+  ▲ Next.js 14.2.7
+  - Local:        http://localhost:4000
+  - Environments: .env.local, .env.development, .env
+
+ ✓ Starting...
+ ✓ Ready in 28.8s
+ ○ Compiling /dashboard ...
+ ✓ Compiled /dashboard in 85.1s (1500 modules)
+ GET /dashboard 200 in 92899ms
+ ✓ Compiled in 8.5s (703 modules)
+ ○ Compiling /api/e2e/seed ...
+ ✓ Compiled /api/e2e/seed in 159.4s (1494 modules)
+ POST /api/e2e/seed 200 in 175008ms
+ ○ Compiling /dashboard ...
+ ✓ Compiled /dashboard in 52.7s (1626 modules)
+ GET /onboarding 200 in 1358ms
+ GET /dashboard 200 in 4331ms
+ GET /admin 200 in 4578ms
+ GET / 200 in 6079ms

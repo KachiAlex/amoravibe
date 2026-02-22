@@ -2,10 +2,12 @@ import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
   testDir: './e2e',
-  timeout: 30_000,
-  retries: 0,
+  timeout: 60_000,
+  retries: 1,
   use: {
-    baseURL: 'http://localhost:3000',
+    baseURL: process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:4000',
+    actionTimeout: 15_000,
+    navigationTimeout: 30_000,
     trace: 'on-first-retry',
     ...devices['Desktop Chrome'],
   },
@@ -14,7 +16,7 @@ export default defineConfig({
   // tests can point at an already running dev server via `PLAYWRIGHT_BASE_URL`.
   webServer: process.env.PLAYWRIGHT_START_SERVER === '0' ? undefined : {
     command: 'npm run start',
-    port: 3000,
+    port: 4000,
     reuseExistingServer: !process.env.CI,
     // Inject E2E-only env so the app serves seeded trust snapshots during Playwright runs.
     env: {

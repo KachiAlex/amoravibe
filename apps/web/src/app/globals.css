@@ -101,6 +101,25 @@ body::before {
     border-radius: 9999px;
     display: inline-block;
   }
+
+  .stat-badge {
+    display: inline-block;
+    margin-left: 0.5rem;
+    padding: 0.12rem 0.4rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #059669;
+    background: rgba(16,185,129,0.08);
+    border-radius: 9999px;
+    line-height: 1;
+    transform-origin: center;
+    animation: pop .45s cubic-bezier(.2,.9,.3,1);
+  }
+
+  @keyframes pop {
+    from { transform: translateY(-6px) scale(.92); opacity: 0 }
+    to { transform: translateY(0) scale(1); opacity: 1 }
+  }
 }
 
 @media (max-width: 640px) {

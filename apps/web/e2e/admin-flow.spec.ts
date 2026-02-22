@@ -2,17 +2,18 @@ import { test, expect } from '@playwright/test';
 
 test('Admin flow — login, search, pagination, view, verify & ban', async ({ page }) => {
   // Log in as the dev admin via the API (sets cookies in the browser)
-  await page.goto('/');
+  await page.goto('/', { waitUntil: 'networkidle', timeout: 30_000 });
   await page.evaluate(async () => {
     await fetch('/api/login', {
       method: 'POST',
+      credentials: 'same-origin',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: 'admin@amoravibe.com', password: 'admin123' }),
     });
   });
 
   // Ensure browser has the session cookie; if the fetch didn't set it, add it manually
-  const cookies = await page.context().cookies('http://localhost:3000');
+  const cookies = await page.context().cookies();
   const session = cookies.find((c) => c.name === 'lovedate_session');
   if (!session || !session.value.includes('admin@amoravibe.com')) {
     await page.context().addCookies([

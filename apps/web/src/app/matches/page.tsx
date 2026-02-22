@@ -4,6 +4,9 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { lovedateApi } from '@/lib/api';
 import { getSession } from '@/lib/session';
+import dynamic from 'next/dynamic';
+
+const MatchCardClient = dynamic(() => import('./MatchCardClient'), { ssr: false });
 
 interface MatchesPageProps {
   searchParams?: Promise<{ userId?: string; limit?: string }> | { userId?: string; limit?: string };
@@ -116,7 +119,7 @@ export default async function MatchesPage(props: MatchesPageProps) {
             </PillButton>
           </Card>
         ) : (
-          matches.map((match) => <MatchCard key={match.id} match={match} />)
+          matches.map((match) => <MatchCardClient key={match.id} match={match} />)
         )}
       </section>
     </main>

@@ -13,6 +13,7 @@ type Match = {
 export default function MatchesListClient({ initialMatches = [] }: { initialMatches?: Match[] }) {
   const [matches, setMatches] = useState<Match[]>(initialMatches);
   const [loading, setLoading] = useState(false);
+  const [acceptingIds, setAcceptingIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     // If no initial matches, fetch from API
@@ -25,7 +26,8 @@ export default function MatchesListClient({ initialMatches = [] }: { initialMatc
   async function fetchMatches() {
     setLoading(true);
     try {
-      const res = await fetch('/api/matches');
+      const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || '/api';
+      const res = await fetch(`${API_BASE}/matches`, { credentials: 'include' });
       if (!res.ok) throw new Error('Failed');
       const data = await res.json();
       setMatches(data.matches || []);
@@ -37,13 +39,37 @@ export default function MatchesListClient({ initialMatches = [] }: { initialMatc
   }
 
   async function handleAccept(id: string) {
-    // optimistic update
+    setAcceptingIds((s) => new Set(s).add(id));
+    // optimistic UI: mark accepted locally
     setMatches((prev) => prev.map((m) => (m.id === id ? { ...m, accepted: true } : m)));
+    // optimistic stats update for immediate feedback
     try {
-      await fetch(`/api/matches/${id}/like`, { method: 'POST' });
+      // dispatch a small optimistic increment (1 match accepted)
+      window.dispatchEvent(new CustomEvent('dashboard:stats:optimistic', { detail: { matches: 1 } }));
+    } catch (e) {
+      // noop in non-browser env
+    }
+    try {
+      const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || '/api';
+      const res = await fetch(`${API_BASE}/matches/${id}/like`, { method: 'POST', credentials: 'include' });
+      if (!res.ok) throw new Error('post failed');
+      // refresh list from server to stay in sync
+      await fetchMatches();
+      // notify other dashboard pieces (stats) to refresh
+      try {
+        window.dispatchEvent(new CustomEvent('dashboard:stats:refresh'));
+      } catch (e) {
+        // noop in non-browser env
+      }
     } catch (e) {
       // revert on error
       setMatches((prev) => prev.map((m) => (m.id === id ? { ...m, accepted: false } : m)));
+    } finally {
+      setAcceptingIds((s) => {
+        const next = new Set(s);
+        next.delete(id);
+        return next;
+      });
     }
   }
 
@@ -66,7 +92,9 @@ export default function MatchesListClient({ initialMatches = [] }: { initialMatc
                 {m.accepted ? (
                   <span className="text-sm text-green-600">Accepted</span>
                 ) : (
-                  <button onClick={() => handleAccept(m.id)} className="btn btn-sm">Like</button>
+                  <button disabled={acceptingIds.has(m.id)} onClick={() => handleAccept(m.id)} className="btn btn-sm">
+                    {acceptingIds.has(m.id) ? '...' : 'Like'}
+                  </button>
                 )}
               </div>
             </li>
@@ -76,3 +104,4 @@ export default function MatchesListClient({ initialMatches = [] }: { initialMatc
     </section>
   );
 }
+

@@ -7,15 +7,32 @@ export async function withPrisma<T>(fn: (prisma: any) => Promise<T>): Promise<T 
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     let PrismaClientModule;
     try {
+      // prefer the installed package
       PrismaClientModule = require('@prisma/client');
     } catch (e) {
-      // fallback to generated client inside prisma folder (created by `prisma generate --schema=prisma/schema.prisma`)
-      try {
-        const path = require('path');
-        const modulePath = path.join(process.cwd(), 'prisma', 'node_modules', '.prisma', 'client');
-        PrismaClientModule = require(modulePath);
-      } catch (e2) {
-        throw e; // rethrow original error to be handled below
+      // webpack emits a warning when `require()` receives a non-literal expression.
+      // To avoid that, try a small set of literal candidate paths that might
+      // contain the generated Prisma client. This keeps the requires static
+      // so bundlers won't warn about dynamic expressions.
+      const candidates = [
+        'prisma/node_modules/.prisma/client',
+        './prisma/node_modules/.prisma/client',
+      ];
+      let found = false;
+      for (const cand of candidates) {
+        try {
+          // these are literal strings to satisfy bundlers
+          // eslint-disable-next-line @typescript-eslint/no-var-requires
+          PrismaClientModule = require(cand);
+          found = true;
+          break;
+        } catch (err) {
+          // try next
+        }
+      }
+      if (!found) {
+        // rethrow original error so outer catch returns null
+        throw e;
       }
     }
 
