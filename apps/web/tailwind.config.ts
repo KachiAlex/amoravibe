@@ -16,6 +16,17 @@ const config: Config = {
         'rose-500': '#ff5c8d',
         'rose-300': '#ff9fba',
         'sea-400': '#7ce0d3',
+        'brand-violet': '#8b5cf6',
+        'brand-pink': '#ff79c6',
+        'brand-gradient-start': '#ff79c6',
+        'brand-gradient-end': '#8b5cf6',
+      },
+      borderRadius: {
+        '3xl': '1.5rem',
+      },
+      boxShadow: {
+        'card-lg': '0 20px 60px rgba(15,23,42,0.08)',
+        'active-pill': '0 10px 30px rgba(139,92,246,0.16)'
       },
       fontFamily: {
         sans: ['var(--font-sans)', 'system-ui', 'sans-serif'],

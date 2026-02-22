@@ -1,0 +1,37 @@
+name: Netlify deploy (fallback via GitHub Actions)
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies (Yarn)
+        run: yarn install --immutable
+
+      - name: Build (turbo workspace)
+        run: yarn build
+
+      - name: Validate Netlify secrets
+        run: |
+          if [ -z "${{ secrets.NETLIFY_AUTH_TOKEN }}" ] || [ -z "${{ secrets.NETLIFY_SITE_ID }}" ]; then
+            echo "NETLIFY_AUTH_TOKEN and NETLIFY_SITE_ID must be set as repo secrets to run this workflow.";
+            exit 1;
+          fi
+
+      - name: Deploy to Netlify (fallback)
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        run: |
+          # NOTE: this uploads build output as a basic deploy. For full Next.js serverless behavior Netlify's in-platform build is preferred.
+          npx netlify deploy --auth "$NETLIFY_AUTH_TOKEN" --site "$NETLIFY_SITE_ID" --prod --dir=apps/web/.next

@@ -2,7 +2,7 @@ import React from 'react';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import StatsCards from './components/StatsCards';
-import MatchesList from './components/MatchesList';
+import MatchesListClient from './components/MatchesListClient';
 import MessagesList from './components/MessagesList';
 import Tabs from './components/Tabs';
 import { getDashboardData } from './hooks/useDashboardData';
@@ -23,7 +23,7 @@ export default async function DashboardPage() {
 
         <div className="grid grid-cols-3 gap-6">
           <div className="col-span-2">
-            <MatchesList matches={data?.matches ?? []} />
+            <MatchesListClient initialMatches={data?.matches ?? []} />
             <div className="mt-8">
               <MessagesList messages={data?.messages ?? []} />
             </div>

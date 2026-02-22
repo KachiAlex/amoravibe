@@ -1,0 +1,29 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "./node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String  @id
+  email       String  @unique
+  displayName String?
+  role        String  @default("user")
+  isVerified  Boolean @default(false)
+  banned      Boolean @default(false)
+  createdAt   DateTime @default(now())
+}
+
+model Audit {
+  id        Int      @id @default(autoincrement())
+  timestamp DateTime @default(now())
+  actorId   String
+  action    String
+  targetId  String?
+  message   String?
+  details   String?
+}

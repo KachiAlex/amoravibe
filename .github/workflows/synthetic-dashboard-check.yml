@@ -1,0 +1,27 @@
+name: Synthetic Dashboard Health Check
+
+on:
+  schedule:
+    - cron: '*/5 * * * *' # every 5 minutes
+  workflow_dispatch: {}
+
+jobs:
+  synthetic-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Synthetic check — validate SYNTHETIC_DASHBOARD_URL
+        env:
+          URL: ${{ secrets.SYNTHETIC_DASHBOARD_URL }}
+        run: |
+          if [ -z "$URL" ]; then
+            echo "No SYNTHETIC_DASHBOARD_URL secret configured — skipping synthetic check"
+            exit 0
+          fi
+          echo "Pinging $URL"
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$URL")
+          echo "HTTP status: $HTTP_CODE"
+          if [ "$HTTP_CODE" -ne 200 ]; then
+            echo "Synthetic health check failed (HTTP $HTTP_CODE)"
+            exit 1
+          fi
+          echo "Synthetic health check passed"

@@ -1,4 +1,6 @@
 import type { TrustCenterSnapshotResponse } from '@lovedate/api';
+import { captureMessage } from '@/lib/observability';
+import { increment } from '@/lib/metrics';
 
 /**
  * Lightweight server-side cache for trust snapshots.
@@ -45,6 +47,8 @@ async function getFromUpstash(key: string): Promise<TrustCenterSnapshotResponse 
     }
   } catch (err) {
     console.warn('[trust-cache] upstash read failed', (err as any)?.message ?? String(err));
+    increment('trust.cache.upstash.read_failed', []);
+    try { captureMessage('trust-cache.upstash.read_failed', { key, error: (err as any)?.message ?? String(err) }); } catch (_) {}
     return null;
   }
 }
@@ -57,23 +61,39 @@ async function setToUpstash(key: string, value: TrustCenterSnapshotResponse, ttl
       token: process.env.UPSTASH_REDIS_REST_TOKEN!,
     });
     await redis.set(key, JSON.stringify(value), { ex: ttl });
+  increment('trust.cache.upstash.write', []);
   } catch (err) {
     console.warn('[trust-cache] upstash write failed', (err as any)?.message ?? String(err));
+    increment('trust.cache.upstash.write_failed', []);
+    try { captureMessage('trust-cache.upstash.write_failed', { key, error: (err as any)?.message ?? String(err) }); } catch (_) {}
   }
 }
 
 export async function getCachedSnapshot(userId: string): Promise<TrustCenterSnapshotResponse | null> {
   const key = `${CACHE_PREFIX}${userId}`;
   if (await isUpstashConfigured()) {
-    return await getFromUpstash(key);
+    const result = await getFromUpstash(key);
+    increment('trust.cache.upstash.read', []);
+    if (result) {
+      increment('trust.cache.hit', []);
+    } else {
+      increment('trust.cache.miss', []);
+    }
+    return result;
   }
 
+  // memory cache hit/miss tracking
   const entry = memoryCache.get(key);
-  if (!entry) return null;
-  if (entry.expiresAt < nowSeconds()) {
-    memoryCache.delete(key);
+  if (!entry) {
+    increment('trust.cache.miss', []);
     return null;
   }
+  if (entry.expiresAt < nowSeconds()) {
+    memoryCache.delete(key);
+    increment('trust.cache.miss', []);
+    return null;
+  }
+  increment('trust.cache.hit', []);
   return entry.value;
 }
 
