@@ -1,6 +1,5 @@
 import type { MatchCandidate } from '@lovedate/api';
 import { Badge, Card, PillButton } from '@lovedate/ui';
-import Image from 'next/image';
 import Link from 'next/link';
 import { lovedateApi } from '@/lib/api';
 import { getSession } from '@/lib/session';
@@ -126,51 +125,4 @@ export default async function MatchesPage(props: MatchesPageProps) {
   );
 }
 
-function MatchCard({ match }: { match: MatchCandidate }) {
-  const primaryPhoto = match.photos[0];
-  const compatibilityTone = match.compatibilityScore >= 75 ? 'text-emerald-600' : 'text-ink-700';
-
-  return (
-    <Card className="flex flex-col">
-      {primaryPhoto ? (
-        <div className="relative mb-4 aspect-[4/5] overflow-hidden rounded-3xl bg-sand-100">
-          <Image
-            src={primaryPhoto}
-            alt={`${match.displayName} profile photo`}
-            fill
-            className="object-cover"
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-          />
-        </div>
-      ) : (
-        <div className="mb-4 aspect-[4/5] rounded-3xl bg-gradient-to-br from-ink-900 to-ink-700" />
-      )}
-      <div className="flex flex-1 flex-col">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="font-display text-2xl text-ink-900">{match.displayName}</h2>
-            <p className="text-sm text-ink-600">{match.city}</p>
-          </div>
-          <span className={`text-sm font-semibold ${compatibilityTone}`}>
-            {match.compatibilityScore}% vibe match
-          </span>
-        </div>
-        <p className="mt-3 flex-1 text-sm text-ink-700">
-          {match.bio ?? 'This member prefers to reveal more in chat.'}
-        </p>
-        <div className="mt-4 flex flex-wrap gap-2 text-xs text-ink-600">
-          <Tag label={`Orientation • ${match.orientation}`} />
-          <Tag label={`Discovery • ${match.discoverySpace}`} />
-          <Tag label={match.isVerified ? 'Verified' : 'Pending verification'} />
-        </div>
-        <PillButton className="mt-6">Request intro</PillButton>
-      </div>
-    </Card>
-  );
-}
-
-function Tag({ label }: { label: string }) {
-  return (
-    <span className="rounded-full bg-sand-100 px-3 py-1 font-medium text-ink-700">{label}</span>
-  );
-}
+// Server-side MatchCard fallback removed; client (`MatchCardClient`) handles interactive UI.
