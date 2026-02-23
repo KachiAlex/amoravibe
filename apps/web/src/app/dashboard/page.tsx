@@ -21,16 +21,8 @@ export default async function DashboardPage() {
         <Header userName={data?.userName} />
         <StatsCards stats={data?.stats ?? { matches: 0, chats: 0, views: 0 }} />
 
-        <div className="grid grid-cols-3 gap-6">
-          <div className="col-span-2">
-            <MatchesListClient initialMatches={data?.matches ?? []} />
-            <div className="mt-8">
-              <MessagesList messages={data?.messages ?? []} />
-            </div>
-          </div>
-          <aside className="space-y-6">
-            <Tabs messages={data?.messages ?? []} />
-          </aside>
+        <div>
+          <MatchesListClient initialMatches={data?.matches ?? []} />
         </div>
       </main>
     </div>
