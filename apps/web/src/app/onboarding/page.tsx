@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { setSession } from '@/lib/session';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Heart, Shield, Lock } from 'lucide-react';
@@ -12,7 +13,9 @@ export default function OnboardingPage() {
     const params = new URLSearchParams(window.location.search);
     const userId = params.get('userId');
     if (userId) {
-      void router.push(`/dashboard?userId=${encodeURIComponent(userId)}`);
+      // Set session cookie before redirect
+      setSession({ userId });
+      void router.push(`/dashboard`);
     }
   }, [router]);
 
@@ -72,7 +75,11 @@ export default function OnboardingPage() {
           {/* CTA */}
           <div className="mb-8 space-y-4">
             <button
-              onClick={() => router.push('/dashboard')}
+              onClick={() => {
+                // Optionally set a default session for demo
+                setSession({ userId: 'demo-user' });
+                router.push('/dashboard');
+              }}
               className="w-full rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 px-8 py-3 font-semibold text-white shadow-lg transition hover:shadow-xl hover:scale-105"
             >
               Continue to Dashboard
