@@ -63,7 +63,7 @@ export default function Tabs({ messages }: { messages?: Message[] }) {
 
   return (
     <div>
-      <div role="tablist" aria-label="Dashboard panels" onKeyDown={onKey} className="flex gap-2 mb-4">
+      <div role="tablist" aria-label="Dashboard panels" onKeyDown={onKey} className="flex gap-4 mb-8 justify-center">
         {tabs.map((t, i) => (
           <button
             key={t.id}
@@ -73,8 +73,10 @@ export default function Tabs({ messages }: { messages?: Message[] }) {
             aria-controls={`panel-${t.id}`}
             id={`tab-${t.id}`}
             tabIndex={active === t.id ? 0 : -1}
-            className={`px-3 py-2 rounded-md font-medium focus:outline-none focus:ring-2 focus:ring-fuchsia-200 ${
-              active === t.id ? 'bg-fuchsia-600 text-white' : 'bg-white text-gray-700 hover:bg-fuchsia-50'
+            className={`px-6 py-3 rounded-full font-semibold text-lg shadow transition focus:outline-none focus:ring-2 focus:ring-fuchsia-200 ${
+              active === t.id
+                ? 'bg-gradient-to-r from-fuchsia-500 to-purple-500 text-white scale-105'
+                : 'bg-white text-gray-700 hover:bg-fuchsia-50 border border-gray-200'
             }`}
             onClick={() => setActive(t.id)}
           >
