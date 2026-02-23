@@ -51,7 +51,7 @@ export default function DiscoverPanel() {
       </div>
     </div>
   );
-}
+
 import React, { useState } from "react";
 import dynamic from "next/dynamic";
 
