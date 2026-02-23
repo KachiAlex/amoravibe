@@ -18,10 +18,13 @@ export default async function DashboardPage() {
       </a>
       <Sidebar />
       <main id="dashboard-main" className="flex-1 px-12 py-10" tabIndex={-1}>
+        {/* Welcome Headline */}
         <Header userName={data?.userName} />
+        {/* Stat Cards */}
         <StatsCards stats={data?.stats ?? { matches: 0, chats: 0, views: 0 }} />
-
-        <div>
+        {/* Your Matches Section */}
+        <div className="mt-8">
+          <h2 className="text-xl font-semibold mb-4">Your Matches</h2>
           <MatchesListClient initialMatches={data?.matches ?? []} />
         </div>
       </main>

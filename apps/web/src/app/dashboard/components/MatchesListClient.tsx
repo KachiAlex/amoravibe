@@ -4,9 +4,14 @@ import React, { useEffect, useState } from 'react';
 type Match = {
   id: string;
   name: string;
+  age?: number;
+  jobTitle?: string;
+  location?: string;
   avatar?: string;
-  tagline?: string;
+  bio?: string;
+  interests?: string[];
   matchPercent?: number;
+  isNew?: boolean;
   accepted?: boolean;
 };
 
@@ -75,46 +80,39 @@ export default function MatchesListClient({ initialMatches = [] }: { initialMatc
 
   return (
     <section aria-labelledby="matches-heading">
-      <div className="stat-card p-4">
-        <h2 id="matches-heading" className="text-lg font-semibold mb-4">Matches</h2>
-        {loading && <p className="text-sm text-ink-300">Loading…</p>}
-        <div className="flex gap-6 overflow-x-auto pb-2" style={{scrollSnapType:'x mandatory'}}>
-          {matches.map((m) => (
-            <div
-              key={m.id}
-              className="min-w-[320px] max-w-[340px] bg-white rounded-xl shadow flex flex-col items-center p-6 mr-2 scroll-snap-align-start"
-              style={{scrollSnapAlign:'start'}}
-            >
-              <img src={m.avatar} alt="" className="w-24 h-24 rounded-full object-cover mb-3" />
-              <div className="font-bold text-xl mb-1">{m.name}</div>
-              {m.tagline && <div className="text-md text-ink-400 mb-2">{m.tagline}</div>}
+      {loading && <p className="text-sm text-ink-300">Loading…</p>}
+      <div className="flex gap-8 overflow-x-auto pb-2" style={{scrollSnapType:'x mandatory'}}>
+        {matches.map((m) => (
+          <div
+            key={m.id}
+            className="min-w-[380px] max-w-[400px] bg-white rounded-3xl shadow-lg flex flex-col p-0 mr-4 scroll-snap-align-start relative"
+            style={{scrollSnapAlign:'start'}}>
+            <div className="relative">
+              <img src={m.avatar} alt="" className="w-full h-64 object-cover rounded-t-3xl" />
               {typeof m.matchPercent === 'number' && (
-                <div className="text-sm text-blue-500 mb-2">Match: {m.matchPercent}%</div>
+                <span className="absolute top-4 left-4 bg-fuchsia-500 text-white text-sm font-semibold rounded-full px-4 py-1 shadow">{m.matchPercent}% Match</span>
               )}
-              <div className="flex gap-3 mt-4">
-                {m.accepted ? (
-                  <span className="text-sm text-green-600">Liked</span>
-                ) : (
-                  <>
-                    <button
-                      disabled={acceptingIds.has(m.id)}
-                      onClick={() => handleAccept(m.id)}
-                      className="btn btn-primary px-6 py-2 rounded-full font-semibold"
-                    >
-                      {acceptingIds.has(m.id) ? '...' : 'Like'}
-                    </button>
-                    <button
-                      className="btn btn-outline px-6 py-2 rounded-full font-semibold"
-                      onClick={() => setMatches((prev) => prev.filter((x) => x.id !== m.id))}
-                    >
-                      Pass
-                    </button>
-                  </>
-                )}
-              </div>
+              {m.isNew && (
+                <span className="absolute top-4 right-4 bg-purple-500 text-white text-sm font-semibold rounded-full px-4 py-1 shadow">New Match</span>
+              )}
             </div>
-          ))}
-        </div>
+            <div className="p-6 flex flex-col flex-1">
+              <div className="font-bold text-2xl mb-1">{m.name}{m.age ? `, ${m.age}` : ''}</div>
+              <div className="flex items-center gap-2 text-gray-500 text-sm mb-2">
+                {m.jobTitle && <><span className="inline-block">💼</span> {m.jobTitle}</>}
+                {m.location && <><span className="inline-block">📍</span> {m.location}</>}
+              </div>
+              {m.bio && <div className="text-gray-700 mb-2">{m.bio}</div>}
+              {Array.isArray(m.interests) && m.interests.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {m.interests.map((tag) => (
+                    <span key={tag} className="bg-fuchsia-100 text-fuchsia-700 text-xs font-semibold px-3 py-1 rounded-full">{tag}</span>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        ))}
       </div>
     </section>
   );

@@ -87,59 +87,36 @@ export default function MessagesPanel({ initialMessages = [] }: { initialMessage
 
   return (
     <section aria-label="Messages panel">
-      <h3 className="text-xl font-bold mb-4">Messages</h3>
-      <div className="mb-4 bg-white rounded-xl shadow p-4 flex flex-col gap-2">
-        <textarea
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          placeholder="Write a message..."
-          className="w-full p-3 border rounded-md focus:outline-fuchsia-500 text-base"
-          rows={3}
-        />
-        <div className="flex justify-end mt-2">
-          <button
-            disabled={loading || !text.trim()}
-            onClick={sendMessage}
-            className="px-5 py-2 rounded-full bg-fuchsia-600 text-white font-semibold disabled:opacity-50 transition"
-          >
-            {loading ? 'Sending…' : 'Send'}
-          </button>
+      <div className="flex items-center justify-between mb-6">
+        <h3 className="text-2xl font-bold">Messages</h3>
+        <div className="flex gap-2">
+          <button className="px-5 py-2 rounded-full font-semibold text-white bg-gradient-to-r from-fuchsia-500 to-purple-500 shadow">All</button>
+          <button className="px-5 py-2 rounded-full font-semibold text-fuchsia-700 bg-fuchsia-100 hover:bg-fuchsia-200 shadow">Unread (2)</button>
         </div>
       </div>
-
-      <div className="flex flex-col gap-4 max-h-[400px] overflow-y-auto pr-2">
+      <div className="flex flex-col gap-4">
         {messages.length === 0 && <div className="text-center text-ink-300">No messages yet.</div>}
         {messages.map((m) => (
           <div
             key={m.id}
-            className="bg-white rounded-2xl shadow p-5 flex items-start gap-4 relative group hover:shadow-lg transition"
+            className="bg-white rounded-2xl shadow flex items-center gap-4 p-6 relative group hover:shadow-lg transition"
           >
             <img
               src={m.avatar || 'https://randomuser.me/api/portraits/lego/1.jpg'}
               alt="avatar"
-              className="w-14 h-14 rounded-full object-cover border-2 border-fuchsia-100"
+              className="w-16 h-16 rounded-full object-cover border-2 border-fuchsia-100"
             />
             <div className="flex-1 min-w-0">
               <div className="flex justify-between items-center mb-1">
-                <span className="font-semibold text-lg truncate">{m.from}</span>
+                <span className="font-semibold text-lg truncate flex items-center gap-2">
+                  {m.from}
+                  <span className="inline-block w-3 h-3 bg-green-400 rounded-full" title="Online"></span>
+                </span>
                 <span className="text-xs text-gray-400 ml-2 whitespace-nowrap">{m.time}</span>
               </div>
               <div className="text-base text-gray-700 break-words mb-2">{m.preview || m.text}</div>
-              <div className="flex gap-2 opacity-80 group-hover:opacity-100 transition">
-                <button
-                  className="text-xs px-3 py-1 rounded-full bg-fuchsia-50 text-fuchsia-700 hover:bg-fuchsia-100 font-medium"
-                  onClick={() => setText(`@${m.from} `)}
-                >
-                  Reply
-                </button>
-                <button
-                  className="text-xs px-3 py-1 rounded-full bg-gray-100 text-gray-500 hover:bg-red-100 hover:text-red-600 font-medium"
-                  onClick={() => handleDelete(m.id)}
-                >
-                  Delete
-                </button>
-              </div>
             </div>
+            <span className="absolute top-6 right-6 w-3 h-3 bg-fuchsia-500 rounded-full" title="Unread"></span>
           </div>
         ))}
       </div>
