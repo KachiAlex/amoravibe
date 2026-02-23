@@ -1,4 +1,8 @@
-import React from "react";
+
+import React, { useState } from "react";
+import dynamic from "next/dynamic";
+
+const DiscoverSwipePanel = dynamic(() => import("./DiscoverSwipePanel"), { ssr: false });
 
 export default function DiscoverPanel() {
   return (
@@ -51,13 +55,6 @@ export default function DiscoverPanel() {
       </div>
     </div>
   );
-
-import React, { useState } from "react";
-import dynamic from "next/dynamic";
-
-const DiscoverSwipePanel = dynamic(() => import("./DiscoverSwipePanel"), { ssr: false });
-
-export default function DiscoverPanel() {
   const [showSwipe, setShowSwipe] = useState(false);
 
   if (showSwipe) {
