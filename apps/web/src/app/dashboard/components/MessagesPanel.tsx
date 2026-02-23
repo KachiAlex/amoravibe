@@ -79,28 +79,66 @@ export default function MessagesPanel({ initialMessages = [] }: { initialMessage
     }
   }
 
+  function handleDelete(id: string) {
+    setMessages((prev) => prev.filter((m) => m.id !== id));
+    // Optionally: send delete to server
+    fetch(`/api/messages/${id}`, { method: 'DELETE', credentials: 'same-origin' }).catch(() => {});
+  }
+
   return (
     <section aria-label="Messages panel">
-      <h3 className="text-lg font-bold mb-3">Messages</h3>
-      <div className="mb-3">
-        <textarea value={text} onChange={(e) => setText(e.target.value)} placeholder="Write a message..." className="w-full p-2 border rounded-md" rows={3} />
+      <h3 className="text-xl font-bold mb-4">Messages</h3>
+      <div className="mb-4 bg-white rounded-xl shadow p-4 flex flex-col gap-2">
+        <textarea
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder="Write a message..."
+          className="w-full p-3 border rounded-md focus:outline-fuchsia-500 text-base"
+          rows={3}
+        />
         <div className="flex justify-end mt-2">
-          <button disabled={loading} onClick={sendMessage} className="px-3 py-1 rounded bg-fuchsia-600 text-white disabled:opacity-50">
+          <button
+            disabled={loading || !text.trim()}
+            onClick={sendMessage}
+            className="px-5 py-2 rounded-full bg-fuchsia-600 text-white font-semibold disabled:opacity-50 transition"
+          >
             {loading ? 'Sending…' : 'Send'}
           </button>
         </div>
       </div>
 
-      <div className="space-y-3">
+      <div className="flex flex-col gap-4 max-h-[400px] overflow-y-auto pr-2">
+        {messages.length === 0 && <div className="text-center text-ink-300">No messages yet.</div>}
         {messages.map((m) => (
-          <div key={m.id} className="bg-white rounded-2xl shadow p-4 flex items-start gap-3">
-            <img src={m.avatar || 'https://randomuser.me/api/portraits/lego/1.jpg'} alt={`${m.from} avatar`} className="w-10 h-10 rounded-lg object-cover" />
-            <div>
-              <div className="flex justify-between items-center">
-                <strong>{m.from}</strong>
-                <span className="text-xs text-gray-400">{m.time}</span>
+          <div
+            key={m.id}
+            className="bg-white rounded-2xl shadow p-5 flex items-start gap-4 relative group hover:shadow-lg transition"
+          >
+            <img
+              src={m.avatar || 'https://randomuser.me/api/portraits/lego/1.jpg'}
+              alt="avatar"
+              className="w-14 h-14 rounded-full object-cover border-2 border-fuchsia-100"
+            />
+            <div className="flex-1 min-w-0">
+              <div className="flex justify-between items-center mb-1">
+                <span className="font-semibold text-lg truncate">{m.from}</span>
+                <span className="text-xs text-gray-400 ml-2 whitespace-nowrap">{m.time}</span>
               </div>
-              <p className="text-sm text-gray-700 mt-1">{m.preview || m.text}</p>
+              <div className="text-base text-gray-700 break-words mb-2">{m.preview || m.text}</div>
+              <div className="flex gap-2 opacity-80 group-hover:opacity-100 transition">
+                <button
+                  className="text-xs px-3 py-1 rounded-full bg-fuchsia-50 text-fuchsia-700 hover:bg-fuchsia-100 font-medium"
+                  onClick={() => setText(`@${m.from} `)}
+                >
+                  Reply
+                </button>
+                <button
+                  className="text-xs px-3 py-1 rounded-full bg-gray-100 text-gray-500 hover:bg-red-100 hover:text-red-600 font-medium"
+                  onClick={() => handleDelete(m.id)}
+                >
+                  Delete
+                </button>
+              </div>
             </div>
           </div>
         ))}

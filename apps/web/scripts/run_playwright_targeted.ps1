@@ -1,19 +1,19 @@
 param(
-  [string[]]$Specs = @("e2e/admin-dashboard.spec.ts")
+  [string[]]$Specs = @()
 )
 
 # Move to apps/web root (script lives in apps/web/scripts)
 $webRoot = Split-Path $PSScriptRoot -Parent
 Set-Location $webRoot
 
-$env:PLAYWRIGHT_BASE_URL = 'http://localhost:4000'
+$env:PLAYWRIGHT_BASE_URL = 'https://amoravibe-web-git-feat-dashboard-colors-kachianietie.vercel.app'
 $env:PLAYWRIGHT_START_SERVER = '0'
 
 $specArgs = $Specs -join ' '
 Write-Host "Running Playwright specs: $specArgs"
 
 try {
-  & npx playwright test $specArgs --workers=1 --reporter=list
+  & npx playwright test --workers=1 --reporter=list
   exit $LASTEXITCODE
 } catch {
   Write-Error "Playwright run failed: $_"

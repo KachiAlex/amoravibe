@@ -76,30 +76,45 @@ export default function MatchesListClient({ initialMatches = [] }: { initialMatc
   return (
     <section aria-labelledby="matches-heading">
       <div className="stat-card p-4">
-        <h2 id="matches-heading" className="text-lg font-semibold">Matches</h2>
+        <h2 id="matches-heading" className="text-lg font-semibold mb-4">Matches</h2>
         {loading && <p className="text-sm text-ink-300">Loading…</p>}
-        <ul className="mt-3 space-y-3">
+        <div className="flex gap-6 overflow-x-auto pb-2" style={{scrollSnapType:'x mandatory'}}>
           {matches.map((m) => (
-            <li key={m.id} className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <img src={m.avatar} alt="" className="w-10 h-10 rounded-full object-cover" />
-                <div>
-                  <div className="font-medium">{m.name}</div>
-                  {m.tagline && <div className="text-sm text-ink-300">{m.tagline}</div>}
-                </div>
-              </div>
-              <div>
+            <div
+              key={m.id}
+              className="min-w-[320px] max-w-[340px] bg-white rounded-xl shadow flex flex-col items-center p-6 mr-2 scroll-snap-align-start"
+              style={{scrollSnapAlign:'start'}}
+            >
+              <img src={m.avatar} alt="" className="w-24 h-24 rounded-full object-cover mb-3" />
+              <div className="font-bold text-xl mb-1">{m.name}</div>
+              {m.tagline && <div className="text-md text-ink-400 mb-2">{m.tagline}</div>}
+              {typeof m.matchPercent === 'number' && (
+                <div className="text-sm text-blue-500 mb-2">Match: {m.matchPercent}%</div>
+              )}
+              <div className="flex gap-3 mt-4">
                 {m.accepted ? (
-                  <span className="text-sm text-green-600">Accepted</span>
+                  <span className="text-sm text-green-600">Liked</span>
                 ) : (
-                  <button disabled={acceptingIds.has(m.id)} onClick={() => handleAccept(m.id)} className="btn btn-sm">
-                    {acceptingIds.has(m.id) ? '...' : 'Like'}
-                  </button>
+                  <>
+                    <button
+                      disabled={acceptingIds.has(m.id)}
+                      onClick={() => handleAccept(m.id)}
+                      className="btn btn-primary px-6 py-2 rounded-full font-semibold"
+                    >
+                      {acceptingIds.has(m.id) ? '...' : 'Like'}
+                    </button>
+                    <button
+                      className="btn btn-outline px-6 py-2 rounded-full font-semibold"
+                      onClick={() => setMatches((prev) => prev.filter((x) => x.id !== m.id))}
+                    >
+                      Pass
+                    </button>
+                  </>
                 )}
               </div>
-            </li>
+            </div>
           ))}
-        </ul>
+        </div>
       </div>
     </section>
   );
