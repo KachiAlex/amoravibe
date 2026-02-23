@@ -77,5 +77,5 @@ export default function DiscoverPanel() {
       </div>
     </div>
   );
-}
+
 }
