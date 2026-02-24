@@ -1,53 +1,86 @@
 'use client';
 
-import { useEffect } from 'react';
-import { setSession } from '@/lib/session';
+
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Heart, Shield, Lock } from 'lucide-react';
 
 export default function OnboardingPage() {
   const router = useRouter();
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const params = new URLSearchParams(window.location.search);
-    const userId = params.get('userId');
-    if (userId) {
-      // Set session cookie before redirect
-      setSession({ userId });
-      void router.push(`/dashboard`);
+  const [step, setStep] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  // Step 1: Signup
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  // Step 2: Profile
+  const [name, setName] = useState('');
+  const [age, setAge] = useState('');
+  const [location, setLocation] = useState('');
+  const [job, setJob] = useState('');
+  const [about, setAbout] = useState('');
+  const [interests, setInterests] = useState('');
+
+  async function handleSignup(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    // Call signup API (to be implemented)
+    try {
+      const res = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      if (!res.ok) throw new Error('Signup failed');
+      setStep(2);
+    } catch (err: any) {
+      setError(err.message || 'Signup failed');
+    } finally {
+      setLoading(false);
     }
-  }, [router]);
+  }
+
+  async function handleProfile(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    // Call profile update API (to be implemented)
+    try {
+      const res = await fetch('/api/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, age: Number(age), location, job, about, interests: interests.split(',').map(i => i.trim()) }),
+      });
+      if (!res.ok) throw new Error('Profile update failed');
+      router.push('/dashboard');
+    } catch (err: any) {
+      setError(err.message || 'Profile update failed');
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-gray-900 to-black">
-      {/* Background gradient blobs */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-purple-600/20 blur-3xl" />
         <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-pink-600/20 blur-3xl" />
       </div>
-
-      {/* Content */}
       <div className="relative z-10 flex min-h-screen flex-col items-center justify-center px-4 py-12">
         <div className="mx-auto max-w-2xl text-center">
-          {/* Logo/Icon */}
           <div className="mb-8 flex justify-center">
             <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-purple-600 to-pink-600">
               <Heart className="h-8 w-8 text-white" />
             </div>
           </div>
-
-          {/* Heading */}
           <h1 className="mb-4 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-4xl font-bold text-transparent md:text-5xl">
             Welcome to AmoraVibe
           </h1>
-
-          {/* Subtitle */}
           <p className="mb-8 text-lg text-gray-300">
             The dating platform built on trust, safety, and authentic connection.
           </p>
-
-          {/* Key Points */}
           <div className="mb-12 grid gap-6 md:grid-cols-3">
             <div className="rounded-lg border border-purple-500/20 bg-purple-900/10 p-6 backdrop-blur-sm">
               <Shield className="mb-3 h-8 w-8 text-purple-400 mx-auto" />
@@ -56,7 +89,6 @@ export default function OnboardingPage() {
                 Biometric verification and safety checks protect every member
               </p>
             </div>
-
             <div className="rounded-lg border border-purple-500/20 bg-purple-900/10 p-6 backdrop-blur-sm">
               <Heart className="mb-3 h-8 w-8 text-pink-400 mx-auto" />
               <h3 className="mb-2 font-semibold text-white">Authentic</h3>
@@ -64,37 +96,116 @@ export default function OnboardingPage() {
                 Real people, real connections, and genuine intentions
               </p>
             </div>
-
             <div className="rounded-lg border border-purple-500/20 bg-purple-900/10 p-6 backdrop-blur-sm">
               <Lock className="mb-3 h-8 w-8 text-blue-400 mx-auto" />
               <h3 className="mb-2 font-semibold text-white">Private</h3>
               <p className="text-sm text-gray-400">Your data stays encrypted and in your control</p>
             </div>
           </div>
-
-          {/* CTA */}
           <div className="mb-8 space-y-4">
-            <button
-              onClick={() => {
-                // Optionally set a default session for demo
-                setSession({ userId: 'demo-user' });
-                router.push('/dashboard');
-              }}
-              className="w-full rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 px-8 py-3 font-semibold text-white shadow-lg transition hover:shadow-xl hover:scale-105"
-            >
-              Continue to Dashboard
-            </button>
-
-            <Link
-              href="/"
-              className="block rounded-lg border border-gray-600 px-8 py-3 font-semibold text-gray-300 transition hover:border-gray-400 hover:text-white"
-            >
-              Back to Home
-            </Link>
+            {step === 1 && (
+              <form onSubmit={handleSignup} className="space-y-4 bg-white/10 rounded-xl p-8 shadow-lg">
+                <h2 className="text-xl font-bold text-white mb-4">Sign Up</h2>
+                <input
+                  type="email"
+                  className="w-full rounded-lg px-4 py-3 bg-white/80 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-400"
+                  placeholder="Email"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  required
+                />
+                <input
+                  type="password"
+                  className="w-full rounded-lg px-4 py-3 bg-white/80 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-400"
+                  placeholder="Password"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  required
+                />
+                <button
+                  type="submit"
+                  className="w-full rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 px-8 py-3 font-semibold text-white shadow-lg transition hover:shadow-xl hover:scale-105"
+                  disabled={loading}
+                >
+                  {loading ? 'Signing up...' : 'Sign Up & Continue'}
+                </button>
+                {error && <div className="text-red-400 text-sm mt-2">{error}</div>}
+              </form>
+            )}
+            {step === 2 && (
+              <form onSubmit={handleProfile} className="space-y-4 bg-white/10 rounded-xl p-8 shadow-lg">
+                <h2 className="text-xl font-bold text-white mb-4">Complete Your Profile</h2>
+                <input
+                  type="text"
+                  className="w-full rounded-lg px-4 py-3 bg-white/80 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-400"
+                  placeholder="Full Name"
+                  value={name}
+                  onChange={e => setName(e.target.value)}
+                  required
+                />
+                <input
+                  type="number"
+                  className="w-full rounded-lg px-4 py-3 bg-white/80 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-400"
+                  placeholder="Age"
+                  value={age}
+                  onChange={e => setAge(e.target.value)}
+                  required
+                />
+                <input
+                  type="text"
+                  className="w-full rounded-lg px-4 py-3 bg-white/80 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-400"
+                  placeholder="Location"
+                  value={location}
+                  onChange={e => setLocation(e.target.value)}
+                  required
+                />
+                <input
+                  type="text"
+                  className="w-full rounded-lg px-4 py-3 bg-white/80 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-400"
+                  placeholder="Job Title"
+                  value={job}
+                  onChange={e => setJob(e.target.value)}
+                />
+                <textarea
+                  className="w-full rounded-lg px-4 py-3 bg-white/80 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-400"
+                  placeholder="About Me"
+                  value={about}
+                  onChange={e => setAbout(e.target.value)}
+                  rows={3}
+                />
+                <input
+                  type="text"
+                  className="w-full rounded-lg px-4 py-3 bg-white/80 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-400"
+                  placeholder="Interests (comma separated)"
+                  value={interests}
+                  onChange={e => setInterests(e.target.value)}
+                />
+                <button
+                  type="submit"
+                  className="w-full rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 px-8 py-3 font-semibold text-white shadow-lg transition hover:shadow-xl hover:scale-105"
+                  disabled={loading}
+                >
+                  {loading ? 'Saving...' : 'Finish & Go to Dashboard'}
+                </button>
+                <button
+                  type="button"
+                  className="w-full mt-2 rounded-lg border border-gray-400 px-8 py-3 font-semibold text-gray-300 transition hover:border-gray-200 hover:text-white"
+                  onClick={() => setStep(1)}
+                  disabled={loading}
+                >
+                  Back
+                </button>
+                {error && <div className="text-red-400 text-sm mt-2">{error}</div>}
+              </form>
+            )}
           </div>
-
-          {/* Footer */}
-          <p className="text-xs text-gray-500">
+          <Link
+            href="/"
+            className="block rounded-lg border border-gray-600 px-8 py-3 font-semibold text-gray-300 transition hover:border-gray-400 hover:text-white"
+          >
+            Back to Home
+          </Link>
+          <p className="text-xs text-gray-500 mt-6">
             By continuing, you agree to our Terms of Service and Privacy Policy
           </p>
         </div>

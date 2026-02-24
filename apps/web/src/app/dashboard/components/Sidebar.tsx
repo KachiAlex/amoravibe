@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+"use client";
+"use client";
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 
 const navItems = [
@@ -25,35 +27,36 @@ function Sidebar() {
       </button>
       {/* Sidebar */}
       <aside
-        className={`w-64 bg-gradient-to-b from-purple-50 via-pink-50 to-white border-r border-gray-100 flex flex-col py-8 px-6 shadow-xl animate-fade-in fixed md:static top-0 left-0 h-full z-40 transition-transform duration-300 ${open ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}
+        className={`w-64 bg-white border-r border-gray-100 flex flex-col py-8 px-6 shadow-md animate-fade-in fixed md:static top-0 left-0 h-full z-40 transition-transform duration-300 ${open ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}
         role="navigation"
         aria-label="Dashboard main navigation"
         tabIndex={0}
       >
         <div className="flex items-center gap-2 mb-8">
-          <span className="text-3xl" aria-hidden>
+          <span className="text-3xl drop-shadow" aria-hidden>
             💜
           </span>
-          <span className="font-extrabold text-2xl bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">AmoraVibe</span>
+          <span className="font-extrabold text-2xl bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent drop-shadow-lg">AmoraVibe</span>
         </div>
         <nav className="flex-1 space-y-4" aria-label="Dashboard sections">
           {navItems.map((item) => {
-            const isActive = typeof window !== 'undefined' && window.location.pathname === item.href;
+            const [isActive, setIsActive] = useState(false);
+            useEffect(() => {
+              if (typeof window !== 'undefined') {
+                setIsActive(window.location.pathname === item.href);
+              }
+            }, []);
             return (
               <Link
                 key={item.label}
                 href={item.href}
-                className={`menu-item flex items-center gap-3 px-6 py-3 rounded-full font-semibold text-lg shadow transition focus:outline-none focus:ring-2 focus:ring-fuchsia-200 ${
-                  isActive
-                    ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white scale-105 shadow-lg'
-                    : 'bg-white text-gray-700 hover:bg-pink-50 border border-gray-200'
-                }`}
+                className={`menu-item flex items-center gap-3 px-6 py-3 rounded-full font-semibold text-lg transition focus:outline-none focus:ring-2 focus:ring-fuchsia-200 ${isActive ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg' : 'text-gray-700 hover:bg-pink-50'}`}
                 aria-label={item.label}
                 tabIndex={0}
                 role="menuitem"
                 onClick={() => setOpen(false)}
               >
-                <span className="text-xl" aria-hidden>
+                <span className="text-xl drop-shadow" aria-hidden>
                   {item.icon}
                 </span>
                 <span>{item.label}</span>
@@ -64,9 +67,20 @@ function Sidebar() {
             );
           })}
         </nav>
+        <div className="mt-8 flex flex-col items-center">
+          <button
+            onClick={() => signOut({ callbackUrl: "/auth/signout" })}
+            className="w-full rounded-lg bg-gradient-to-r from-pink-600 to-purple-600 px-6 py-2 font-semibold text-white shadow-lg transition hover:shadow-xl hover:scale-105"
+          >
+            Sign Out
+          </button>
+        </div>
         <button
           className="mt-10 flex items-center gap-2 text-gray-500 hover:text-fuchsia-700 transition focus:outline-none focus:ring-2 focus:ring-fuchsia-200"
           aria-label="Logout"
+          onClick={() => {
+            fetch('/api/auth/signout', { method: 'POST' }).finally(() => { window.location.href = '/'; });
+          }}
         >
           <span aria-hidden>↩️</span>
           <span>Logout</span>

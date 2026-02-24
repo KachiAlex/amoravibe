@@ -1,10 +1,12 @@
 import { NextResponse } from 'next/server';
 import { getSession } from '@/lib/session';
-import { getMatches } from '@/lib/dev-data';
+import prisma from '@/lib/db';
 
-export async function GET() {
-  const session = getSession();
-  if (!session) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
-  const matches = getMatches(session.userId);
-  return NextResponse.json({ matches });
+  // For demo, fetch all matches (replace with auth logic for real app)
+  const matches = await prisma.match.findMany({
+    include: {
+      user: true,
+    },
+  });
+  return NextResponse.json(matches);
 }

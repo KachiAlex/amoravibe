@@ -1,10 +1,13 @@
+
+import DashboardLayout from "../layout";
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
 import StatsCards from '../components/StatsCards';
 
 export default function SettingsPage() {
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-white">
+    <DashboardLayout>
+      <div className="flex min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-white">
       <Sidebar activeTab="settings" />
       <main className="flex-1 px-12 py-10">
         <Header userName="John Doe" />
@@ -46,5 +49,6 @@ export default function SettingsPage() {
         </div>
       </main>
     </div>
+    </DashboardLayout>
   );
 }

@@ -1,12 +1,16 @@
 import { NextResponse } from 'next/server';
 import { getSession } from '@/lib/session';
-import { getMessages, postMessage } from '@/lib/dev-data';
+import prisma from '@/lib/db';
 
-export async function GET() {
-  const session = getSession();
-  if (!session) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
-  const data = getMessages(session.userId);
-  return NextResponse.json({ messages: data });
+  // For demo, fetch all messages (replace with auth logic for real app)
+  const messages = await prisma.message.findMany({
+    include: {
+      from: true,
+      to: true,
+    },
+    orderBy: { createdAt: 'desc' },
+  });
+  return NextResponse.json(messages);
 }
 
 export async function POST(req: Request) {

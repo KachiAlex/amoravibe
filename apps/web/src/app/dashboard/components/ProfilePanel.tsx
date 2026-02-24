@@ -1,16 +1,30 @@
-import React from "react";
+"use client";
+import React, { useEffect, useState } from "react";
+
+type Profile = {
+  name: string;
+  age: number;
+  location: string;
+  job: string;
+  avatar: string;
+  about: string;
+  interests: string[];
+};
 
 export default function ProfilePanel() {
-  // Demo profile data
-  const profile = {
-    name: "John Doe",
-    age: 29,
-    location: "San Francisco, CA",
-    job: "Product Manager",
-    avatar: "https://ui-avatars.com/api/?name=John+Doe&background=F500A3&color=fff&size=128",
-    about: "Passionate about technology and outdoor adventures. Love trying new restaurants and exploring different cultures. Looking for someone to share life's adventures with.",
-    interests: ["Hiking", "Photography", "Travel", "Cooking", "Reading", "Music"],
-  };
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch('/api/profile')
+      .then((res) => res.json())
+      .then((data) => setProfile(data))
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading || !profile) {
+    return <div className="text-center py-12 text-lg text-gray-400">Loading profile...</div>;
+  }
 
   return (
     <div className="flex flex-col gap-8">
@@ -40,7 +54,7 @@ export default function ProfilePanel() {
           Edit Profile
         </button>
         <div className="w-24 h-24 rounded-full bg-gradient-to-r from-fuchsia-500 to-purple-500 flex items-center justify-center text-white text-3xl font-bold mb-3">
-          JD
+          {profile.name.split(' ').map((n) => n[0]).join('')}
         </div>
         <div className="font-bold text-2xl mb-1">{profile.name}, {profile.age}</div>
         <div className="flex items-center gap-4 text-gray-500 mb-2">

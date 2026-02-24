@@ -14,7 +14,9 @@ export default function DiscoverPage() {
           <StatsCards stats={{ matches: 24, chats: 18, views: 156 }} />
         </div>
         <h2 className="text-3xl font-bold mb-8">Discover New People</h2>
+      <DashboardLayout>
         <DiscoverPanel />
+      </DashboardLayout>
       </main>
     </div>
   );

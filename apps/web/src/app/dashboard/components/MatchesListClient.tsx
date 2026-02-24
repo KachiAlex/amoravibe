@@ -35,7 +35,7 @@ export default function MatchesListClient({ initialMatches = [] }: { initialMatc
       const res = await fetch(`${API_BASE}/matches`, { credentials: 'include' });
       if (!res.ok) throw new Error('Failed');
       const data = await res.json();
-      setMatches(data.matches || []);
+      setMatches(Array.isArray(data) ? data : []);
     } catch (e) {
       // ignore for now
     } finally {
