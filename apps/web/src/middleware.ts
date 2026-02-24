@@ -59,9 +59,19 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  // Protect dashboard routes: redirect to sign-in when no session cookie is present
+  if (pathname.startsWith('/dashboard')) {
+    const token = request.cookies.get('next-auth.session-token') || request.cookies.get('__Secure-next-auth.session-token');
+    if (!token) {
+      const signInUrl = new URL('/auth/signin', request.url);
+      signInUrl.searchParams.set('from', pathname);
+      return NextResponse.redirect(signInUrl);
+    }
+  }
+
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ['/api/trust/:path*'],
+  matcher: ['/api/trust/:path*', '/dashboard/:path*', '/dashboard'],
 };
