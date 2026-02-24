@@ -110,7 +110,22 @@ export default function MatchesListClient({ initialMatches = [] }: { initialMatc
                   ))}
                 </div>
               )}
-            </div>
+              </div>
+              <div className="p-4 border-t border-gray-100 flex items-center gap-3">
+                <button
+                  onClick={() => handleAccept(m.id)}
+                  disabled={acceptingIds.has(m.id) || m.accepted}
+                  className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-2 rounded-full font-semibold shadow hover:from-purple-700 hover:to-pink-700 disabled:opacity-60"
+                >
+                  {m.accepted ? 'Accepted' : acceptingIds.has(m.id) ? 'Accepting…' : 'Like'}
+                </button>
+                <button
+                  onClick={() => setMatches((prev) => prev.filter((x) => x.id !== m.id))}
+                  className="px-4 py-2 rounded-full border border-gray-200 text-gray-700 hover:bg-gray-50"
+                >
+                  Pass
+                </button>
+              </div>
           </div>
         ))}
       </div>
