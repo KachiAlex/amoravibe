@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import { getSession } from '@/lib/session';
 import prisma from '@/lib/db';
 
+export async function GET(req: Request) {
   // For demo, count all matches and messages (replace with auth logic for real app)
   const matchesCount = await prisma.match.count();
   const messagesCount = await prisma.message.count();
@@ -9,6 +9,6 @@ import prisma from '@/lib/db';
   return NextResponse.json({
     matches: matchesCount,
     chats: messagesCount,
-    views: 0
+    views: 0,
   });
 }

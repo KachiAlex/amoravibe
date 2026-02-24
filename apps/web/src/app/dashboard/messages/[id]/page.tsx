@@ -47,11 +47,11 @@ export default function ChatPage({ params }: { params: { id: string } }) {
   // Add delivered/read status for demo
   const [localMessages, setLocalMessages] = useState(
     chat
-      ? chat.messages.map((m, i) =>
-          m.fromMe
-            ? { ...m, delivered: true, read: i === chat.messages.length - 1 } // last sent message is read
-            : m
-        )
+      ? chat.messages.map((m, i) => ({
+          ...m,
+          delivered: m.fromMe ? true : false,
+          read: m.fromMe ? i === chat.messages.length - 1 : false,
+        }))
       : []
   );
   if (!chat) return notFound();

@@ -5,13 +5,13 @@ import { PillButton } from '@lovedate/ui';
 
 type MatchCandidate = {
   id: string;
-  displayName: string;
-  city?: string;
-  photos: string[];
-  compatibilityScore: number;
+  displayName?: string;
+  city?: string | null;
+  photos?: string[];
+  compatibilityScore?: number;
   bio?: string | null;
-  orientation?: string;
-  discoverySpace?: string;
+  orientation?: string | null;
+  discoverySpace?: string | null;
   isVerified?: boolean;
   mutual?: boolean;
 };
@@ -20,7 +20,7 @@ export default function MatchCardClient({ match }: { match: MatchCandidate }) {
   const [busy, setBusy] = useState(false);
   const [liked, setLiked] = useState(false);
   const primaryPhoto = match.photos && match.photos.length ? match.photos[0] : null;
-  const compatibilityTone = match.compatibilityScore >= 75 ? 'text-emerald-600' : 'text-ink-700';
+  const compatibilityTone = (match.compatibilityScore ?? 0) >= 75 ? 'text-emerald-600' : 'text-ink-700';
 
   const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || '/api';
 
@@ -76,11 +76,11 @@ export default function MatchCardClient({ match }: { match: MatchCandidate }) {
       <div className="flex flex-1 flex-col">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="font-display text-2xl text-ink-900">{match.displayName}</h2>
+            <h2 className="font-display text-2xl text-ink-900">{match.displayName ?? ''}</h2>
             <p className="text-sm text-ink-600">{match.city}</p>
           </div>
-          <div className="flex items-center gap-3">
-            <span className={`text-sm font-semibold ${compatibilityTone}`}>{match.compatibilityScore}% vibe</span>
+            <div className="flex items-center gap-3">
+            <span className={`text-sm font-semibold ${compatibilityTone}`}>{(match.compatibilityScore ?? 0)}% vibe</span>
             {match.mutual ? <span className="rounded-full bg-emerald-50 px-3 py-1 text-emerald-700 text-xs">Mutual</span> : null}
           </div>
         </div>
@@ -96,7 +96,7 @@ export default function MatchCardClient({ match }: { match: MatchCandidate }) {
         <div className="mt-6 flex gap-3">
           <PillButton onClick={handleLike} disabled={busy} className="flex-1">{liked ? 'Liked' : 'Request intro'}</PillButton>
           <PillButton variant="outline" onClick={handleUnmatch} disabled={busy}>Unmatch</PillButton>
-          <PillButton variant="ghost" onClick={handleReport} disabled={busy}>Report</PillButton>
+          <PillButton variant="outline" onClick={handleReport} disabled={busy}>Report</PillButton>
         </div>
       </div>
     </div>

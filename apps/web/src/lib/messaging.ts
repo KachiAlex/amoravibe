@@ -194,7 +194,7 @@ function buildThread(persona: ThreadPersona, laneIndex: number, hash: number): M
   const status = deterministicPick(STATUS_VARIANTS, baseSeed + persona.id.length);
   const replies = deterministicPick(QUICK_REPLY_LIBRARY, baseSeed + 3);
   const lastActive = deterministicPick(RELATIVE_WINDOWS, baseSeed + 5);
-  const unread = baseSeed % 4 === 0 ? 2 : baseSeed % 5 === 0 ? 1 : 0;
+  const unreadCount = baseSeed % 4 === 0 ? 2 : baseSeed % 5 === 0 ? 1 : 0;
 
   return {
     id: persona.id,
@@ -202,7 +202,7 @@ function buildThread(persona: ThreadPersona, laneIndex: number, hash: number): M
     snippet,
     vibeLine,
     lastActive,
-    unread,
+    unread: unreadCount > 0,
     avatar: persona.avatar,
     route: persona.route,
     status,

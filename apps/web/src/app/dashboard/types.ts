@@ -9,9 +9,9 @@ export type Match = {
 export type Message = {
   id: string;
   from: string;
-  avatar: string;
-  preview: string;
-  time: string;
+  avatar?: string;
+  preview?: string;
+  time?: string;
 };
 
 export type DashboardData = {

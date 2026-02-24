@@ -1,6 +1,7 @@
 "use client";
-"use client";
 import React, { useState, useEffect } from 'react';
+import { signOut } from 'next-auth/react';
+import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 
 const navItems = [
@@ -11,8 +12,9 @@ const navItems = [
   { label: 'Settings', icon: '⚙️', href: '/dashboard/settings' },
 ];
 
-function Sidebar() {
+function Sidebar({ activeTab }: { activeTab?: string }) {
   const [open, setOpen] = useState(false);
+  const pathname = usePathname();
   return (
     <>
       {/* Mobile sidebar toggle */}
@@ -39,33 +41,28 @@ function Sidebar() {
           <span className="font-extrabold text-2xl bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent drop-shadow-lg">AmoraVibe</span>
         </div>
         <nav className="flex-1 space-y-4" aria-label="Dashboard sections">
-          {navItems.map((item) => {
-            const [isActive, setIsActive] = useState(false);
-            useEffect(() => {
-              if (typeof window !== 'undefined') {
-                setIsActive(window.location.pathname === item.href);
-              }
-            }, []);
-            return (
-              <Link
-                key={item.label}
-                href={item.href}
-                className={`menu-item flex items-center gap-3 px-6 py-3 rounded-full font-semibold text-lg transition focus:outline-none focus:ring-2 focus:ring-fuchsia-200 ${isActive ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg' : 'text-gray-700 hover:bg-pink-50'}`}
-                aria-label={item.label}
-                tabIndex={0}
-                role="menuitem"
-                onClick={() => setOpen(false)}
-              >
-                <span className="text-xl drop-shadow" aria-hidden>
-                  {item.icon}
-                </span>
-                <span>{item.label}</span>
-                {item.badge && (
-                  <span className="ml-auto bg-fuchsia-500 text-white text-xs rounded-full px-2 py-0.5" aria-label="Unread messages badge" role="status">{item.badge}</span>
-                )}
-              </Link>
-            );
-          })}
+            {navItems.map((item) => {
+              const isActive = (activeTab ? activeTab === item.href : pathname === item.href);
+              return (
+                <Link
+                  key={item.label}
+                  href={item.href}
+                  className={`menu-item flex items-center gap-3 px-6 py-3 rounded-full font-semibold text-lg transition focus:outline-none focus:ring-2 focus:ring-fuchsia-200 ${isActive ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg' : 'text-gray-700 hover:bg-pink-50'}`}
+                  aria-label={item.label}
+                  tabIndex={0}
+                  role="menuitem"
+                  onClick={() => setOpen(false)}
+                >
+                  <span className="text-xl drop-shadow" aria-hidden>
+                    {item.icon}
+                  </span>
+                  <span>{item.label}</span>
+                  {item.badge && (
+                    <span className="ml-auto bg-fuchsia-500 text-white text-xs rounded-full px-2 py-0.5" aria-label="Unread messages badge" role="status">{item.badge}</span>
+                  )}
+                </Link>
+              );
+            })}
         </nav>
         <div className="mt-8 flex flex-col items-center">
           <button

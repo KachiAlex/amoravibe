@@ -21,6 +21,15 @@ export async function PATCH(req: Request) {
   const session = getSession();
   if (!session) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
   const body = await req.json().catch(() => ({}));
-  const updated = updateProfile(session.userId, body || {});
+  const data: any = {};
+  if (body.name !== undefined) data.name = body.name;
+  if (body.age !== undefined) data.age = body.age;
+  if (body.location !== undefined) data.location = body.location;
+  if (body.job !== undefined) data.job = body.job;
+  if (body.avatar !== undefined) data.avatar = body.avatar;
+  if (body.about !== undefined) data.about = body.about;
+  if (body.interests !== undefined) data.interests = body.interests;
+
+  const updated = await prisma.user.update({ where: { id: session.userId }, data });
   return NextResponse.json({ profile: updated });
 }

@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { signIn } from 'next-auth/react';
 import { AnimatePresence, motion } from 'motion/react';
 import { CheckCircle2, Loader2, Lock, Mail, Phone, X } from 'lucide-react';
 
@@ -68,31 +69,50 @@ export function SignInModal({ isOpen, onClose }: SignInModalProps) {
     setError(null);
 
     try {
-      const payload = {
-        email: form.mode === 'email' ? form.email.trim() : undefined,
-        phone: form.mode === 'phone' ? form.phone.trim() : undefined,
-        password: form.password,
-      };
+      if (form.mode === 'email') {
+        // Use NextAuth credentials sign-in for email/password
+        const res = await signIn('credentials', {
+          redirect: false,
+          email: form.email.trim(),
+          password: form.password,
+        });
 
-      const response = await fetch('/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
+        if (!res || !res.ok) {
+          throw new Error(res?.error ?? 'Invalid email or password.');
+        }
 
-      if (!response.ok) {
-        throw new Error(
-          (await response.json().catch(() => null))?.message ?? 'Invalid credentials.'
-        );
+        setSuccess('Welcome back! Redirecting…');
+        setTimeout(() => {
+          setSuccess(null);
+          onClose();
+          router.push('/dashboard');
+        }, 900);
+      } else {
+        // Phone mode: fall back to legacy /api/login behavior
+        const payload = {
+          email: undefined,
+          phone: form.phone.trim(),
+          password: form.password,
+        };
+
+        const response = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+
+        if (!response.ok) {
+          throw new Error((await response.json().catch(() => null))?.message ?? 'Invalid credentials.');
+        }
+
+        const result = await response.json();
+        setSuccess(`Welcome back, ${result.user.displayName}! Redirecting…`);
+        setTimeout(() => {
+          setSuccess(null);
+          onClose();
+          router.push(result.nextRoute ?? '/dashboard');
+        }, 1100);
       }
-
-      const result = await response.json();
-      setSuccess(`Welcome back, ${result.user.displayName}! Redirecting…`);
-      setTimeout(() => {
-        setSuccess(null);
-        onClose();
-        router.push(result.nextRoute ?? '/dashboard');
-      }, 1100);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unable to sign you in.');
     } finally {

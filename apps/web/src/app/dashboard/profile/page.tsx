@@ -1,5 +1,6 @@
 
 import Sidebar from '../components/Sidebar';
+import DashboardLayout from '../layout';
 import ProfilePanel from '../components/ProfilePanel';
 
 export default function ProfilePage() {

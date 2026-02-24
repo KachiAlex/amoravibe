@@ -1,5 +1,6 @@
 
 import Sidebar from '../components/Sidebar';
+import DashboardLayout from '../layout';
 import Header from '../components/Header';
 import StatsCards from '../components/StatsCards';
 import DiscoverPanel from '../components/DiscoverPanel';

@@ -29,7 +29,7 @@ export default function Tabs({ messages }: { messages?: Message[] }) {
   ];
 
   const [active, setActive] = useState<string>(tabs[0].id);
-  const btnRefs = useRef<Array<HTMLButtonElement | null>>([]);
+  const btnRefs = useRef<(HTMLButtonElement | null)[]>([]) as React.MutableRefObject<(HTMLButtonElement | null)[]>;
 
   useEffect(() => {
     // ensure the active tab button is focused when changed programmatically
@@ -67,7 +67,7 @@ export default function Tabs({ messages }: { messages?: Message[] }) {
         {tabs.map((t, i) => (
           <button
             key={t.id}
-            ref={(el) => (btnRefs.current[i] = el)}
+            ref={(el) => { btnRefs.current[i] = el; }}
             role="tab"
             aria-selected={active === t.id}
             aria-controls={`panel-${t.id}`}

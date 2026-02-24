@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getSession } from '@/lib/session';
 import prisma from '@/lib/db';
 
+export async function GET(req: Request) {
   // For demo, fetch all messages (replace with auth logic for real app)
   const messages = await prisma.message.findMany({
     include: {
@@ -18,6 +19,14 @@ export async function POST(req: Request) {
   if (!session) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
   const body = await req.json().catch(() => ({}));
   if (!body.text) return NextResponse.json({ error: 'Missing text' }, { status: 400 });
-  const created = postMessage(session.userId, { to: body.to, text: body.text });
+
+  const created = await prisma.message.create({
+    data: {
+      text: body.text,
+      fromId: session.userId,
+      toId: body.to ?? null,
+    },
+  });
+
   return NextResponse.json({ message: created }, { status: 201 });
 }

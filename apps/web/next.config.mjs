@@ -11,6 +11,8 @@ const allowedOrigins = [
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   experimental: {
+    // Allow ESM externals to be imported by webpack (helps ESM-only packages like `jose`)
+    esmExternals: 'loose',
     serverActions: {
       allowedOrigins,
     },

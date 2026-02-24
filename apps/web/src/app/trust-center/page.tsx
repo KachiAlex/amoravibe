@@ -6,7 +6,7 @@ import PrivacyActionsPanel from './privacy-actions-panel';
 
 export const dynamic = 'force-dynamic';
 
-const fallbackPreview: TrustPreviewResponse = {
+const fallbackPreview: any = {
   snapshotLabel: 'Lovedate · Phase 5',
   stats: {
     verificationPassRate: 92,
@@ -76,7 +76,7 @@ async function getTrustPreview(): Promise<TrustPreviewResponse | null> {
 }
 
 export default async function TrustCenterPage() {
-  const preview = (await getTrustPreview()) ?? fallbackPreview;
+  const preview = ((await getTrustPreview()) ?? fallbackPreview) as any;
 
   const heroStats = [
     { label: 'Verification pass', value: `${preview.stats.verificationPassRate}%` },
@@ -84,7 +84,7 @@ export default async function TrustCenterPage() {
     { label: 'Export SLA', value: `< ${preview.stats.exportSlaHours}h` },
   ];
 
-  const journeyStages = preview.journey.map((step, index) => ({
+  const journeyStages = preview.journey.map((step: any, index: number) => ({
     order: String(index + 1).padStart(2, '0'),
     theme: stageThemes[index % stageThemes.length],
     anchor: `stage-${step.id}`,
@@ -170,7 +170,7 @@ export default async function TrustCenterPage() {
             </div>
           </div>
           <div className="grid gap-6 lg:grid-cols-2">
-            {journeyStages.map((stage, index) => {
+            {journeyStages.map((stage: any, index: number) => {
               const nextStage = journeyStages[index + 1]?.anchor;
               const nextHref = nextStage ? `#${nextStage}` : '/dashboard?section=home#top';
               return (
@@ -221,7 +221,7 @@ export default async function TrustCenterPage() {
               <Badge tone="primary">Live data</Badge>
             </div>
             <div className="grid gap-6 lg:grid-cols-3">
-              {preview.highlights.map((highlight) => (
+              {preview.highlights.map((highlight: any) => (
                 <div
                   key={highlight.title}
                   className="rounded-3xl border border-ink-100 bg-white/90 p-5 shadow-[0_12px_35px_rgba(15,23,42,0.08)]"

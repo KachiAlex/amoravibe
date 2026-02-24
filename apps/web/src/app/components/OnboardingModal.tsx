@@ -10,6 +10,7 @@ import {
   type ReactNode,
 } from 'react';
 import { useRouter } from 'next/navigation';
+import { signIn } from 'next-auth/react';
 import { AnimatePresence, motion } from 'motion/react';
 import {
   ArrowLeft,
@@ -525,9 +526,21 @@ export function OnboardingModal({ isOpen, onClose }: OnboardingModalProps) {
 
       // Attempt to establish a server session so subsequent navigation sees the user as logged in.
       try {
-        if (formData.email || formData.phone) {
+        if (formData.email) {
+          // Use NextAuth credentials sign-in when an email/password was provided
+          const res = await signIn('credentials', {
+            redirect: false,
+            email: formData.email.trim(),
+            password: formData.password,
+          });
+
+          if (!res || !res.ok) {
+            console.warn('Auto-login after onboarding failed (next-auth)', res?.error ?? 'unknown');
+          }
+        } else if (formData.phone) {
+          // Legacy phone-based/session flow
           const loginPayload = {
-            email: formData.email || undefined,
+            email: undefined,
             phone: formData.phone || undefined,
             password: formData.password,
           };
@@ -539,7 +552,7 @@ export function OnboardingModal({ isOpen, onClose }: OnboardingModalProps) {
           });
 
           if (!loginResp.ok) {
-            console.warn('Auto-login after onboarding failed', await loginResp.text().catch(() => '')); 
+            console.warn('Auto-login after onboarding failed', await loginResp.text().catch(() => ''));
           }
         }
       } catch (err) {
