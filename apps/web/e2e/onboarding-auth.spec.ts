@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 const BASE = process.env.BASE_URL ?? 'http://localhost:4000';
 
 test('onboarding signup -> complete profile -> redirect to dashboard, then sign out and sign back in', async ({ page }) => {
-  const email = 'tester+bot+2026@example.com';
+  const email = `tester+bot+${Date.now()}@example.com`;
   const password = 'TestPass123!';
 
   // Start at onboarding (signup)
@@ -14,7 +14,7 @@ test('onboarding signup -> complete profile -> redirect to dashboard, then sign 
   await page.fill('input[type="password"]', password);
   // Click signup and wait for the signup API response (longer timeout for dev server)
   await Promise.all([
-    page.waitForResponse(r => r.url().includes('/api/auth/signup') && r.status() === 200, { timeout: 30000 }).catch(() => {}),
+    page.waitForResponse(r => r.url().includes('/api/auth/signup') && r.status() >= 200 && r.status() < 400, { timeout: 30000 }).catch(() => {}),
     page.click('text=Sign Up & Continue'),
   ]);
 

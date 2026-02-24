@@ -3,6 +3,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { signIn } from 'next-auth/react';
 import Link from 'next/link';
 import { Heart, Shield, Lock } from 'lucide-react';
 
@@ -34,7 +35,10 @@ export default function OnboardingPage() {
         body: JSON.stringify({ email, password }),
       });
       if (!res.ok) throw new Error('Signup failed');
-      setStep(2);
+        // After successful signup, sign the user in so subsequent profile API calls are authenticated
+        const signin = await signIn('credentials', { redirect: false, email, password });
+        if ((signin as any)?.error) throw new Error('Signin after signup failed');
+        setStep(2);
     } catch (err: any) {
       setError(err.message || 'Signup failed');
     } finally {
@@ -51,6 +55,7 @@ export default function OnboardingPage() {
       const res = await fetch('/api/profile', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ name, age: Number(age), location, job, about, interests: interests.split(',').map(i => i.trim()) }),
       });
       if (!res.ok) throw new Error('Profile update failed');
