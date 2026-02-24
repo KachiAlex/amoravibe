@@ -1,5 +1,6 @@
 "use client"
 import React, { useEffect, useState } from 'react';
+import { signIn } from 'next-auth/react';
 
 type Message = {
   id: string;
@@ -70,7 +71,8 @@ export default function MessagesPanel({ initialMessages = [] }: { initialMessage
       // if unauthorized, try a one-time re-login and retry once
       if (res.status === 401) {
         try {
-          await fetch('/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin', body: JSON.stringify({ username: 'guest' }) });
+          // Try quick guest sign-in via NextAuth credentials
+          await signIn('credentials', { redirect: false, username: 'guest' });
           res = await fetch('/api/messages', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -80,6 +82,7 @@ export default function MessagesPanel({ initialMessages = [] }: { initialMessage
         } catch (e) {
           // fall through to error handling below
         }
+      }
       }
 
       const body = await res.json().catch(() => ({}));

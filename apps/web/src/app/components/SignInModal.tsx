@@ -88,29 +88,22 @@ export function SignInModal({ isOpen, onClose }: SignInModalProps) {
           router.push('/dashboard');
         }, 900);
       } else {
-        // Phone mode: fall back to legacy /api/login behavior
-        const payload = {
-          email: undefined,
+        // Phone mode: use NextAuth credentials (phone + password)
+        const res = await signIn('credentials', {
+          redirect: false,
           phone: form.phone.trim(),
           password: form.password,
-        };
-
-        const response = await fetch('/api/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
         });
 
-        if (!response.ok) {
-          throw new Error((await response.json().catch(() => null))?.message ?? 'Invalid credentials.');
+        if (!res || !res.ok) {
+          throw new Error(res?.error ?? 'Invalid phone or password.');
         }
 
-        const result = await response.json();
-        setSuccess(`Welcome back, ${result.user.displayName}! Redirecting…`);
+        setSuccess('Welcome back! Redirecting…');
         setTimeout(() => {
           setSuccess(null);
           onClose();
-          router.push(result.nextRoute ?? '/dashboard');
+          router.push('/dashboard');
         }, 1100);
       }
     } catch (err) {

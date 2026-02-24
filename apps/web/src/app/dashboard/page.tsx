@@ -2,7 +2,7 @@ import React from 'react';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import StatsCards from './components/StatsCards';
-import MatchesListClient from './components/MatchesListClient';
+import MatchesGrid from './components/MatchesGrid';
 import MessagesList from './components/MessagesList';
 import Tabs from './components/Tabs';
 import { getDashboardData } from './hooks/useDashboardData';
@@ -23,7 +23,7 @@ export default async function DashboardPage() {
           {/* Your Matches Section */}
           <div className="mt-8">
             <h2 className="text-xl font-semibold mb-4">Your Matches</h2>
-            <MatchesListClient initialMatches={data?.matches ?? []} />
+            <MatchesGrid matches={data?.matches ?? []} />
           </div>
         </main>
       </div>

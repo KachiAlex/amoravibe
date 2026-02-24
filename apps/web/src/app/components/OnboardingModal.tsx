@@ -538,21 +538,18 @@ export function OnboardingModal({ isOpen, onClose }: OnboardingModalProps) {
             console.warn('Auto-login after onboarding failed (next-auth)', res?.error ?? 'unknown');
           }
         } else if (formData.phone) {
-          // Legacy phone-based/session flow
-          const loginPayload = {
-            email: undefined,
-            phone: formData.phone || undefined,
-            password: formData.password,
-          };
-
-          const loginResp = await fetch('/api/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(loginPayload),
-          });
-
-          if (!loginResp.ok) {
-            console.warn('Auto-login after onboarding failed', await loginResp.text().catch(() => ''));
+          // Use NextAuth credentials for phone-based auto-login
+          try {
+            const res = await signIn('credentials', {
+              redirect: false,
+              phone: formData.phone || undefined,
+              password: formData.password,
+            });
+            if (!res || !res.ok) {
+              console.warn('Auto-login after onboarding failed (next-auth)', res?.error ?? 'unknown');
+            }
+          } catch (e) {
+            console.warn('Auto-login after onboarding failed', e);
           }
         }
       } catch (err) {
