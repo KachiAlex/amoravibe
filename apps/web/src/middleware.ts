@@ -60,10 +60,11 @@ export async function middleware(request: NextRequest) {
   }
 
   // Protect dashboard routes: redirect to sign-in when no session cookie is present
-  if (pathname.startsWith('/dashboard')) {
+    if (pathname.startsWith('/dashboard')) {
     const token = request.cookies.get('next-auth.session-token') || request.cookies.get('__Secure-next-auth.session-token');
     if (!token) {
-      const signInUrl = new URL('/auth/signin', request.url);
+      const signInUrl = new URL('/', request.url);
+      signInUrl.searchParams.set('openSignIn', '1');
       signInUrl.searchParams.set('from', pathname);
       return NextResponse.redirect(signInUrl);
     }

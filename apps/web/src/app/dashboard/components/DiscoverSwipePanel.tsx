@@ -23,19 +23,23 @@ export default function DiscoverSwipePanel({ onBack }: { onBack?: () => void }) 
     }
   }, [profiles, nextCursor, loading]);
 
-  function handleLike() {
+  async function handleLike() {
     if (!profiles[idx]) return;
     try {
       setHistory(h => [...h, { ...profiles[idx], action: 'like' }]);
+      const id = profiles[idx].id;
+      await fetch(`/api/matches/${id}/like`, { method: 'POST', credentials: 'include' });
       nextProfile('like');
     } catch (e) {
       setError('Failed to like profile.');
     }
   }
-  function handlePass() {
+  async function handlePass() {
     if (!profiles[idx]) return;
     try {
       setHistory(h => [...h, { ...profiles[idx], action: 'pass' }]);
+      const id = profiles[idx].id;
+      await fetch(`/api/matches/${id}/pass`, { method: 'POST', credentials: 'include' });
       nextProfile('pass');
     } catch (e) {
       setError('Failed to pass profile.');

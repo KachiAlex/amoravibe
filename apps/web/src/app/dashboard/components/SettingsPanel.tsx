@@ -1,61 +1,60 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import SettingsTab from "./SettingsTab";
+import SettingsDeleteModal from "./SettingsDeleteModal";
 
-export default function SettingsPanel() {
-  return (
-    <div className="flex flex-col gap-6">
-      {/* Stat Cards */}
-      <div className="flex gap-6 mt-2 mb-6">
-        <div className="bg-white rounded-xl shadow p-5 flex-1 flex flex-col items-center">
-          <div className="text-fuchsia-600 text-2xl mb-1">24</div>
-          <div className="font-semibold text-gray-700">Total Matches</div>
-          <div className="text-green-500 text-xs mt-1">+12 this week</div>
-        </div>
-        <div className="bg-white rounded-xl shadow p-5 flex-1 flex flex-col items-center">
-          <div className="text-fuchsia-600 text-2xl mb-1">18</div>
-          <div className="font-semibold text-gray-700">Active Chats</div>
-          <div className="text-green-500 text-xs mt-1">+5 today</div>
-        </div>
-        <div className="bg-white rounded-xl shadow p-5 flex-1 flex flex-col items-center">
-          <div className="text-fuchsia-600 text-2xl mb-1">156</div>
-          <div className="font-semibold text-gray-700">Profile Views</div>
-          <div className="text-purple-500 text-xs mt-1">Top 10%</div>
-        </div>
-      </div>
+  const [settings, setSettings] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string|null>(null);
+  const [showDelete, setShowDelete] = useState(false);
 
-      {/* Settings Section */}
-      <div className="px-2">
-        <h2 className="text-2xl font-bold mb-6">Settings</h2>
-        <div className="bg-white rounded-2xl shadow p-6 mb-6">
-          <h3 className="text-lg font-semibold mb-4">Account Settings</h3>
-          <div className="flex flex-col gap-3">
-            <button className="flex justify-between items-center w-full bg-transparent border-none text-left text-base text-fuchsia-700 hover:bg-fuchsia-50 rounded-lg px-4 py-3 cursor-pointer">
-              <span>Email & Password</span>
-              <span>&rarr;</span>
-            </button>
-            <button className="flex justify-between items-center w-full bg-transparent border-none text-left text-base text-fuchsia-700 hover:bg-fuchsia-50 rounded-lg px-4 py-3 cursor-pointer">
-              <span>Privacy Settings</span>
-              <span>&rarr;</span>
-            </button>
-            <button className="flex justify-between items-center w-full bg-transparent border-none text-left text-base text-fuchsia-700 hover:bg-fuchsia-50 rounded-lg px-4 py-3 cursor-pointer">
-              <span>Notifications</span>
-              <span>&rarr;</span>
-            </button>
-          </div>
-        </div>
-        <div className="bg-white rounded-2xl shadow p-6">
-          <h3 className="text-lg font-semibold mb-4">Preferences</h3>
-          <div className="flex flex-col gap-3">
-            <button className="flex justify-between items-center w-full bg-transparent border-none text-left text-base text-fuchsia-700 hover:bg-fuchsia-50 rounded-lg px-4 py-3 cursor-pointer">
-              <span>Theme</span>
-              <span>&rarr;</span>
-            </button>
-            <button className="flex justify-between items-center w-full bg-transparent border-none text-left text-base text-fuchsia-700 hover:bg-fuchsia-50 rounded-lg px-4 py-3 cursor-pointer">
-              <span>Language</span>
-              <span>&rarr;</span>
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+  useEffect(() => {
+    fetch('/api/settings')
+      .then((res) => res.json())
+      .then((data) => setSettings(data.settings))
+      .catch(() => setError('Failed to load settings'))
+      .finally(() => setLoading(false));
+  }, []);
+
+  function handleSave(updated: any) {
+    fetch('/api/settings', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updated),
+    })
+      .then((res) => res.json())
+      .then((data) => setSettings(data.settings))
+      .catch(() => setError('Failed to update settings'));
+  }
+
+  function handleDelete() {
+    setShowDelete(true);
+  }
+
+  async function confirmDelete() {
+    setShowDelete(false);
+    try {
+      const res = await fetch('/api/profile/delete', { method: 'DELETE' });
+      if (res.ok) {
+        alert('Account deleted. You will be logged out.');
+        // Optionally redirect or log out
+        window.location.href = '/logout';
+      } else {
+        const data = await res.json();
+        alert(data.error || 'Failed to delete account');
+      }
+    } catch {
+      alert('Failed to delete account');
+    }
+  }
+
+  if (loading) return <div className="text-center py-12 text-lg text-gray-400">Loading settings...</div>;
+  if (error) return <div className="text-center py-12 text-lg text-red-500">{error}</div>;
+  if (!settings) return null;
+
+  return <>
+    <SettingsTab settings={settings} onSave={handleSave} onDelete={handleDelete} />
+    {showDelete && (
+      <SettingsDeleteModal onConfirm={confirmDelete} onCancel={() => setShowDelete(false)} />
+    )}
+  </>;
 }

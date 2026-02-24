@@ -1,11 +1,22 @@
 "use client";
 import React, { useState } from "react";
 
-export default function MatchesGrid({ matches }: { matches: any[] }) {
+export default function MatchesGrid() {
+  const [matches, setMatches] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string|null>(null);
   const [removed, setRemoved] = useState<{id:string, action:string, data:any}[]>([]);
   const [confirm, setConfirm] = useState<{id:string, action:string}|null>(null);
   const [undoTimeout, setUndoTimeout] = useState<NodeJS.Timeout|null>(null);
-  const [localMatches, setLocalMatches] = useState(matches);
+
+  React.useEffect(() => {
+    setLoading(true);
+    fetch('/api/matches')
+      .then(res => res.json())
+      .then(data => setMatches(data.matches || []))
+      .catch(() => setError('Failed to load matches'))
+      .finally(() => setLoading(false));
+  }, []);
 
   function handleAction(id: string, action: string) {
     setConfirm({ id, action });
@@ -15,8 +26,8 @@ export default function MatchesGrid({ matches }: { matches: any[] }) {
     if (!confirm) return;
     const { id, action } = confirm;
     setConfirm(null);
-    setLocalMatches((prev) => prev.filter((m) => m.id !== id));
-    setRemoved((prev) => [{ id, action, data: localMatches.find(m => m.id === id) }, ...prev]);
+    setMatches((prev) => prev.filter((m) => m.id !== id));
+    setRemoved((prev) => [{ id, action, data: matches.find(m => m.id === id) }, ...prev]);
     if (undoTimeout) clearTimeout(undoTimeout);
     setUndoTimeout(setTimeout(() => {
       setRemoved((prev) => prev.slice(0, -1));
@@ -26,16 +37,21 @@ export default function MatchesGrid({ matches }: { matches: any[] }) {
     } else if (action === "pass") {
       await fetch(`/api/matches/${id}/pass`, { method: 'POST', credentials: 'include' });
     }
+    // Optionally refetch matches here for real-time accuracy
   }
 
   function undoRemove() {
     if (removed.length === 0) return;
     const [last, ...rest] = removed;
-    setLocalMatches((prev) => [last.data, ...prev]);
+    setMatches((prev) => [last.data, ...prev]);
     setRemoved(rest);
     setConfirm(null);
     if (undoTimeout) clearTimeout(undoTimeout);
   }
+
+  if (loading) return <div className="text-center py-12 text-lg text-gray-400">Loading matches...</div>;
+  if (error) return <div className="text-center py-12 text-lg text-red-500">{error}</div>;
+  if (matches.length === 0) return <div className="text-center py-12 text-lg text-gray-400">No matches found.</div>;
 
   return (
     <>
@@ -57,7 +73,7 @@ export default function MatchesGrid({ matches }: { matches: any[] }) {
         </div>
       )}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-10">
-        {localMatches.map((m) => (
+        {matches.map((m) => (
           <div
             key={m.id}
             className="relative group bg-white rounded-3xl shadow-xl overflow-hidden flex flex-col transition-transform hover:scale-105"

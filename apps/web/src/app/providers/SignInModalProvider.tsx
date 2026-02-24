@@ -1,8 +1,9 @@
 'use client';
 
-import { createContext, useCallback, useContext, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import { SignInModal } from '@/app/components/SignInModal';
+import { useSearchParams, useRouter } from 'next/navigation';
 
 interface SignInModalContextValue {
   openModal: () => void;
@@ -13,6 +14,22 @@ const SignInModalContext = createContext<SignInModalContextValue | null>(null);
 
 export function SignInModalProvider({ children }: { children: ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  useEffect(() => {
+    const open = searchParams?.get('openSignIn') === '1' || searchParams?.get('openSignIn') === 'true';
+    if (open) {
+      setIsOpen(true);
+      try {
+        const url = new URL(window.location.href);
+        url.searchParams.delete('openSignIn');
+        router.replace(url.pathname + url.search);
+      } catch (e) {
+        // ignore
+      }
+    }
+  }, [searchParams, router]);
 
   const openModal = useCallback(() => setIsOpen(true), []);
   const closeModal = useCallback(() => setIsOpen(false), []);

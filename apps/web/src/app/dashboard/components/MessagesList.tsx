@@ -15,6 +15,7 @@ type Conv = {
 export default function MessagesList() {
   const [convs, setConvs] = useState<Conv[]>([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string|null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -25,11 +26,12 @@ export default function MessagesList() {
         if (!mounted) return;
         setConvs(data.conversations || []);
       })
-      .catch(() => {})
+      .catch(() => { if (mounted) setError('Failed to load conversations'); })
       .finally(() => setLoading(false));
     return () => { mounted = false; };
   }, []);
 
+  if (error) return <div className="text-center py-12 text-lg text-red-500">{error}</div>;
   return (
     <section aria-label="Messages">
       <div className="flex items-center justify-between">
