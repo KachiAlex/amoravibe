@@ -1,26 +1,60 @@
-import React from 'react';
-import type { Message } from '../types';
+"use client";
 
-export default function MessagesList({ messages }: { messages: Message[] }) {
+import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
+
+type Conv = {
+  otherId: string;
+  otherName: string;
+  avatar?: string | null;
+  lastMessage: string;
+  lastAt: string;
+  unread: number;
+};
+
+export default function MessagesList() {
+  const [convs, setConvs] = useState<Conv[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+    setLoading(true);
+    fetch('/api/messages/conversations')
+      .then((r) => r.json())
+      .then((data) => {
+        if (!mounted) return;
+        setConvs(data.conversations || []);
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+    return () => { mounted = false; };
+  }, []);
+
   return (
     <section aria-label="Messages">
-      <h2 className="text-2xl font-bold mb-4">Messages</h2>
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold mb-4">Messages</h2>
+        <span className="text-sm text-gray-500">{loading ? 'Loading…' : `${convs.length} conversations`}</span>
+      </div>
       <div className="space-y-3" role="list">
-        {messages.map((m) => (
-          <div key={m.id} role="listitem" className="stat-card flex items-center gap-4 p-4 rounded-2xl bg-white shadow border border-gray-100">
-            <div className="relative">
-              <img src={m.avatar} alt={`${m.from} avatar`} className="w-12 h-12 rounded-full object-cover border-2 border-gray-100" />
-              <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-400 border-2 border-white rounded-full shadow" title="Online"></span>
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex justify-between">
-                <strong className="text-gray-900 truncate">{m.from}</strong>
-                <span className="text-xs text-gray-500 whitespace-nowrap">{m.time}</span>
+        {convs.map((c) => (
+            <a href={`/messages/${c.otherId}`} key={c.otherId} role="listitem" className="block cursor-pointer stat-card flex items-center gap-4 p-4 rounded-2xl bg-white shadow border border-gray-100 hover:bg-gray-50">
+              <div className="relative">
+                <img src={c.avatar ?? '/images/default-avatar.png'} alt={`${c.otherName} avatar`} className="w-12 h-12 rounded-full object-cover border-2 border-gray-100" />
+                {c.unread > 0 && (
+                  <span className="absolute -top-1 -right-1 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-500 rounded-full">{c.unread}</span>
+                )}
               </div>
-              <p className="text-sm text-gray-500 break-words">{m.preview}</p>
-            </div>
-          </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex justify-between">
+                  <strong className="text-gray-900 truncate">{c.otherName}</strong>
+                  <span className="text-xs text-gray-500 whitespace-nowrap">{new Date(c.lastAt).toLocaleString()}</span>
+                </div>
+                <p className="text-sm text-gray-500 break-words truncate">{c.lastMessage}</p>
+              </div>
+            </a>
         ))}
+        {convs.length === 0 && !loading && <div className="text-sm text-gray-500">No conversations yet</div>}
       </div>
     </section>
   );

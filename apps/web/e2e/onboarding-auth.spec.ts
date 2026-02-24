@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 const BASE = process.env.BASE_URL ?? 'http://localhost:4000';
 
 test('onboarding signup -> complete profile -> redirect to dashboard, then sign out and sign back in', async ({ page }) => {
-  const email = `tester+bot+${Date.now()}@example.com`;
+  const email = `tester+bot+${Date.now()}-${Math.floor(Math.random()*100000)}@example.com`;
   const password = 'TestPass123!';
 
   // Start at onboarding (signup)
