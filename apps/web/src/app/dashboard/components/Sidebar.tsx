@@ -42,7 +42,10 @@ function Sidebar({ activeTab }: { activeTab?: string }) {
         </div>
         <nav className="flex-1 space-y-4" aria-label="Dashboard sections">
             {navItems.map((item) => {
-              const isActive = (activeTab ? activeTab === item.href : pathname === item.href);
+              // consider nested routes as active (e.g. /dashboard/messages/123)
+              const isActive = activeTab
+                ? activeTab === item.href
+                : typeof pathname === 'string' && pathname.startsWith(item.href);
               return (
                 <Link
                   key={item.label}
