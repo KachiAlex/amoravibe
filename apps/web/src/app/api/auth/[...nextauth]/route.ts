@@ -4,7 +4,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { compare } from "bcryptjs";
 
 // Build `authOptions` per-request and import Prisma adapter + client lazily.
-async function buildAuthOptions(req: Request): Promise<NextAuthOptions> {
+export async function buildAuthOptions(req?: Request): Promise<NextAuthOptions> {
   const { PrismaAdapter } = await import("@next-auth/prisma-adapter");
   const prisma = (await import("@/lib/db")).default;
 

@@ -1,10 +1,10 @@
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
-import { authOptions } from "../api/auth/[...nextauth]/route";
+import { buildAuthOptions } from "../api/auth/[...nextauth]/route";
 import Sidebar from "./components/Sidebar";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const session = await getServerSession(authOptions);
+  const session = await getServerSession(await buildAuthOptions());
   if (!session) {
     redirect('/?openSignIn=1');
   }
