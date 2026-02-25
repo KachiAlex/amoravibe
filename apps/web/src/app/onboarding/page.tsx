@@ -1,62 +1,53 @@
+"use client";
 
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
+import Link from "next/link";
+import { Heart, Shield, Lock } from "lucide-react";
 
-'use client';
-
-
-import { useState, useCallback } from 'react';
-// Removed SignupForm indirection for clarity and direct error/debug handling
-import { useRouter } from 'next/navigation';
-import { signIn } from 'next-auth/react';
-import Link from 'next/link';
-import { Heart, Shield, Lock } from 'lucide-react';
-
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 export default function OnboardingPage() {
   const router = useRouter();
-  console.debug && console.debug('OnboardingPage render');
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  // Step 1: Signup handled by SignupForm
+  // Step 1: Signup
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   // Step 2: Profile
-  const [debug, setDebug] = useState<string>("");
-  const [name, setName] = useState('');
-  const [age, setAge] = useState('');
-  const [location, setLocation] = useState('');
-  const [job, setJob] = useState('');
-  const [about, setAbout] = useState('');
-  const [interests, setInterests] = useState('');
+  const [name, setName] = useState("");
+  const [age, setAge] = useState("");
+  const [location, setLocation] = useState("");
+  const [job, setJob] = useState("");
+  const [about, setAbout] = useState("");
+  const [interests, setInterests] = useState("");
 
-  // Inline signup state for direct control
-  const [signupEmail, setSignupEmail] = useState('');
-  const [signupPassword, setSignupPassword] = useState('');
   async function handleSignup(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    setDebug("");
     try {
-      setDebug("Calling /api/auth/signup...");
-      const res = await fetch('/api/auth/signup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: signupEmail, password: signupPassword }),
+      const res = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
       });
-      setDebug(prev => prev + "\nSignup response: " + res.status + " " + res.statusText);
       if (!res.ok) {
         const errJson = await res.json().catch(() => ({}));
-        setDebug(prev => prev + "\nSignup error body: " + JSON.stringify(errJson));
-        throw new Error('Signup failed: ' + (errJson.error || res.statusText));
+        throw new Error(errJson.error || "Signup failed");
       }
-      setDebug(prev => prev + "\nCalling signIn(credentials)...");
-      const signin = await signIn('credentials', { redirect: false, email: signupEmail, password: signupPassword });
-      setDebug(prev => prev + "\nSignIn response: " + JSON.stringify(signin));
-      if ((signin as any)?.error) throw new Error('Signin after signup failed: ' + (signin as any).error);
+      // Sign in immediately after signup
+      const signin = await signIn("credentials", { redirect: false, email, password });
+      if ((signin as any)?.error) {
+        setError("Signin after signup failed");
+        setLoading(false);
+        return;
+      }
       setStep(2);
     } catch (err: any) {
-      setDebug(prev => prev + "\nCaught error: " + (err && err.message ? err.message : (typeof err === 'string' ? err : JSON.stringify(err))));
-      setError(err && err.message ? err.message : (typeof err === 'string' ? err : JSON.stringify(err)) || 'Signup failed');
+      setError(err.message || "Signup failed");
     } finally {
       setLoading(false);
     }
@@ -66,18 +57,24 @@ export default function OnboardingPage() {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    // Call profile update API (to be implemented)
     try {
-      const res = await fetch('/api/profile', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ name, age: Number(age), location, job, about, interests: interests.split(',').map(i => i.trim()) }),
+      const res = await fetch("/api/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          name,
+          age: Number(age),
+          location,
+          job,
+          about,
+          interests: interests.split(",").map((i) => i.trim()),
+        }),
       });
-      if (!res.ok) throw new Error('Profile update failed');
-      router.push('/dashboard');
+      if (!res.ok) throw new Error("Profile update failed");
+      router.push("/dashboard");
     } catch (err: any) {
-      setError(err.message || 'Profile update failed');
+      setError(err.message || "Profile update failed");
     } finally {
       setLoading(false);
     }
@@ -131,158 +128,72 @@ export default function OnboardingPage() {
                   type="email"
                   className="w-full rounded-lg px-4 py-3 bg-white/80 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-400"
                   placeholder="Email"
-                  value={signupEmail}
-                  onChange={e => setSignupEmail(e.target.value)}
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
                   required
                 />
                 <input
                   type="password"
                   className="w-full rounded-lg px-4 py-3 bg-white/80 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-400"
                   placeholder="Password"
-                  value={signupPassword}
-                  onChange={e => setSignupPassword(e.target.value)}
-                  import { useState } from 'react';
-                  import { useRouter } from 'next/navigation';
-
-                  export default function OnboardingPage() {
-                    const router = useRouter();
-                    const [step, setStep] = useState(1);
-                    const [loading, setLoading] = useState(false);
-                    const [error, setError] = useState<string | null>(null);
-                    // Signup state
-                    const [email, setEmail] = useState('');
-                    const [password, setPassword] = useState('');
-                    // Profile state
-                    const [name, setName] = useState('');
-                    const [age, setAge] = useState('');
-                    const [location, setLocation] = useState('');
-
-                    async function handleSignup(e: React.FormEvent) {
-                      e.preventDefault();
-                      setLoading(true);
-                      setError(null);
-                      try {
-                        const res = await fetch('/api/auth/signup', {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ email, password }),
-                        });
-                        if (!res.ok) {
-                          const errJson = await res.json().catch(() => ({}));
-                          throw new Error(errJson.error || 'Signup failed');
-                        }
-                        // Sign in immediately after signup
-                        const signInRes = await fetch('/api/auth/[...nextauth]/callback/credentials', {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                          body: new URLSearchParams({
-                            csrfToken: '', // NextAuth will ignore if not using CSRF
-                            email,
-                            password,
-                          }),
-                        });
-                        if (!signInRes.ok) throw new Error('Signin after signup failed');
-                        setStep(2);
-                      } catch (err: any) {
-                        setError(err.message || 'Signup failed');
-                      } finally {
-                        setLoading(false);
-                      }
-                    }
-
-                    async function handleProfile(e: React.FormEvent) {
-                      e.preventDefault();
-                      setLoading(true);
-                      setError(null);
-                      try {
-                        const res = await fetch('/api/profile', {
-                          method: 'PATCH',
-                          headers: { 'Content-Type': 'application/json' },
-                          credentials: 'include',
-                          body: JSON.stringify({ name, age: Number(age), location }),
-                        });
-                        if (!res.ok) throw new Error('Profile update failed');
-                        router.push('/dashboard');
-                      } catch (err: any) {
-                        setError(err.message || 'Profile update failed');
-                      } finally {
-                        setLoading(false);
-                      }
-                    }
-
-                    return (
-                      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-900 via-gray-900 to-black">
-                        <div className="w-full max-w-md bg-white/10 rounded-xl p-8 shadow-lg">
-                          {step === 1 && (
-                            <form onSubmit={handleSignup} className="space-y-4">
-                              <h2 className="text-xl font-bold text-white mb-4">Sign Up</h2>
-                              <input
-                                type="email"
-                                className="w-full rounded-lg px-4 py-3 bg-white/80 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-400"
-                                placeholder="Email"
-                                value={email}
-                                onChange={e => setEmail(e.target.value)}
-                                required
-                              />
-                              <input
-                                type="password"
-                                className="w-full rounded-lg px-4 py-3 bg-white/80 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-400"
-                                placeholder="Password"
-                                value={password}
-                                onChange={e => setPassword(e.target.value)}
-                                required
-                              />
-                              <button
-                                type="submit"
-                                className="w-full rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 px-8 py-3 font-semibold text-white shadow-lg transition hover:shadow-xl hover:scale-105"
-                                disabled={loading}
-                              >
-                                {loading ? 'Signing up...' : 'Sign Up & Continue'}
-                              </button>
-                              {error && <div className="text-red-400 text-sm mt-2">{error}</div>}
-                            </form>
-                          )}
-                          {step === 2 && (
-                            <form onSubmit={handleProfile} className="space-y-4">
-                              <h2 className="text-xl font-bold text-white mb-4">Complete Your Profile</h2>
-                              <input
-                                type="text"
-                                className="w-full rounded-lg px-4 py-3 bg-white/80 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-400"
-                                placeholder="Full Name"
-                                value={name}
-                                onChange={e => setName(e.target.value)}
-                                required
-                              />
-                              <input
-                                type="number"
-                                className="w-full rounded-lg px-4 py-3 bg-white/80 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-400"
-                                placeholder="Age"
-                                value={age}
-                                onChange={e => setAge(e.target.value)}
-                                required
-                              />
-                              <input
-                                type="text"
-                                className="w-full rounded-lg px-4 py-3 bg-white/80 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-400"
-                                placeholder="Location"
-                                value={location}
-                                onChange={e => setLocation(e.target.value)}
-                                required
-                              />
-                              <button
-                                type="submit"
-                                className="w-full rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 px-8 py-3 font-semibold text-white shadow-lg transition hover:shadow-xl hover:scale-105"
-                                disabled={loading}
-                              >
-                                {loading ? 'Saving...' : 'Finish & Go to Dashboard'}
-                              </button>
-                              {error && <div className="text-red-400 text-sm mt-2">{error}</div>}
-                            </form>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  }
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  required
+                />
+                <button
+                  type="submit"
+                  className="w-full rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 px-8 py-3 font-semibold text-white shadow-lg transition hover:shadow-xl hover:scale-105"
+                  disabled={loading}
+                >
+                  {loading ? "Signing up..." : "Sign Up & Continue"}
+                </button>
+                {error && <div className="text-red-400 text-sm mt-2">{error}</div>}
+              </form>
+            )}
+            {step === 2 && (
+              <form onSubmit={handleProfile} className="space-y-4 bg-white/10 rounded-xl p-8 shadow-lg">
+                <h2 className="text-xl font-bold text-white mb-4">Complete Your Profile</h2>
+                <input
+                  type="text"
+                  className="w-full rounded-lg px-4 py-3 bg-white/80 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-400"
+                  placeholder="Full Name"
+                  value={name}
+                  onChange={e => setName(e.target.value)}
+                  required
+                />
+                <input
+                  type="number"
+                  className="w-full rounded-lg px-4 py-3 bg-white/80 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-400"
+                  placeholder="Age"
+                  value={age}
+                  onChange={e => setAge(e.target.value)}
+                  required
+                />
+                <input
+                  type="text"
+                  className="w-full rounded-lg px-4 py-3 bg-white/80 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-400"
+                  placeholder="Location"
+                  value={location}
+                  onChange={e => setLocation(e.target.value)}
+                  required
+                />
+                <input
+                  type="text"
+                  className="w-full rounded-lg px-4 py-3 bg-white/80 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-400"
+                  placeholder="Job Title"
+                  value={job}
+                  onChange={e => setJob(e.target.value)}
+                />
+                <textarea
+                  className="w-full rounded-lg px-4 py-3 bg-white/80 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-400"
+                  placeholder="About Me"
+                  value={about}
+                  onChange={e => setAbout(e.target.value)}
+                  rows={3}
+                />
+                <input
+                  type="text"
+                  className="w-full rounded-lg px-4 py-3 bg-white/80 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-400"
                   placeholder="Interests (comma separated)"
                   value={interests}
                   onChange={e => setInterests(e.target.value)}
@@ -292,7 +203,7 @@ export default function OnboardingPage() {
                   className="w-full rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 px-8 py-3 font-semibold text-white shadow-lg transition hover:shadow-xl hover:scale-105"
                   disabled={loading}
                 >
-                  {loading ? 'Saving...' : 'Finish & Go to Dashboard'}
+                  {loading ? "Saving..." : "Finish & Go to Dashboard"}
                 </button>
                 <button
                   type="button"
@@ -319,55 +230,4 @@ export default function OnboardingPage() {
       </div>
     </div>
   );
-              // Step 2: Profile
-              const [debug, setDebug] = useState<string>("");
-              const [email, setEmail] = useState('');
-              const [password, setPassword] = useState('');
-              const [name, setName] = useState('');
-              const [age, setAge] = useState('');
-              const [location, setLocation] = useState('');
-              const [job, setJob] = useState('');
-              const [about, setAbout] = useState('');
-              const [interests, setInterests] = useState('');
-
-              async function handleSignup(e: React.FormEvent) {
-                e.preventDefault();
-                setLoading(true);
-                setError(null);
-                try {
-                  const res = await fetch('/api/auth/signup', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, password }),
-                  });
-                  if (!res.ok) throw new Error('Signup failed');
-                  const signin = await signIn('credentials', { redirect: false, email, password });
-                  if ((signin as any)?.error) throw new Error('Signin after signup failed');
-                  setStep(2);
-                } catch (err: any) {
-                  setError(err.message || 'Signup failed');
-                } finally {
-                  setLoading(false);
-                }
-              }
-
-              async function handleProfile(e: React.FormEvent) {
-                e.preventDefault();
-                setLoading(true);
-                setError(null);
-                try {
-                  const res = await fetch('/api/profile', {
-                    method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json' },
-                    credentials: 'include',
-                    body: JSON.stringify({ name, age: Number(age), location, job, about, interests: interests.split(',').map(i => i.trim()) }),
-                  });
-                  if (!res.ok) throw new Error('Profile update failed');
-                  router.push('/dashboard');
-                } catch (err: any) {
-                  setError(err.message || 'Profile update failed');
-                } finally {
-                  setLoading(false);
-                }
-              }
-
+}
