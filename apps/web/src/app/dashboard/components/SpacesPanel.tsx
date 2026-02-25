@@ -9,39 +9,11 @@ const SPACES = [
     icon: "❤️",
   },
   {
-    id: "gay",
-    name: "Gay Space",
-    description: "A welcoming space for gay men.",
-    color: "from-blue-400 to-indigo-600",
-    icon: "🏳️‍🌈",
-  },
-  {
-    id: "lesbian",
-    name: "Lesbian Space",
-    description: "A space for lesbians to connect and share.",
-    color: "from-purple-400 to-pink-600",
-    icon: "🌈",
-  },
-  {
-    id: "bi",
-    name: "Bisexual Space",
-    description: "A space for bisexual individuals.",
-    color: "from-green-400 to-blue-600",
-    icon: "💚",
-  },
-  {
     id: "lgbtq",
     name: "LGBTQ+ Space",
     description: "An inclusive space for all LGBTQ+ identities.",
     color: "from-yellow-400 to-pink-600",
     icon: "🌈",
-  },
-  {
-    id: "allies",
-    name: "Allies & Friends",
-    description: "A space for supportive allies and friends.",
-    color: "from-gray-400 to-gray-600",
-    icon: "🤝",
   },
 ];
 

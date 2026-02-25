@@ -19,11 +19,21 @@ const SettingsPanel = dynamic(() => import('./SettingsPanel'), {
   loading: () => <div className="stat-card">Loading settings...</div>,
   ssr: false,
 });
+const SpacesPanel = dynamic(() => import('./SpacesPanel'), {
+  loading: () => <div className="stat-card">Loading spaces...</div>,
+  ssr: false,
+});
+const MySpacesPanel = dynamic(() => import('./MySpacesPanel'), {
+  loading: () => <div className="stat-card">Loading my spaces...</div>,
+  ssr: false,
+});
 
 export default function Tabs({ messages }: { messages?: Message[] }) {
   const tabs = [
     { id: 'messages', label: 'Messages' },
     { id: 'discover', label: 'Discover' },
+    { id: 'spaces', label: 'Spaces' },
+    { id: 'myspaces', label: 'My Spaces' },
     { id: 'profile', label: 'Profile' },
     { id: 'settings', label: 'Settings' },
   ];
@@ -92,6 +102,14 @@ export default function Tabs({ messages }: { messages?: Message[] }) {
 
         <div id="panel-discover" role="tabpanel" aria-labelledby="tab-discover" hidden={active !== 'discover'}>
           {active === 'discover' && <DiscoverPanel />}
+        </div>
+
+        <div id="panel-spaces" role="tabpanel" aria-labelledby="tab-spaces" hidden={active !== 'spaces'}>
+          {active === 'spaces' && <SpacesPanel />}
+        </div>
+
+        <div id="panel-myspaces" role="tabpanel" aria-labelledby="tab-myspaces" hidden={active !== 'myspaces'}>
+          {active === 'myspaces' && <MySpacesPanel />}
         </div>
 
         <div id="panel-profile" role="tabpanel" aria-labelledby="tab-profile" hidden={active !== 'profile'}>
