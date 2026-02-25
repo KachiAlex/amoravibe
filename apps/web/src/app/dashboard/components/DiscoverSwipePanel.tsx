@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { motion, AnimatePresence } from '@/lib/motion-shim';
 
 export default function DiscoverSwipePanel({ onBack }: { onBack?: () => void }) {
   const [profiles, setProfiles] = useState<any[]>([]);
