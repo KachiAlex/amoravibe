@@ -1,3 +1,4 @@
+import React, { Suspense } from 'react';
 import type { Metadata } from 'next';
 import { Inter, Space_Grotesk } from 'next/font/google';
 import './globals.css';
@@ -23,9 +24,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.variable} ${spaceGrotesk.variable}`}>
-        <OnboardingModalProvider>
-          <SignInModalProvider>{children}</SignInModalProvider>
-        </OnboardingModalProvider>
+        <Suspense fallback={null}>
+          <OnboardingModalProvider>
+            <SignInModalProvider>{children}</SignInModalProvider>
+          </OnboardingModalProvider>
+        </Suspense>
       </body>
     </html>
   );
