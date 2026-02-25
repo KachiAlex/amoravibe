@@ -16,6 +16,7 @@
     "prisma:generate": "prisma generate --schema=prisma/schema.prisma",
     "prisma:migrate:dev": "prisma migrate dev --schema=prisma/schema.prisma --name init",
     "postinstall": "prisma generate --schema=prisma/schema.prisma"
+    ,"generate:nextauth-secret": "node scripts/generate-nextauth-secret.js"
   },
   "dependencies": {
     "@lovedate/api": "file:../../packages/api",

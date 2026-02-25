@@ -34,3 +34,23 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+
+## Environment variables
+
+The app requires the following environment variables for auth in production:
+
+- `NEXTAUTH_SECRET` — a long random secret used by NextAuth. Generate one with:
+
+	```bash
+	node scripts/generate-nextauth-secret.js
+	```
+
+	To write the secret into `.env.local` for local development:
+
+	```bash
+	node scripts/generate-nextauth-secret.js --write
+	```
+
+- `NEXTAUTH_URL` — the canonical URL for your app (e.g. `http://localhost:4000` for local dev or `https://yourdomain.com` in production).
+
+Add `NEXTAUTH_SECRET` and `NEXTAUTH_URL` to your Vercel project Environment Variables (Project Settings → Environment Variables) before deploying.
