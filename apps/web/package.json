@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 4000",
-    "build": "next build",
+    "build": "prisma generate --schema=prisma/schema.prisma && next build",
     "sentry:release": "npx sentry-cli releases new $npm_package_version && npx sentry-cli releases files $npm_package_version upload-sourcemaps .next --rewrite",
     "start": "next start",
     "test": "playwright test",
