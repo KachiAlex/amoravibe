@@ -67,4 +67,17 @@ export const authOptions: NextAuthOptions = {
 };
 
 const handler = NextAuth(authOptions);
-export { handler as GET, handler as POST };
+
+// Next.js may call the exported handler with different shapes (Request-only or (req, ctx)).
+// Ensure we always call the internal handler with a `params` object so the NextAuth
+// runtime selects the App Router code path and can read the `nextauth` route segments.
+async function callHandlerWithParams(req: Request) {
+  const url = new URL(req.url);
+  const parts = url.pathname.split("/").filter(Boolean);
+  const authIndex = parts.findIndex((p) => p === "auth");
+  const nextauth = authIndex >= 0 ? parts.slice(authIndex + 1) : [];
+  return handler(req as any, { params: { nextauth } } as any);
+}
+
+export const GET = (req: Request) => callHandlerWithParams(req);
+export const POST = (req: Request) => callHandlerWithParams(req);
