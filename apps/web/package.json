@@ -42,7 +42,7 @@
     "@types/react-dom": "18.3.7",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
     "@typescript-eslint/parser": "^6.21.0",
-      "eslint": "^8.58.0",
+      "eslint": "^8.57.0",
     "eslint-config-next": "14.2.7",
     "postcss": "^8",
     "prisma": "^5.22.0",
