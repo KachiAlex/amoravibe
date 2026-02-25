@@ -3,6 +3,8 @@ import React, { useEffect, useState } from "react";
 import ProfileTab from "./ProfileTab";
 import ProfileEditModal from "./ProfileEditModal";
 
+
+export default function ProfilePanel() {
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
