@@ -3,6 +3,20 @@ import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { compare } from "bcryptjs";
 
+// Export a minimal options object synchronously for callers that need it at
+// build-time (e.g. `getServerSession`). Avoid including the Prisma adapter
+// here so we don't initialize Prisma during module load.
+export const authOptions: Partial<NextAuthOptions> = {
+  session: { strategy: 'jwt' },
+  pages: { signIn: '/?openSignIn=1' },
+  callbacks: {
+    async session({ session, token }: any) {
+      if (token?.sub) (session as any).userId = token.sub;
+      return session;
+    },
+  },
+};
+
 async function buildAuthOptions() : Promise<NextAuthOptions> {
   // Lazy-import prisma and the adapter to avoid initializing Prisma at module load time
   const prisma = (await import('@/lib/db')).default;
