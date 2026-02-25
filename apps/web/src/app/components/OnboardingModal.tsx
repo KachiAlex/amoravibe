@@ -11,7 +11,7 @@ import {
 } from 'react';
 import { useRouter } from 'next/navigation';
 import { signIn } from 'next-auth/react';
-import { AnimatePresence, motion } from 'motion/react';
+import { AnimatePresence, motion } from '@/lib/motion-shim';
 import {
   ArrowLeft,
   ArrowRight,

@@ -3,7 +3,7 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { signIn } from 'next-auth/react';
-import { AnimatePresence, motion } from 'motion/react';
+import { AnimatePresence, motion } from '@/lib/motion-shim';
 import { CheckCircle2, Loader2, Lock, Mail, Phone, X } from 'lucide-react';
 
 interface SignInModalProps {
