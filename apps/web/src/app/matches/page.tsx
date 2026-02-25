@@ -3,9 +3,9 @@ import { Badge, Card, PillButton } from '@lovedate/ui';
 import Link from 'next/link';
 import { lovedateApi } from '@/lib/api';
 import { getSession } from '@/lib/session';
-import dynamic from 'next/dynamic';
+import nextDynamic from 'next/dynamic';
 
-const MatchCardClient = dynamic(() => import('./MatchCardClient'), { ssr: false });
+const MatchCardClient = nextDynamic(() => import('./MatchCardClient'), { ssr: false });
 
 export const dynamic = 'force-dynamic';
 

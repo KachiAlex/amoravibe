@@ -2,14 +2,14 @@ import { getSession } from '@/lib/session';
 import { redirect } from 'next/navigation';
 import { Card } from '@lovedate/ui';
 import { createLovedateApi } from '@lovedate/api';
-import dynamic from 'next/dynamic';
+import nextDynamic from 'next/dynamic';
 import { resolveTrustApiBase } from '@/lib/trust-upstream';
 
-const AdminMetrics = dynamic(() => import('./AdminMetrics'), { ssr: false });
-const UserTable = dynamic(() => import('./UserTable'), { ssr: false });
-const ActivityLog = dynamic(() => import('./ActivityLog'), { ssr: false });
-const TrustOverride = dynamic(() => import('./TrustOverride'), { ssr: false });
-const SystemHealth = dynamic(() => import('./SystemHealth'), { ssr: false });
+const AdminMetrics = nextDynamic(() => import('./AdminMetrics'), { ssr: false });
+const UserTable = nextDynamic(() => import('./UserTable'), { ssr: false });
+const ActivityLog = nextDynamic(() => import('./ActivityLog'), { ssr: false });
+const TrustOverride = nextDynamic(() => import('./TrustOverride'), { ssr: false });
+const SystemHealth = nextDynamic(() => import('./SystemHealth'), { ssr: false });
 
 export const dynamic = 'force-dynamic';
 
