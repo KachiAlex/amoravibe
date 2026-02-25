@@ -18,7 +18,7 @@ export default function OnboardingPage() {
   const [password, setPassword] = useState("");
   // Step 2: Profile
   const [name, setName] = useState("");
-  const [age, setAge] = useState("");
+  const [age, setAge] = useState(""); // keep as string for input
   const [location, setLocation] = useState("");
   const [job, setJob] = useState("");
   const [about, setAbout] = useState("");
@@ -64,7 +64,7 @@ export default function OnboardingPage() {
         credentials: "include",
         body: JSON.stringify({
           name,
-          age: Number(age),
+          age: age ? Number(age) : undefined,
           location,
           job,
           about,
