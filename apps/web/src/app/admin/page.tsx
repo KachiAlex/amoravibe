@@ -11,6 +11,8 @@ const ActivityLog = dynamic(() => import('./ActivityLog'), { ssr: false });
 const TrustOverride = dynamic(() => import('./TrustOverride'), { ssr: false });
 const SystemHealth = dynamic(() => import('./SystemHealth'), { ssr: false });
 
+export const dynamic = 'force-dynamic';
+
 const upstreamBase = resolveTrustApiBase();
 
 export default async function AdminDashboardPage() {

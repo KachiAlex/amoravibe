@@ -3,6 +3,8 @@ import Sidebar from '../components/Sidebar';
 import DashboardLayout from '../layout';
 import ProfilePanel from '../components/ProfilePanel';
 
+export const dynamic = 'force-dynamic';
+
 export default function ProfilePage() {
   return (
     <DashboardLayout>

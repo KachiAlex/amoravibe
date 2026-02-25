@@ -4,6 +4,8 @@ import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
 import StatsCards from '../components/StatsCards';
 
+export const dynamic = 'force-dynamic';
+
 export default function SettingsPage() {
   return (
     <DashboardLayout>

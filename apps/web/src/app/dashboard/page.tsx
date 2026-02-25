@@ -8,6 +8,7 @@ import Tabs from './components/Tabs';
 import { getDashboardData } from './hooks/useDashboardData';
 
 import DashboardLayout from "./layout";
+export const dynamic = 'force-dynamic';
 
 export default async function DashboardPage() {
   const data = await getDashboardData();

@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(req: Request) {
   // For demo, fetch all matches (replace with auth logic for real app)
   const matches = await prisma.match.findMany({

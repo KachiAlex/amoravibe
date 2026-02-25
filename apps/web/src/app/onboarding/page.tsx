@@ -7,6 +7,8 @@ import { signIn } from 'next-auth/react';
 import Link from 'next/link';
 import { Heart, Shield, Lock } from 'lucide-react';
 
+export const dynamic = 'force-dynamic';
+
 export default function OnboardingPage() {
   const router = useRouter();
   const [step, setStep] = useState(1);

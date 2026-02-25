@@ -9,6 +9,8 @@ import { CTA } from '@/app/components/CTA';
 import { Footer } from '@/app/components/Footer';
 import { Onboarding } from '@/app/components/Onboarding';
 
+export const dynamic = 'force-dynamic';
+
 export default function App() {
   return (
     <div className="size-full overflow-x-hidden">

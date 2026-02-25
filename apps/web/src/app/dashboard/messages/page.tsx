@@ -5,6 +5,8 @@ import DashboardLayout from '../layout';
 import Header from '../components/Header';
 import StatsCards from '../components/StatsCards';
 
+export const dynamic = 'force-dynamic';
+
 // Mock getMessages function
 function getMessages(userId: string) {
   return [

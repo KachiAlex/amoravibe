@@ -7,6 +7,8 @@ import dynamic from 'next/dynamic';
 
 const MatchCardClient = dynamic(() => import('./MatchCardClient'), { ssr: false });
 
+export const dynamic = 'force-dynamic';
+
 interface MatchesPageProps {
   searchParams?: Promise<{ userId?: string; limit?: string }> | { userId?: string; limit?: string };
 }

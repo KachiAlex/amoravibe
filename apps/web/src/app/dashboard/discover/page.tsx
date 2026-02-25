@@ -5,6 +5,8 @@ import Header from '../components/Header';
 import StatsCards from '../components/StatsCards';
 import DiscoverPanel from '../components/DiscoverPanel';
 
+export const dynamic = 'force-dynamic';
+
 export default function DiscoverPage() {
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-white">

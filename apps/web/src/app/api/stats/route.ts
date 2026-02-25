@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(req: Request) {
   // For demo, count all matches and messages (replace with auth logic for real app)
   const matchesCount = await prisma.match.count();
