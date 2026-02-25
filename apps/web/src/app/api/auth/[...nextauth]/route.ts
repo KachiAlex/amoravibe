@@ -76,10 +76,34 @@ async function handlerWithParams(req: Request, ctx: any) {
 }
 
 export async function GET(req: Request, ctx: any) {
-  // Ensure route segments are forwarded in `ctx.params.nextauth` so NextAuth can parse action/provider
+  // Decide whether to run NextAuth logic or return a harmless response.
+  const parsed = new URL(req.url).pathname.split('/').filter(Boolean);
+  const authIndex = parsed.findIndex((p) => p === 'auth');
+  const nextauthFromUrl = authIndex >= 0 ? parsed.slice(authIndex + 1) : [];
+  const nextauth = (ctx && ctx.params && ctx.params.nextauth) || nextauthFromUrl || [];
+  const action = Array.isArray(nextauth) && nextauth.length > 0 ? nextauth[0] : undefined;
+
+  const allowed = new Set(['csrf', 'signin', 'signout', 'callback', 'session', 'providers', 'verify-request', 'error']);
+  if (!action || !allowed.has(action)) {
+    // Avoid initializing NextAuth/Prisma during build-time collection or unexpected calls.
+    return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+  }
+
+  // Forward to the real handler for known auth actions.
   return handlerWithParams(req, ctx);
 }
 
 export async function POST(req: Request, ctx: any) {
+  const parsed = new URL(req.url).pathname.split('/').filter(Boolean);
+  const authIndex = parsed.findIndex((p) => p === 'auth');
+  const nextauthFromUrl = authIndex >= 0 ? parsed.slice(authIndex + 1) : [];
+  const nextauth = (ctx && ctx.params && ctx.params.nextauth) || nextauthFromUrl || [];
+  const action = Array.isArray(nextauth) && nextauth.length > 0 ? nextauth[0] : undefined;
+
+  const allowed = new Set(['csrf', 'signin', 'signout', 'callback', 'session', 'providers', 'verify-request', 'error']);
+  if (!action || !allowed.has(action)) {
+    return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+  }
+
   return handlerWithParams(req, ctx);
 }

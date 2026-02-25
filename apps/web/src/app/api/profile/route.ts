@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { getSession } from '@/lib/session';
 
 import prisma from '@/lib/db';
+
+export const dynamic = 'force-dynamic';
 export async function GET(req: Request) {
   // For demo, fetch the first user (replace with auth logic for real app)
   const user = await prisma.user.findFirst();

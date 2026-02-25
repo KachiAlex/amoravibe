@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { getSession } from '@/lib/session';
 import prisma from '@/lib/db';
 
+export const dynamic = 'force-dynamic';
+
 export async function PATCH(req: Request) {
   const session = getSession();
   if (!session) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });

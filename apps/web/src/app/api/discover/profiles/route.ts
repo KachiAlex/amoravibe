@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 
+export const dynamic = 'force-dynamic';
+
 // GET /api/discover/profiles?cursor=<id>&limit=10&ageMin=18&ageMax=99&location=...&interests=...
 export async function GET(req: Request) {
   const url = new URL(req.url);
