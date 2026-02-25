@@ -18,6 +18,7 @@
     "deploy:web:firebase": "cross-env npm_config_loglevel=silent npm_config_optional=true firebase deploy --only hosting --config firebase.json",
     "guard:firebase": "node scripts/ensure-firebase-config.mjs"
   },
+  "postinstall": "yarn workspace web run prisma:generate || true",
   "resolutions": {
     "jose": "6.1.3"
   },
