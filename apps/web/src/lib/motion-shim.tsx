@@ -4,18 +4,36 @@ import React from 'react';
 // Exports `motion` proxy and `AnimatePresence` passthrough.
 
 function createElementFactory(tag: string) {
-  return (props: any) => {
+  return function MotionElement(props: any) {
     const { children, ...rest } = props || {};
-    return React.createElement(tag, rest, children);
+    // Strip motion-related props so they are not passed to DOM elements
+    const {
+      initial,
+      animate,
+      exit,
+      transition,
+      variants,
+      whileHover,
+      whileTap,
+      ...domProps
+    } = rest || {};
+    return React.createElement(tag, domProps, children);
   };
 }
 
+// Cache created factories to ensure stable component identity across renders
+const motionCache: Map<string, React.ComponentType<any>> = new Map();
 const motion = new Proxy(
   {},
   {
     get: (_target, prop: string) => {
-      // allow `motion.div`, `motion.button`, etc.
-      return createElementFactory(prop as string);
+      const key = String(prop);
+      if (motionCache.has(key)) return motionCache.get(key) as any;
+      const factory = createElementFactory(key);
+      // set a displayName for easier debugging
+      (factory as any).displayName = `Motion.${key}`;
+      motionCache.set(key, factory);
+      return factory;
     },
     apply: () => {
       return null;

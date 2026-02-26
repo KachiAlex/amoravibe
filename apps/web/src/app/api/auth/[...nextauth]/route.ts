@@ -25,34 +25,56 @@ export async function buildAuthOptions(req?: Request): Promise<NextAuthOptions> 
           const username = credentials?.username?.toString() || undefined;
           const password = credentials?.password?.toString() || undefined;
 
+          // Debug logging
+          console.log('[NextAuth] authorize called:', { email, phone, username });
+
           // Dev/admin shortcut
           if (email === 'admin@amoravibe.com' && password === 'admin123') {
+            console.log('[NextAuth] Admin shortcut login');
             return { id: 'admin@amoravibe.com', displayName: 'Admin' } as any;
           }
 
           // Guest quick-login
           if (username === 'guest') {
+            console.log('[NextAuth] Guest shortcut login');
             return { id: 'local-guest', displayName: 'Guest' } as any;
           }
 
           // Email/password
           if (email && password) {
             const user = await prisma.user.findUnique({ where: { email } });
-            if (!user || !user.hashedPassword) return null;
+            console.log('[NextAuth] User lookup:', user);
+            if (!user || !user.hashedPassword) {
+              console.log('[NextAuth] User not found or missing hashedPassword');
+              return null;
+            }
             const isValid = await compare(password, user.hashedPassword);
-            if (!isValid) return null;
+            console.log('[NextAuth] Password comparison:', { input: password, hash: user.hashedPassword, isValid });
+            if (!isValid) {
+              console.log('[NextAuth] Password invalid');
+              return null;
+            }
             return user as any;
           }
 
           // Phone/password flow (legacy mobile numbers stored on user.phone)
           if (phone && password) {
             const user = await prisma.user.findFirst({ where: { phone } });
-            if (!user || !user.hashedPassword) return null;
+            console.log('[NextAuth] Phone user lookup:', user);
+            if (!user || !user.hashedPassword) {
+              console.log('[NextAuth] Phone user not found or missing hashedPassword');
+              return null;
+            }
             const isValid = await compare(password, user.hashedPassword);
-            if (!isValid) return null;
+            console.log('[NextAuth] Phone password comparison:', { input: password, hash: user.hashedPassword, isValid });
+            if (!isValid) {
+              console.log('[NextAuth] Phone password invalid');
+              return null;
+            }
             return user as any;
           }
 
+          console.log('[NextAuth] No valid credentials provided');
           return null;
         },
       }),

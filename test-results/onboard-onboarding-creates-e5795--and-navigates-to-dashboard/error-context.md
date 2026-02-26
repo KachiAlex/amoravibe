@@ -21,12 +21,11 @@
         - paragraph [ref=e30]: Your data stays encrypted and in your control
     - generic [ref=e32]:
       - heading "Sign Up" [level=2] [ref=e33]
-      - textbox "Email" [ref=e34]: tester+bot+1771933753707@example.com
-      - textbox "Password" [ref=e35]: TestPass123!
-      - button "Sign Up & Continue" [ref=e36] [cursor=pointer]
-      - generic [ref=e37]: Signup failed
-    - link "Back to Home" [ref=e38] [cursor=pointer]:
+      - textbox "Email" [ref=e34]: e2e+1772100502436@local.test
+      - textbox "Password" [ref=e35]: Password123!
+      - button "Signing up..." [disabled] [ref=e36]
+    - link "Back to Home" [ref=e37] [cursor=pointer]:
       - /url: /
-    - paragraph [ref=e39]: By continuing, you agree to our Terms of Service and Privacy Policy
-  - alert [ref=e40]
+    - paragraph [ref=e38]: By continuing, you agree to our Terms of Service and Privacy Policy
+  - alert [ref=e39]
 ```

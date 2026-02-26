@@ -41,7 +41,20 @@ export default function OnboardingPage() {
       // Sign in immediately after signup
       const signin = await signIn("credentials", { redirect: false, email, password });
       if ((signin as any)?.error) {
-        setError("Signin after signup failed");
+        setError("Sign-in after signup failed. Please try signing in manually.");
+        setLoading(false);
+        return;
+      }
+      // Ensure legacy session cookie is set for APIs that expect `lovedate_session`
+      try {
+        await fetch('/api/auth/session-to-legacy', { method: 'POST' });
+      } catch (err) {
+        console.warn('Could not set legacy session cookie', err);
+      }
+      // Check if session is set
+      const sessionRes = await fetch("/api/auth/session");
+      if (!sessionRes.ok) {
+        setError("Session could not be established. Please sign in manually.");
         setLoading(false);
         return;
       }
@@ -57,6 +70,7 @@ export default function OnboardingPage() {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    try { console.debug('[Onboarding] handleProfile called', { name, age, location, job, about, interests }); } catch (err) {}
     try {
       const res = await fetch("/api/profile", {
         method: "PATCH",
@@ -72,6 +86,13 @@ export default function OnboardingPage() {
         }),
       });
       if (!res.ok) throw new Error("Profile update failed");
+      // Check if session is still valid before routing
+      const sessionRes = await fetch("/api/auth/session");
+      if (!sessionRes.ok) {
+        setError("Session expired. Please sign in again.");
+        setLoading(false);
+        return;
+      }
       router.push("/dashboard");
     } catch (err: any) {
       setError(err.message || "Profile update failed");
@@ -158,7 +179,11 @@ export default function OnboardingPage() {
                   className="w-full rounded-lg px-4 py-3 bg-white/80 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-400"
                   placeholder="Full Name"
                   value={name}
-                  onChange={e => setName(e.target.value)}
+                  onChange={e => {
+                    // Debug: log input events to diagnose typing issues
+                    try { console.debug('onboarding:name:onChange', e.target.value); } catch (err) {}
+                    setName(e.target.value);
+                  }}
                   required
                 />
                 <input

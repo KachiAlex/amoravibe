@@ -31,6 +31,7 @@ export function SignInModal({ isOpen, onClose }: SignInModalProps) {
   const [form, setForm] = useState<SignInState>(INITIAL_STATE);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showToast, setShowToast] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
   const router = useRouter();
 
@@ -67,6 +68,7 @@ export function SignInModal({ isOpen, onClose }: SignInModalProps) {
 
     setPending(true);
     setError(null);
+    setShowToast(false);
 
     try {
       if (form.mode === 'email') {
@@ -78,7 +80,9 @@ export function SignInModal({ isOpen, onClose }: SignInModalProps) {
         });
 
         if (!res || !res.ok) {
-          throw new Error(res?.error ?? 'Invalid email or password.');
+          setError('Invalid email or password.');
+          setShowToast(true);
+          return;
         }
 
         setSuccess('Welcome back! Redirecting…');
@@ -96,7 +100,9 @@ export function SignInModal({ isOpen, onClose }: SignInModalProps) {
         });
 
         if (!res || !res.ok) {
-          throw new Error(res?.error ?? 'Invalid phone or password.');
+          setError('Invalid phone or password.');
+          setShowToast(true);
+          return;
         }
 
         setSuccess('Welcome back! Redirecting…');
@@ -107,7 +113,8 @@ export function SignInModal({ isOpen, onClose }: SignInModalProps) {
         }, 1100);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unable to sign you in.');
+      setError('Unable to sign you in.');
+      setShowToast(true);
     } finally {
       setPending(false);
     }
@@ -115,6 +122,11 @@ export function SignInModal({ isOpen, onClose }: SignInModalProps) {
 
   return (
     <AnimatePresence>
+      {showToast && error && (
+        <div className="fixed top-6 left-1/2 z-[9999] -translate-x-1/2 rounded-lg bg-rose-600 px-6 py-3 text-white shadow-lg animate-fade-in">
+          {error}
+        </div>
+      )}
       {isOpen && (
         <>
           <motion.div
@@ -201,14 +213,7 @@ export function SignInModal({ isOpen, onClose }: SignInModalProps) {
                       </div>
                     </label>
 
-                    {error && (
-                      <p
-                        className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700"
-                        aria-live="polite"
-                      >
-                        {error}
-                      </p>
-                    )}
+                    {/* Error toast handled globally */}
 
                     {success && (
                       <p
@@ -235,61 +240,7 @@ export function SignInModal({ isOpen, onClose }: SignInModalProps) {
                       )}
                     </button>
 
-                    <div className="mt-3">
-                      <button
-                        type="button"
-                        onClick={async () => {
-                          // Try to use Netlify Identity widget if present, otherwise fall back to dev helper
-                          const netlify = (window as any).netlifyIdentity;
-                          if (netlify && typeof netlify.open === 'function') {
-                            netlify.open();
-                            netlify.on('login', async (user: any) => {
-                              try {
-                                const token = user?.token?.access_token || user?.token?.id_token || null;
-                                // exchange with our backend to get lovedate session/jwt
-                                const resp = await fetch('/api/auth/netlify', {
-                                  method: 'POST',
-                                  headers: { 'Content-Type': 'application/json' },
-                                  body: JSON.stringify({ id_token: token }),
-                                });
-                                if (resp.ok) {
-                                  const body = await resp.json();
-                                  setSuccess(`Welcome back, ${body.user.displayName}! Redirecting…`);
-                                  setTimeout(() => {
-                                    onClose();
-                                    window.location.href = body.nextRoute || '/dashboard';
-                                  }, 900);
-                                }
-                              } catch (err) {
-                                setError('Netlify Identity signin failed');
-                              }
-                            });
-                          } else {
-                            // Dev fallback: call our auth endpoint with provided email (only works locally)
-                            try {
-                              const email = form.email.trim() || prompt('Enter email for dev Netlify login (e.g. admin@amoravibe.com)') || '';
-                              const resp = await fetch('/api/auth/netlify', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ email }),
-                              });
-                              if (!resp.ok) throw new Error('Auth failed');
-                              const body = await resp.json();
-                              setSuccess(`Welcome back, ${body.user.displayName}! Redirecting…`);
-                              setTimeout(() => {
-                                onClose();
-                                window.location.href = body.nextRoute || '/dashboard';
-                              }, 900);
-                            } catch (err) {
-                              setError('Netlify Identity (dev) signin failed');
-                            }
-                          }
-                        }}
-                        className="mt-2 flex w-full items-center justify-center gap-2 rounded-2xl border border-ink-200 bg-white py-3 text-sm text-ink-700 shadow-sm hover:shadow-md"
-                      >
-                        Sign in with Netlify Identity
-                      </button>
-                    </div>
+                    {/* Netlify Identity sign-in removed */}
                   </form>
                 </div>
               </motion.div>

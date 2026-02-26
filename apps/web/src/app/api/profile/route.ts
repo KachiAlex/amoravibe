@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
-import { getSession } from '@/lib/session';
-
+import { getSession as getLegacySession } from '@/lib/session';
 import prisma from '@/lib/db';
+import { getServerSession } from 'next-auth';
+import { buildAuthOptions } from '../auth/[...nextauth]/route';
 
 export const dynamic = 'force-dynamic';
 export async function GET(req: Request) {
@@ -20,8 +21,23 @@ export async function GET(req: Request) {
 }
 
 export async function PATCH(req: Request) {
-  const session = getSession();
-  if (!session) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+  // Support both legacy `lovedate_session` cookie and NextAuth session
+  let userId: string | undefined;
+  // legacy session cookie
+  const legacy = getLegacySession();
+  if (legacy?.userId) userId = legacy.userId;
+  // Try NextAuth session as fallback
+  if (!userId) {
+    const serverSession = await getServerSession(await buildAuthOptions());
+    if (serverSession && (serverSession as any).userId) userId = (serverSession as any).userId;
+    // also support session.user?.email or id
+    if (!userId && serverSession?.user?.email) {
+      // find user id by email when NextAuth session provides only email
+      const u = await prisma.user.findUnique({ where: { email: serverSession.user.email as string } });
+      if (u) userId = u.id;
+    }
+  }
+  if (!userId) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
   const body = await req.json().catch(() => ({}));
   const data: any = {};
   if (body.name !== undefined) data.name = body.name;
@@ -32,6 +48,11 @@ export async function PATCH(req: Request) {
   if (body.about !== undefined) data.about = body.about;
   if (body.interests !== undefined) data.interests = body.interests;
 
-  const updated = await prisma.user.update({ where: { id: session.userId }, data });
-  return NextResponse.json({ profile: updated });
+  try {
+    const updated = await prisma.user.update({ where: { id: userId }, data });
+    return NextResponse.json({ profile: updated });
+  } catch (err) {
+    console.error('[Profile] Update failed for userId=', userId, err);
+    return NextResponse.json({ error: 'Profile update failed', details: String(err) }, { status: 500 });
+  }
 }
