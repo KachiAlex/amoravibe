@@ -1,6 +1,15 @@
+model Space {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+}
 generator client {
   provider = "prisma-client-js"
-  output   = "./node_modules/.prisma/client"
+  // Ensure generated client is placed in apps/web/node_modules so scripts
+  // and runtime importing '@prisma/client' resolve correctly when running
+  // from the apps/web package context.
+  output   = "../node_modules/.prisma/client"
 }
 
 datasource db {
