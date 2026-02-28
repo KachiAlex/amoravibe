@@ -2,14 +2,8 @@ import { getSession } from '@/lib/session';
 import { redirect } from 'next/navigation';
 import { Card } from '@lovedate/ui';
 import { createLovedateApi } from '@lovedate/api';
-import nextDynamic from 'next/dynamic';
 import { resolveTrustApiBase } from '@/lib/trust-upstream';
-
-const AdminMetrics = nextDynamic(() => import('./AdminMetrics'), { ssr: false });
-const UserTable = nextDynamic(() => import('./UserTable'), { ssr: false });
-const ActivityLog = nextDynamic(() => import('./ActivityLog'), { ssr: false });
-const TrustOverride = nextDynamic(() => import('./TrustOverride'), { ssr: false });
-const SystemHealth = nextDynamic(() => import('./SystemHealth'), { ssr: false });
+import { AdminWidgetsClient } from './AdminWidgetsClient';
 
 export const dynamic = 'force-dynamic';
 
@@ -42,11 +36,7 @@ export default async function AdminDashboardPage() {
           <p>Loading user data...</p>
         </div>
       </Card>
-      <AdminMetrics />
-      <UserTable />
-      <TrustOverride />
-      <ActivityLog />
-      <SystemHealth />
+      <AdminWidgetsClient />
     </main>
   );
 }
