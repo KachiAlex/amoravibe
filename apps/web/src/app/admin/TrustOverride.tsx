@@ -42,7 +42,11 @@ export default function TrustOverride() {
         </button>
       </div>
       {error && <div className="text-red-600 text-xs">{error}</div>}
-      {result && <div className="text-green-700 text-xs">User {result.id} marked as verified.</div>}
+      {result && (
+        <div className="text-green-700 text-xs">
+          User {(result.user?.id ?? result.id ?? userId) || 'user'} marked as verified.
+        </div>
+      )}
     </Card>
   );
 }

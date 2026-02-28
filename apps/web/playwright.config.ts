@@ -14,12 +14,13 @@ export default defineConfig({
   // Optionally start the built Next.js server automatically for CI / local runs.
   // If `PLAYWRIGHT_START_SERVER=0` is set, Playwright will not start a server and
   // tests can point at an already running dev server via `PLAYWRIGHT_BASE_URL`.
+  // Default behavior auto-starts the production server, but for admin specs we now
+  // prefer the manual workflow documented in docs/playwright-admin.md.
   webServer: process.env.PLAYWRIGHT_START_SERVER === '0' ? undefined : {
     command: process.env.PLAYWRIGHT_SERVER_COMMAND || 'npm run build && npm run start',
     port: 4000,
     timeout: 120_000,
     reuseExistingServer: !process.env.CI,
-    // Inject E2E-only env so the app serves seeded trust snapshots during Playwright runs.
     env: {
       NEXT_PUBLIC_USE_SEED_SNAPSHOT: '1',
       TRUST_API_MOCK: process.env.TRUST_API_MOCK || '1',
