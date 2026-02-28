@@ -125,6 +125,12 @@ async function resolveNextauthSegments(req: Request, ctx?: NextAuthContext) {
 
 // Build and call NextAuth per-request so PrismaClient isn't created at module import time.
 async function handlerWithParams(req: Request, ctx?: NextAuthContext) {
+  try {
+    const url = req.url;
+    console.log('[NextAuth] handlerWithParams invoked', url);
+  } catch (err) {
+    console.warn('[NextAuth] handlerWithParams logging failed', err);
+  }
   const options = await buildAuthOptions(req);
   const handler = NextAuth(options as any);
   return handler(req as any, ctx as any);
