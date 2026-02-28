@@ -1,7 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { requireAdmin } from './auth';
+import { getAdminMetrics } from '@/lib/admin-metrics';
 
-export default function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const actor = requireAdmin(req, res);
   if (!actor) return;
 
@@ -10,12 +11,6 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
     return res.status(405).end('Method Not Allowed');
   }
 
-  const metrics = {
-    totalUsers: 1200,
-    activeUsers: 350,
-    signupsThisWeek: 24,
-    bannedUsers: 12,
-  };
-
+  const metrics = await getAdminMetrics();
   return res.status(200).json(metrics);
 }

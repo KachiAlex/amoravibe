@@ -1,20 +1,38 @@
 "use client";
 import React, { useEffect, useState } from 'react';
 import { Card } from '@lovedate/ui';
+import type { AdminMetricsSnapshot } from '@/lib/admin-metrics';
 
-export default function AdminMetrics() {
-  const [metrics, setMetrics] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+type AdminMetricsProps = {
+  initialMetrics?: AdminMetricsSnapshot;
+};
+
+export default function AdminMetrics({ initialMetrics }: AdminMetricsProps) {
+  const [metrics, setMetrics] = useState<AdminMetricsSnapshot | null>(initialMetrics ?? null);
+  const [loading, setLoading] = useState(!initialMetrics);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (initialMetrics) {
+      setMetrics(initialMetrics);
+      setLoading(false);
+      return;
+    }
+
+    let cancelled = false;
     setLoading(true);
     fetch('/api/trust/admin/metrics')
       .then((res) => (res.ok ? res.json() : Promise.reject(res.statusText)))
-      .then((data) => setMetrics(data))
-      .catch((err) => setError(String(err)))
-      .finally(() => setLoading(false));
-  }, []);
+      .then((data: AdminMetricsSnapshot) => {
+        if (!cancelled) setMetrics(data);
+      })
+      .catch((err) => !cancelled && setError(String(err)))
+      .finally(() => !cancelled && setLoading(false));
+
+    return () => {
+      cancelled = true;
+    };
+  }, [initialMetrics]);
 
   return (
     <Card className="mb-8 p-6">

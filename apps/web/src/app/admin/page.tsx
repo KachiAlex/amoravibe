@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { Card } from '@lovedate/ui';
 import { createLovedateApi } from '@lovedate/api';
 import { resolveTrustApiBase } from '@/lib/trust-upstream';
+import { getAdminMetrics } from '@/lib/admin-metrics';
 import { AdminWidgetsClient } from './AdminWidgetsClient';
 
 export const dynamic = 'force-dynamic';
@@ -10,7 +11,7 @@ export const dynamic = 'force-dynamic';
 const upstreamBase = resolveTrustApiBase();
 
 export default async function AdminDashboardPage() {
-  const session = getSession();
+  const session = await getSession();
   if (!session) {
     redirect('/login?next=/admin');
   }
@@ -19,7 +20,7 @@ export default async function AdminDashboardPage() {
   const api = createLovedateApi({ baseUrl: upstreamBase });
   let user: any = null;
   try {
-    const snapshot = await api.fetchTrustSnapshot(session!.userId);
+    const snapshot = await api.fetchTrustSnapshot(session.userId);
     user = snapshot.user;
   } catch (e) {
     redirect('/login?next=/admin');
@@ -27,6 +28,8 @@ export default async function AdminDashboardPage() {
   if (!user || user.email !== 'admin@amoravibe.com') {
     redirect('/login?next=/admin');
   }
+
+  const metrics = await getAdminMetrics();
 
   return (
     <main className="mx-auto max-w-4xl px-6 py-24">
@@ -36,7 +39,7 @@ export default async function AdminDashboardPage() {
           <p>Loading user data...</p>
         </div>
       </Card>
-      <AdminWidgetsClient />
+      <AdminWidgetsClient initialMetrics={metrics} />
     </main>
   );
 }
