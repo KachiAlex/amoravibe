@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { signIn } from 'next-auth/react';
+import { getAuthErrorMessage } from '@/lib/auth-errors';
 import { AnimatePresence, motion } from '@/lib/motion-shim';
 import { CheckCircle2, Loader2, Lock, Mail, Phone, X } from 'lucide-react';
 
@@ -80,7 +81,8 @@ export function SignInModal({ isOpen, onClose }: SignInModalProps) {
         });
 
         if (!res || !res.ok) {
-          setError('Invalid email or password.');
+          const { title, description } = getAuthErrorMessage(res?.error ?? undefined);
+          setError(`${title}. ${description}`);
           setShowToast(true);
           return;
         }
@@ -100,7 +102,8 @@ export function SignInModal({ isOpen, onClose }: SignInModalProps) {
         });
 
         if (!res || !res.ok) {
-          setError('Invalid phone or password.');
+          const { title, description } = getAuthErrorMessage(res?.error ?? undefined);
+          setError(`${title}. ${description}`);
           setShowToast(true);
           return;
         }
@@ -113,7 +116,8 @@ export function SignInModal({ isOpen, onClose }: SignInModalProps) {
         }, 1100);
       }
     } catch (err) {
-      setError('Unable to sign you in.');
+      const { title, description } = getAuthErrorMessage('Configuration');
+      setError(`${title}. ${description}`);
       setShowToast(true);
     } finally {
       setPending(false);

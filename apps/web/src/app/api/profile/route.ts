@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getSession as getLegacySession } from '@/lib/session';
+import { getSession as getLegacySession, setSession } from '@/lib/session';
 import prisma from '@/lib/db';
 import { getServerSession } from 'next-auth';
 import { buildAuthOptions } from '../auth/[...nextauth]/route';
@@ -24,7 +24,7 @@ export async function PATCH(req: Request) {
   // Support both legacy `lovedate_session` cookie and NextAuth session
   let userId: string | undefined;
   // legacy session cookie
-  const legacy = getLegacySession();
+  const legacy = await getLegacySession();
   if (legacy?.userId) userId = legacy.userId;
   // Try NextAuth session as fallback
   if (!userId) {
@@ -41,15 +41,22 @@ export async function PATCH(req: Request) {
   const body = await req.json().catch(() => ({}));
   const data: any = {};
   if (body.name !== undefined) data.name = body.name;
+  if (body.displayName !== undefined) data.displayName = body.displayName;
   if (body.age !== undefined) data.age = body.age;
   if (body.location !== undefined) data.location = body.location;
   if (body.job !== undefined) data.job = body.job;
   if (body.avatar !== undefined) data.avatar = body.avatar;
   if (body.about !== undefined) data.about = body.about;
   if (body.interests !== undefined) data.interests = body.interests;
+  if (body.onboardingCompleted !== undefined) data.onboardingCompleted = Boolean(body.onboardingCompleted);
+  if (body.onboardingStep !== undefined) data.onboardingStep = body.onboardingStep;
+  if (body.onboardingCompleted) {
+    data.profileCompletedAt = new Date();
+  }
 
   try {
     const updated = await prisma.user.update({ where: { id: userId }, data });
+    await setSession({ userId });
     return NextResponse.json({ profile: updated });
   } catch (err) {
     console.error('[Profile] Update failed for userId=', userId, err);

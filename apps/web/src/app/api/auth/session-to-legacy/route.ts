@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { buildAuthOptions } from '../[...nextauth]/route';
 import prisma from '@/lib/db';
+import { setSession } from '@/lib/session';
 
 export async function POST(req: Request) {
   try {
@@ -16,11 +17,9 @@ export async function POST(req: Request) {
     }
     if (!userId) return NextResponse.json({ ok: false, error: 'User not found' }, { status: 404 });
 
-    const cookieValue = encodeURIComponent(JSON.stringify({ userId }));
-    const maxAge = 60 * 60 * 24 * 30;
-    const res = NextResponse.json({ ok: true });
-    res.headers.append('Set-Cookie', `lovedate_session=${cookieValue}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${maxAge}`);
-    return res;
+    // Reuse the same helper the profile API uses so the cookie format stays consistent.
+    await setSession({ userId });
+    return NextResponse.json({ ok: true });
   } catch (err) {
     console.error('[session-to-legacy] error', err);
     return NextResponse.json({ ok: false, error: String(err) }, { status: 500 });

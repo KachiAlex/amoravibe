@@ -511,6 +511,26 @@ export function OnboardingModal({ isOpen, onClose }: OnboardingModalProps) {
       const userId = result.user.id;
       const displayName = result.user.displayName;
 
+      try {
+        await fetch('/api/profile', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            name: [formData.firstName, formData.lastName].filter(Boolean).join(' ').trim() || undefined,
+            displayName: displayName ?? formData.displayName ?? formData.firstName,
+            location: formData.city,
+            job: undefined,
+            about: formData.bio,
+            interests: formData.interests,
+            onboardingCompleted: true,
+            onboardingStep: 'complete',
+          }),
+        });
+      } catch (err) {
+        console.warn('Failed to persist onboarding completion profile fields', err);
+      }
+
       // Persist a lightweight local copy so UI flows can use it
       onboardingContext.saveOnboarding({
         userId,

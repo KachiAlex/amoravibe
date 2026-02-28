@@ -78,11 +78,14 @@ export default function OnboardingPage() {
         credentials: "include",
         body: JSON.stringify({
           name,
+          displayName: name,
           age: age ? Number(age) : undefined,
           location,
           job,
           about,
           interests: interests.split(",").map((i) => i.trim()),
+          onboardingCompleted: true,
+          onboardingStep: 'complete',
         }),
       });
       if (!res.ok) throw new Error("Profile update failed");
