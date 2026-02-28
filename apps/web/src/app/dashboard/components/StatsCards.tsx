@@ -1,28 +1,69 @@
 "use client";
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 type Stats = { matches: number; chats: number; views: number };
 
-export default function StatsCards({ stats: initial = { matches: 0, chats: 0, views: 0 } }: { stats?: Stats }) {
-  const [stats, setStats] = useState<Stats>(initial);
-  const [display, setDisplay] = useState<Stats>(initial);
-  const [badges, setBadges] = useState<{ matches?: string; chats?: string; views?: string }>({});
+export default function StatsCards({ stats: statsProp }: { stats?: Stats }) {
+  const hasServerStats = Boolean(statsProp);
+  const statsEqual = (a: Stats, b: Stats) =>
+    a.matches === b.matches && a.chats === b.chats && a.views === b.views;
+  const normalizedStats = useMemo<Stats>(
+    () => ({
+      matches: statsProp?.matches ?? 0,
+      chats: statsProp?.chats ?? 0,
+      views: statsProp?.views ?? 0,
+    }),
+    [statsProp?.matches, statsProp?.chats, statsProp?.views]
+  );
 
-  const [loading, setLoading] = useState(true);
-  async function fetchStats() {
+  const [stats, setStats] = useState<Stats>(normalizedStats);
+  const [display, setDisplay] = useState<Stats>(normalizedStats);
+  const [badges, setBadges] = useState<{ matches?: string; chats?: string; views?: string }>({});
+  const [error, setError] = useState<string | null>(null);
+
+  const [loading, setLoading] = useState(() => !hasServerStats);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const trackDashboardEvent = useCallback((event: string, detail?: Record<string, unknown>) => {
+    try {
+      window.dispatchEvent(new CustomEvent('dashboard:telemetry', { detail: { event, ...detail } }));
+    } catch (_) {
+      // noop for SSR/window-less environments
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!hasServerStats) return;
+    setLoading(false);
+    setStats((prev) => (statsEqual(prev, normalizedStats) ? prev : normalizedStats));
+  }, [normalizedStats, hasServerStats, statsEqual]);
+
+  async function fetchStats(manual = false) {
+    if (manual) setRefreshing(true);
+    setError(null);
+    trackDashboardEvent('stats_refresh_requested', { manual });
     try {
       const res = await fetch('/api/stats');
-      if (!res.ok) return;
+      if (!res.ok) {
+        throw new Error('Failed to load stats');
+      }
       const data = await res.json();
-      if (data) setStats({
-        matches: data.matches,
-        chats: data.chats,
-        views: data.views
-      });
+      if (data) {
+        const next: Stats = {
+          matches: data.matches,
+          chats: data.chats,
+          views: data.views,
+        };
+        setStats((prev) => (statsEqual(prev, next) ? prev : next));
+        trackDashboardEvent('stats_refresh_succeeded', { manual });
+      }
     } catch (e) {
-      // ignore
+      setError('Unable to refresh stats. Please try again.');
+      trackDashboardEvent('stats_refresh_failed', { manual });
+    } finally {
+      setLoading(false);
+      if (manual) setRefreshing(false);
     }
-    setLoading(false);
   }
 
   // animate display numbers towards the latest stats
@@ -48,7 +89,13 @@ export default function StatsCards({ stats: initial = { matches: 0, chats: 0, vi
   }, [stats]);
 
   useEffect(() => {
-    fetchStats();
+    if (!hasServerStats) {
+      fetchStats();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasServerStats]);
+
+  useEffect(() => {
     const refreshHandler = () => fetchStats();
     const optimisticHandler = (e: Event) => {
       try {
@@ -70,22 +117,48 @@ export default function StatsCards({ stats: initial = { matches: 0, chats: 0, vi
     };
   }, []);
 
+  const header = (
+    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-6">
+      <div>
+        <h2 className="text-lg font-semibold text-gray-900">Activity snapshot</h2>
+        {error && (
+          <p className="text-sm text-red-500" role="status" aria-live="polite">
+            {error}
+          </p>
+        )}
+      </div>
+      <button
+        type="button"
+        onClick={() => fetchStats(true)}
+        disabled={refreshing}
+        className="inline-flex items-center justify-center rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-200 disabled:opacity-60"
+      >
+        {refreshing ? 'Refreshing…' : 'Refresh stats'}
+      </button>
+    </div>
+  );
+
   if (loading) {
     return (
-      <section className="flex flex-col md:flex-row gap-8 mb-12 animate-fade-in" aria-label="Summary statistics">
-        {[1,2,3].map((i) => (
-          <div key={i} className="flex-1 stat-card rounded-2xl bg-white shadow p-6 animate-pulse border border-gray-100">
-            <div className="w-10 h-10 bg-gray-100 rounded-full mb-2 animate-pulse" />
-            <div className="h-8 w-24 bg-gray-100 rounded mb-2 animate-pulse" />
-            <div className="h-4 w-16 bg-gray-200 rounded mb-1 animate-pulse" />
-            <div className="h-4 w-20 bg-gray-200 rounded animate-pulse" />
-          </div>
-        ))}
+      <section className="mb-12 animate-fade-in" aria-label="Summary statistics">
+        {header}
+        <div className="flex flex-col md:flex-row gap-8">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="flex-1 stat-card rounded-2xl bg-white shadow p-6 animate-pulse border border-gray-100">
+              <div className="w-10 h-10 bg-gray-100 rounded-full mb-2 animate-pulse" />
+              <div className="h-8 w-24 bg-gray-100 rounded mb-2 animate-pulse" />
+              <div className="h-4 w-16 bg-gray-200 rounded mb-1 animate-pulse" />
+              <div className="h-4 w-20 bg-gray-200 rounded animate-pulse" />
+            </div>
+          ))}
+        </div>
       </section>
     );
   }
   return (
-    <section className="flex flex-col md:flex-row gap-8 mb-12 animate-fade-in" aria-label="Summary statistics">
+    <section className="mb-12 animate-fade-in" aria-label="Summary statistics">
+      {header}
+      <div className="flex flex-col md:flex-row gap-8">
       <div className="flex-1 stat-card rounded-2xl bg-white shadow p-6 border border-gray-100" role="region" aria-label="Total matches" tabIndex={0}>
         <span className="text-2xl mb-2" aria-hidden>
           💜
@@ -124,6 +197,7 @@ export default function StatsCards({ stats: initial = { matches: 0, chats: 0, vi
           <span className="text-purple-600 font-semibold">Top 10%</span>
         </div>
         <span className="text-gray-700 mt-1 font-medium">Profile Views</span>
+      </div>
       </div>
     </section>
   );

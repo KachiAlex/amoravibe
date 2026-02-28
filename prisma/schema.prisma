@@ -9,33 +9,58 @@ datasource db {
 }
 
 model User {
-  id             String   @id @default(uuid())
-  email          String   @unique
-  hashedPassword String?
-  displayName    String?
-  name           String?
-  age            Int?
-  location       String?
-  job            String?
-  avatar         String?
-  about          String?
-  interests      String[]
-  role           String   @default("user")
-  isVerified     Boolean  @default(false)
-  banned         Boolean  @default(false)
-  createdAt      DateTime @default(now())
-  matches        Match[]  @relation("UserMatches")
-  messagesSent   Message[] @relation("MessagesFrom")
-  messagesReceived Message[] @relation("MessagesTo")
+  id                 String              @id @default(uuid())
+  email              String              @unique
+  hashedPassword     String?
+  displayName        String?
+  name               String?
+  age                Int?
+  location           String?
+  job                String?
+  avatar             String?
+  about              String?
+  interests          String[]
+  role               String              @default("user")
+  isVerified         Boolean             @default(false)
+  banned             Boolean             @default(false)
+  createdAt          DateTime            @default(now())
+  matchesInitiated   Match[]             @relation("UserMatches")
+  matchesReceived    Match[]             @relation("TargetMatches")
+  matchActions       MatchAction[]
+  conversationStates ConversationState[]
+  messagesSent       Message[]           @relation("MessagesFrom")
+  messagesReceived   Message[]           @relation("MessagesTo")
 }
 
 model Match {
-  id        String   @id @default(uuid())
-  user      User     @relation(fields: [userId], references: [id], name: "UserMatches")
-  hashedPassword String?
-  userId    String
-  matchedId String
-  createdAt DateTime @default(now())
+  id                  String        @id @default(uuid())
+  requester           User          @relation("UserMatches", fields: [requesterId], references: [id])
+  requesterId         String
+  target              User          @relation("TargetMatches", fields: [targetUserId], references: [id])
+  targetUserId        String
+  status              MatchStatus   @default(PENDING)
+  compatibilityScore  Int?
+  tagsOverlap         Int?          @default(0)
+  isHighlighted       Boolean       @default(false)
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @default(now()) @updatedAt
+  actions             MatchAction[]
+
+  @@index([requesterId, targetUserId], map: "idx_match_participants")
+}
+
+model MatchAction {
+  id         String           @id @default(uuid())
+  match      Match?           @relation(fields: [matchId], references: [id])
+  matchId    String?
+  actor      User             @relation(fields: [actorId], references: [id])
+  actorId    String
+  target     User             @relation("MatchActionTarget", fields: [targetUserId], references: [id])
+  targetUserId String
+  action     MatchActionType
+  createdAt  DateTime         @default(now())
+
+  @@index([actorId, targetUserId], map: "idx_match_action_actor_target")
 }
 
 model Message {
@@ -47,6 +72,32 @@ model Message {
   text      String
   createdAt DateTime @default(now())
   read      Boolean  @default(false)
+}
+
+model ConversationState {
+  id           String   @id @default(uuid())
+  user         User     @relation(fields: [userId], references: [id])
+  userId       String
+  otherUser    User     @relation("ConversationStateOther", fields: [otherUserId], references: [id])
+  otherUserId  String
+  muted        Boolean  @default(false)
+  archived     Boolean  @default(false)
+  lastReadAt   DateTime?
+  updatedAt    DateTime @default(now()) @updatedAt
+
+  @@unique([userId, otherUserId], map: "uniq_conversation_states_user_other")
+}
+
+enum MatchStatus {
+  PENDING
+  CONNECTED
+  PASSED
+}
+
+enum MatchActionType {
+  LIKE
+  PASS
+  BLOCK
 }
 
 model Audit {

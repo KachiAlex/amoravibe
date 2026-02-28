@@ -16,16 +16,25 @@ export default async function AdminDashboardPage() {
     redirect('/login?next=/admin');
   }
 
-  // Ensure user is an admin based on the local mock store/session
-  const api = createLovedateApi({ baseUrl: upstreamBase });
-  let user: any = null;
-  try {
-    const snapshot = await api.fetchTrustSnapshot(session.userId);
-    user = snapshot.user;
-  } catch (e) {
-    redirect('/login?next=/admin');
+  const trustMockEnabled =
+    process.env.TRUST_API_MOCK === '1' || process.env.TRUST_API_MOCK === 'true';
+
+  let isAdmin = false;
+
+  if (trustMockEnabled) {
+    isAdmin = session.userId === 'admin@amoravibe.com';
+  } else {
+    // Ensure user is an admin based on the upstream trust snapshot
+    const api = createLovedateApi({ baseUrl: upstreamBase });
+    try {
+      const snapshot = await api.fetchTrustSnapshot(session.userId);
+      isAdmin = snapshot.user?.email === 'admin@amoravibe.com';
+    } catch (e) {
+      redirect('/login?next=/admin');
+    }
   }
-  if (!user || user.email !== 'admin@amoravibe.com') {
+
+  if (!isAdmin) {
     redirect('/login?next=/admin');
   }
 

@@ -25,6 +25,8 @@ export type Message = {
   unread?: boolean;
   online?: boolean;
   typing?: boolean;
+  muted?: boolean;
+  archived?: boolean;
 };
 
 const seedMatches: Match[] = [
@@ -121,6 +123,7 @@ const seedMessages: Message[] = [
     time: '1h',
     unread: false,
     online: true,
+    muted: true,
   },
   {
     id: 'm3',
@@ -131,6 +134,7 @@ const seedMessages: Message[] = [
     time: '3h',
     unread: true,
     online: false,
+    archived: true,
   },
   {
     id: 'm4',
@@ -141,6 +145,8 @@ const seedMessages: Message[] = [
     time: '1d',
     unread: false,
     online: false,
+    muted: false,
+    archived: true,
   },
 ];
 

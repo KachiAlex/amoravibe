@@ -12,8 +12,27 @@ const seed: AdminUser[] = [
   { id: 'bob@example.com', email: 'bob@example.com', displayName: 'Bob' },
 ];
 
-const usersMap: Record<string, AdminUser> = {};
-for (const u of seed) usersMap[u.id] = { ...u };
+let usersMap: Record<string, AdminUser> = {};
+
+function hydrateSeed() {
+  usersMap = {};
+  for (const u of seed) {
+    usersMap[u.id] = { ...u };
+  }
+}
+
+hydrateSeed();
+
+export function resetAdminUsers(overrides?: Record<string, Partial<AdminUser>>) {
+  hydrateSeed();
+  if (overrides) {
+    for (const [id, patch] of Object.entries(overrides)) {
+      if (usersMap[id]) {
+        usersMap[id] = { ...usersMap[id], ...patch };
+      }
+    }
+  }
+}
 
 export function listUsers({ search, limit }: { search?: string; limit?: number } = {}) {
   let users = Object.values(usersMap);

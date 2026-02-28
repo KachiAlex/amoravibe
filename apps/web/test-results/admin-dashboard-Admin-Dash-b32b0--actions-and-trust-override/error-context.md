@@ -1,0 +1,73 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - main [ref=e2]:
+    - heading "Admin Dashboard" [level=1] [ref=e3]
+    - paragraph [ref=e6]: Loading user data...
+    - generic [ref=e7]:
+      - heading "Platform Metrics" [level=2] [ref=e8]
+      - generic [ref=e9]:
+        - generic [ref=e10]:
+          - generic [ref=e11]: "1200"
+          - generic [ref=e12]: Total Users
+        - generic [ref=e13]:
+          - generic [ref=e14]: "350"
+          - generic [ref=e15]: Active Users
+        - generic [ref=e16]:
+          - generic [ref=e17]: "24"
+          - generic [ref=e18]: Signups This Week
+        - generic [ref=e19]:
+          - generic [ref=e20]: "12"
+          - generic [ref=e21]: Banned Users
+    - generic [ref=e22]:
+      - generic [ref=e23]:
+        - heading "User Management" [level=2] [ref=e24]
+        - generic [ref=e25]: "Total users: 1"
+      - generic [ref=e26]:
+        - textbox "Search by name, email or city" [ref=e27]: bob@example.com
+        - combobox [ref=e28]:
+          - option "5 / page"
+          - option "10 / page" [selected]
+          - option "25 / page"
+        - generic [ref=e29]: Showing 1 - 1 of 1
+      - generic [ref=e30]: "Error: Error: Not found"
+      - table [ref=e31]:
+        - rowgroup [ref=e32]:
+          - row "Email Display Name Role Status Actions" [ref=e33]:
+            - columnheader "Email" [ref=e34]
+            - columnheader "Display Name" [ref=e35]
+            - columnheader "Role" [ref=e36]
+            - columnheader "Status" [ref=e37]
+            - columnheader "Actions" [ref=e38]
+        - rowgroup [ref=e39]:
+          - row "bob@example.com Bob user active View Verify Ban" [ref=e40]:
+            - cell "bob@example.com" [ref=e41]
+            - cell "Bob" [ref=e42]
+            - cell "user" [ref=e43]
+            - cell "active" [ref=e44]
+            - cell "View Verify Ban" [ref=e45]:
+              - button "View" [ref=e46]
+              - button "Verify" [ref=e47]
+              - button "Ban" [ref=e48]
+      - generic [ref=e49]:
+        - generic [ref=e50]:
+          - button "Prev" [disabled] [ref=e51]
+          - button "Next" [disabled] [ref=e52]
+        - generic [ref=e53]: Page 1 / 1
+    - generic [ref=e54]:
+      - heading "Trust/Verification Override" [level=2] [ref=e55]
+      - generic [ref=e56]:
+        - textbox "User ID" [ref=e57]
+        - button "Mark Verified" [disabled] [ref=e58]
+    - generic [ref=e59]:
+      - heading "Activity Log" [level=2] [ref=e60]
+      - list [ref=e61]:
+        - listitem [ref=e62]: No activity found.
+    - generic [ref=e63]:
+      - heading "System Health" [level=2] [ref=e64]
+      - generic [ref=e66]: "Status: ok"
+  - button "Open Next.js Dev Tools" [ref=e72] [cursor=pointer]:
+    - img [ref=e73]
+  - alert [ref=e76]
+```

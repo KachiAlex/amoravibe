@@ -29,3 +29,6 @@
 - [ ] Consolidate trust API calls into a single helper that reuses auth tokens and retries with jitter for better resilience.
 - [ ] Add SWR polling (5–10s) for AdminMetrics/UserTable so the page reflects live data without manual refreshes.
 - [ ] Instrument admin actions (overrides, bans, snapshots) using `hot-shots` so we can observe latency + failures.
+
+## Testing
+- [ ] Re-enable Playwright admin-dashboard spec by ensuring a Next server is running (e.g., `PLAYWRIGHT_START_SERVER=0` + `next dev`) and wiring CI to invoke it.

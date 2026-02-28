@@ -1,10 +1,105 @@
 "use client";
-import React from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useTheme } from '@/app/providers/ThemeProvider';
 
+const SEARCH_EVENT = 'dashboard:matches:search';
+const TELEMETRY_EVENT = 'dashboard:telemetry';
+
+async function fetchNotificationCount(): Promise<number> {
+  try {
+    const res = await fetch('/api/notifications/count', { cache: 'no-store' });
+    if (!res.ok) throw new Error('failed');
+    const data = await res.json();
+    return data.count ?? 0;
+  } catch (_) {
+    return 0;
+  }
+}
+
+async function persistTheme(theme: 'light' | 'dark') {
+  try {
+    await fetch('/api/user/preferences/theme', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ theme }),
+    });
+  } catch (_) {
+    // ignore preference failure silently for now
+  }
+}
+
 export default function Header({ userName = 'You' }: { userName?: string }) {
-  const { theme, toggleTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
   const isDark = theme === 'dark';
+  const [query, setQuery] = useState('');
+  const [searching, setSearching] = useState(false);
+  const [notificationCount, setNotificationCount] = useState<number | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    fetchNotificationCount().then(setNotificationCount);
+    const id = setInterval(() => {
+      fetchNotificationCount().then(setNotificationCount);
+    }, 60_000);
+    return () => clearInterval(id);
+  }, []);
+
+  const executeSearch = useMemo(
+    () => async (nextQuery: string) => {
+      if (abortRef.current) {
+        abortRef.current.abort();
+      }
+      const trimmed = nextQuery.trim();
+      if (!trimmed) {
+        window.dispatchEvent(new CustomEvent(SEARCH_EVENT, { detail: { query: '', results: [] } }));
+        setSearching(false);
+        return;
+      }
+      abortRef.current = new AbortController();
+      setSearching(true);
+      window.dispatchEvent(new CustomEvent(TELEMETRY_EVENT, { detail: { event: 'search_requested', query: trimmed } }));
+      try {
+        const res = await fetch(`/api/search/matches?q=${encodeURIComponent(trimmed)}`, {
+          signal: abortRef.current.signal,
+        });
+        if (!res.ok) throw new Error('Search failed');
+        const data = await res.json();
+        window.dispatchEvent(new CustomEvent(SEARCH_EVENT, { detail: { query: trimmed, results: data.results ?? [] } }));
+        window.dispatchEvent(new CustomEvent(TELEMETRY_EVENT, { detail: { event: 'search_succeeded', query: trimmed } }));
+      } catch (err) {
+        if ((err as Error).name === 'AbortError') return;
+        window.dispatchEvent(new CustomEvent(TELEMETRY_EVENT, { detail: { event: 'search_failed', query: trimmed } }));
+        window.dispatchEvent(new CustomEvent(SEARCH_EVENT, { detail: { query: trimmed, error: 'Unable to search right now.' } }));
+      } finally {
+        setSearching(false);
+      }
+    },
+    []
+  );
+
+  useEffect(() => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    timeoutRef.current = setTimeout(() => {
+      executeSearch(query);
+    }, 400);
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, [query, executeSearch]);
+
+  const handleSearchSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    executeSearch(query);
+  };
+
+  const handleThemeToggle = async () => {
+    const next = isDark ? 'light' : 'dark';
+    setTheme(next);
+    persistTheme(next);
+    window.dispatchEvent(new CustomEvent(TELEMETRY_EVENT, { detail: { event: 'theme_toggled', theme: next } }));
+  };
 
   return (
     <header className="flex items-center justify-between mb-8" role="banner">
@@ -18,20 +113,30 @@ export default function Header({ userName = 'You' }: { userName?: string }) {
         <button className="md:hidden p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-200" aria-label="Open menu">
           <span aria-hidden>☰</span>
         </button>
-        <input
-          type="search"
-          aria-label="Search profiles and interests"
-          placeholder="Search profiles, interests..."
-          className="rounded-full px-4 py-2 border border-gray-200 bg-white shadow-sm w-64"
-        />
-        <button className="relative p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-200" aria-label="Notifications">
+        <form onSubmit={handleSearchSubmit} role="search" className="relative">
+          <input
+            type="search"
+            aria-label="Search profiles and interests"
+            placeholder="Search profiles, interests..."
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            className="rounded-full px-4 py-2 border border-gray-200 bg-white shadow-sm w-64 pr-10"
+            autoComplete="off"
+          />
+          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm" aria-hidden>
+            {searching ? '…' : '⌘K'}
+          </span>
+        </form>
+        <button className="relative p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-200" aria-label="Notifications" onClick={() => window.dispatchEvent(new CustomEvent(TELEMETRY_EVENT, { detail: { event: 'notifications_opened' } }))}>
           <span className="text-2xl" aria-hidden>
             🔔
           </span>
-          <span className="absolute -top-1 -right-1 bg-pink-600 text-white text-xs rounded-full px-1">!</span>
+          <span className="absolute -top-1 -right-1 bg-pink-600 text-white text-xs rounded-full px-1">
+            {notificationCount === null ? '…' : notificationCount}
+          </span>
         </button>
         <button
-          onClick={toggleTheme}
+          onClick={handleThemeToggle}
           className="flex items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-1 text-sm font-semibold shadow-sm hover:shadow focus:outline-none focus:ring-2 focus:ring-purple-200"
           aria-label="Toggle theme"
         >

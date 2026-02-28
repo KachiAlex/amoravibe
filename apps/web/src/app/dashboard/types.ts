@@ -12,6 +12,12 @@ export type Message = {
   avatar?: string;
   preview?: string;
   time?: string;
+  text?: string;
+  unread?: boolean;
+  online?: boolean;
+  typing?: boolean;
+  muted?: boolean;
+  archived?: boolean;
 };
 
 export type DashboardData = {

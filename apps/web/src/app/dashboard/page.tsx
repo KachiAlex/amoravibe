@@ -3,8 +3,8 @@ import React from 'react';
 import Header from './components/Header';
 import StatsCards from './components/StatsCards';
 import MatchesGrid from './components/MatchesGrid';
-import MessagesList from './components/MessagesList';
 import Tabs from './components/Tabs';
+import { DashboardMessagesWidget } from './components/DashboardMessagesWidget';
 import { getDashboardData } from './hooks/useDashboardData';
 
 export const dynamic = 'force-dynamic';
@@ -24,6 +24,11 @@ export default async function DashboardPage() {
             <div className="mt-10">
               <h2 className="text-xl font-semibold mb-4">Your Matches</h2>
               <MatchesGrid matches={data?.matches ?? []} />
+            </div>
+
+            {/* Inbox Snapshot */}
+            <div className="mt-12">
+              <DashboardMessagesWidget messages={data?.messages ?? []} />
             </div>
           </div>
         </div>

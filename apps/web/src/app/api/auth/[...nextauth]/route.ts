@@ -46,13 +46,13 @@ export async function buildAuthOptions(req?: Request): Promise<NextAuthOptions> 
             console.log('[NextAuth] User lookup:', user);
             if (!user || !user.hashedPassword) {
               console.log('[NextAuth] User not found or missing hashedPassword');
-              return null;
+              throw new Error('AccountNotFound');
             }
             const isValid = await compare(password, user.hashedPassword);
             console.log('[NextAuth] Password comparison:', { input: password, hash: user.hashedPassword, isValid });
             if (!isValid) {
               console.log('[NextAuth] Password invalid');
-              return null;
+              throw new Error('InvalidPassword');
             }
             return user as any;
           }
@@ -63,34 +63,49 @@ export async function buildAuthOptions(req?: Request): Promise<NextAuthOptions> 
             console.log('[NextAuth] Phone user lookup:', user);
             if (!user || !user.hashedPassword) {
               console.log('[NextAuth] Phone user not found or missing hashedPassword');
-              return null;
+              throw new Error('AccountNotFound');
             }
             const isValid = await compare(password, user.hashedPassword);
             console.log('[NextAuth] Phone password comparison:', { input: password, hash: user.hashedPassword, isValid });
             if (!isValid) {
               console.log('[NextAuth] Phone password invalid');
-              return null;
+              throw new Error('InvalidPassword');
             }
             return user as any;
           }
 
           console.log('[NextAuth] No valid credentials provided');
-          return null;
+          throw new Error('MissingCredentials');
         },
       }),
     ],
     session: { strategy: 'jwt' },
-    pages: { signIn: '/?openSignIn=1' },
+    pages: { signIn: '/?openSignIn=1', error: '/auth/error' },
     callbacks: {
       async session({ session, token }: any) {
         if (token?.sub) (session as any).userId = token.sub;
         return session;
       },
+      async redirect({ url, baseUrl }) {
+        try {
+          const parsed = new URL(url, baseUrl);
+          if (parsed.origin === baseUrl) {
+            return parsed.toString();
+          }
+        } catch (err) {
+          // ignore parse errors and fallback below
+        }
+        if (url.startsWith('/')) {
+          return `${baseUrl}${url}`;
+        }
+        return `${baseUrl}/dashboard`;
+      },
     },
   };
 }
 
-type NextAuthContext = { params?: { nextauth?: string[] } | Promise<{ nextauth?: string[] }> };
+type NextAuthRouteParams = { nextauth?: string[] };
+type NextAuthContext = { params?: NextAuthRouteParams | Promise<NextAuthRouteParams> };
 
 async function resolveNextauthSegments(req: Request, ctx?: NextAuthContext) {
   const parsed = new URL(req.url).pathname.split('/').filter(Boolean);
@@ -98,7 +113,10 @@ async function resolveNextauthSegments(req: Request, ctx?: NextAuthContext) {
   const nextauthFromUrl = authIndex >= 0 ? parsed.slice(authIndex + 1) : [];
 
   const ctxParams = ctx?.params;
-  const resolvedParams = ctxParams && typeof (ctxParams as any).then === 'function' ? await ctxParams : ctxParams;
+  let resolvedParams: NextAuthRouteParams | undefined;
+  if (ctxParams) {
+    resolvedParams = typeof (ctxParams as any).then === 'function' ? await ctxParams : (ctxParams as NextAuthRouteParams);
+  }
   const paramsSegments = resolvedParams?.nextauth;
   const nextauth = paramsSegments && paramsSegments.length > 0 ? paramsSegments : nextauthFromUrl;
   const action = Array.isArray(nextauth) && nextauth.length > 0 ? nextauth[0] : undefined;
