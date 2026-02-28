@@ -1,21 +1,5 @@
 {
   "version": 2,
   "public": true,
-  "builds": [
-    {
-      "src": "apps/web/package.json",
-      "use": "@vercel/next"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/api/auth/(.*)",
-      "dest": "apps/web/api/auth/$1"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "apps/web/$1"
-    }
-  ],
   "installCommand": "npm install --legacy-peer-deps"
 }
