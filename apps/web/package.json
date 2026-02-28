@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 4000",
-    "build": "prisma generate --schema=prisma/schema.prisma && next build",
+    "build": "prisma generate --schema=../../prisma/schema.prisma && next build",
     "sentry:release": "npx sentry-cli releases new $npm_package_version && npx sentry-cli releases files $npm_package_version upload-sourcemaps .next --rewrite",
     "start": "next start",
     "start:playwright": "cross-env PORT=4000 next start",
@@ -15,9 +15,9 @@
     "check:duplicate-api-routes": "node scripts/check-duplicate-api-routes.js",
     "prelint": "npm run check:duplicate-api-routes",
     "lint": "next lint",
-    "prisma:generate": "prisma generate --schema=prisma/schema.prisma",
-    "prisma:migrate:dev": "prisma migrate dev --schema=prisma/schema.prisma --name init",
-    "postinstall": "prisma generate --schema=prisma/schema.prisma",
+    "prisma:generate": "prisma generate --schema=../../prisma/schema.prisma",
+    "prisma:migrate:dev": "prisma migrate dev --schema=../../prisma/schema.prisma --name init",
+    "postinstall": "prisma generate --schema=../../prisma/schema.prisma",
     "generate:nextauth-secret": "node scripts/generate-nextauth-secret.js"
   },
   "dependencies": {
