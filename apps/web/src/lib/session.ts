@@ -7,8 +7,9 @@ export interface LovedateSession {
   userId: string;
 }
 
-export function getSession(): LovedateSession | null {
-  const cookieStore = cookies();
+// Next 15+ returns a promise from cookies(); unwrap before access
+export async function getSession(): Promise<LovedateSession | null> {
+  const cookieStore = await cookies();
   const raw = cookieStore.get(SESSION_COOKIE)?.value;
   if (!raw) {
     return null;
@@ -23,8 +24,8 @@ export function getSession(): LovedateSession | null {
   }
 }
 
-export function setSession(session: LovedateSession) {
-  const cookieStore = cookies();
+export async function setSession(session: LovedateSession) {
+  const cookieStore = await cookies();
   cookieStore.set(SESSION_COOKIE, JSON.stringify(session), {
     httpOnly: true,
     sameSite: 'lax',
@@ -34,6 +35,7 @@ export function setSession(session: LovedateSession) {
   });
 }
 
-export function clearSession() {
-  cookies().delete(SESSION_COOKIE);
+export async function clearSession() {
+  const store = await cookies();
+  store.delete(SESSION_COOKIE);
 }

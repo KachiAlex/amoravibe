@@ -2,59 +2,49 @@
 import Sidebar from '../../components/Sidebar';
 import Header from '../../components/Header';
 import StatsCards from '../../components/StatsCards';
-import { notFound } from 'next/navigation';
+import { useParams } from 'next/navigation';
+import { getMessages as getDevMessages } from '@/lib/dev-data';
 
-// Mock getMessages function
-function getMessages(userId: string) {
-  return [
-    {
-      id: '1',
-      from: 'Alice',
-      avatar: 'https://randomuser.me/api/portraits/women/1.jpg',
-      messages: [
-        { text: 'Hey, how are you?', time: '2m ago', fromMe: false },
-        { text: 'I am good, thanks!', time: '1m ago', fromMe: true },
-      ],
-    },
-    {
-      id: '2',
-      from: 'Bob',
-      avatar: 'https://randomuser.me/api/portraits/men/2.jpg',
-      messages: [
-        { text: 'Let’s catch up soon!', time: '10m ago', fromMe: false },
-        { text: 'Sure, when?', time: '9m ago', fromMe: true },
-      ],
-    },
-    {
-      id: '3',
-      from: 'Clara',
-      avatar: 'https://randomuser.me/api/portraits/women/3.jpg',
-      messages: [
-        { text: 'Sent you the docs.', time: '1h ago', fromMe: false },
-        { text: 'Received, thanks!', time: '59m ago', fromMe: true },
-      ],
-    },
-  ];
-}
+import React, { useEffect, useMemo, useState } from 'react';
 
-import React, { useState } from 'react';
-
-export default function ChatPage({ params }: { params: { id: string } }) {
-  const messages = getMessages('demo-user');
-  const chat = messages.find(m => m.id === params.id);
+export default function ChatPage() {
+  const params = useParams<{ id?: string }>();
+  const chatId = Array.isArray(params?.id) ? params?.id[0] ?? '' : params?.id ?? '';
+  const messages = getDevMessages('demo-user');
+  const chat = useMemo(() => messages.find((m) => m.id === chatId), [messages, chatId]);
   const [input, setInput] = useState('');
-  // For demo, local state for new messages
-  // Add delivered/read status for demo
-  const [localMessages, setLocalMessages] = useState(
-    chat
-      ? chat.messages.map((m, i) => ({
-          ...m,
-          delivered: m.fromMe ? true : false,
-          read: m.fromMe ? i === chat.messages.length - 1 : false,
-        }))
-      : []
-  );
-  if (!chat) return notFound();
+  // For demo, synthesize a simple thread from the message summary
+  const [localMessages, setLocalMessages] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (!chat) {
+      setLocalMessages([]);
+      return;
+    }
+    const primaryText = chat.text || chat.preview || 'Hey there!';
+    const baseThread = [
+      { text: primaryText, time: chat.time || 'now', fromMe: false, delivered: true, read: false },
+      { text: 'Sounds good—let’s catch up!', time: 'just now', fromMe: true, delivered: true, read: false },
+    ];
+    setLocalMessages(
+      baseThread.map((m, i) => ({
+        ...m,
+        delivered: m.fromMe ? true : m.delivered,
+        read: m.fromMe ? i === baseThread.length - 1 : m.read,
+      }))
+    );
+  }, [chat]);
+  if (!chat) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-purple-50 via-pink-50 to-white p-8 text-center">
+        <div className="max-w-md rounded-2xl bg-white p-6 shadow-sm">
+          <p className="text-lg font-semibold text-ink-900">Conversation not found</p>
+          <p className="mt-2 text-sm text-ink-600">Please return to Messages and pick a conversation.</p>
+          <a href="/dashboard/messages" className="mt-4 inline-flex rounded-full bg-gradient-to-r from-purple-600 to-pink-600 px-4 py-2 text-sm font-semibold text-white">Back to messages</a>
+        </div>
+      </main>
+    );
+  }
 
   const handleSend = (e: React.FormEvent) => {
     e.preventDefault();

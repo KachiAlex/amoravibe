@@ -131,9 +131,9 @@ export function SignInModal({ isOpen, onClose }: SignInModalProps) {
         <>
           <motion.div
             initial={{ opacity: 0 }}
-            animate={{ opacity: 0.6 }}
+            animate={{ opacity: 0.7 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-ink-900/80 backdrop-blur"
+            className="fixed inset-0 z-50 bg-black/70 backdrop-blur"
             onClick={onClose}
           />
 
@@ -156,24 +156,26 @@ export function SignInModal({ isOpen, onClose }: SignInModalProps) {
                   <X className="h-5 w-5 text-ink-700" />
                 </button>
 
-                <div className="rounded-3xl bg-white p-8 shadow-2xl">
+                <div className="rounded-3xl bg-white p-8 shadow-2xl border border-gray-100">
                   <div className="mb-6 text-center">
-                    <p className="text-xs uppercase tracking-[0.4em] text-ink-500">Lovedate</p>
-                    <h2 className="mt-3 font-display text-3xl text-ink-900">Sign in to continue</h2>
-                    <p className="mt-2 text-sm text-ink-600">
+                    <p className="text-xs uppercase tracking-[0.4em] text-ink-600">Lovedate</p>
+                    <h2 className="mt-3 font-display text-3xl bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                      Sign in to continue
+                    </h2>
+                    <p className="mt-2 text-sm bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent font-semibold">
                       Secure access to your trust dashboard.
                     </p>
                   </div>
 
                   <form onSubmit={handleSubmit} className="space-y-5">
-                    <div className="flex rounded-full bg-ink-50 p-1">
+                    <div className="flex rounded-full bg-gray-100 p-1 border border-gray-200">
                       {(['email', 'phone'] as SignInMode[]).map((mode) => (
                         <button
                           key={mode}
                           type="button"
                           onClick={() => handleModeChange(mode)}
-                          className={`flex-1 rounded-full px-4 py-2 text-sm font-medium transition ${
-                            form.mode === mode ? 'bg-white text-ink-900 shadow-sm' : 'text-ink-500'
+                          className={`flex-1 rounded-full px-4 py-2 text-sm font-bold transition ${
+                            form.mode === mode ? 'bg-white text-ink-900 shadow-sm' : 'text-ink-900'
                           }`}
                         >
                           {mode === 'email' ? 'Email' : 'Phone'}
@@ -182,15 +184,15 @@ export function SignInModal({ isOpen, onClose }: SignInModalProps) {
                     </div>
 
                     <label className="block space-y-2">
-                      <span className="text-sm font-medium text-ink-700">{identifierLabel}</span>
-                      <div className="flex items-center gap-3 rounded-2xl border border-ink-200 px-4 py-3 focus-within:border-ink-900">
-                        <IdentifierIcon className="h-4 w-4 text-ink-400" />
+                      <span className="text-sm font-bold text-ink-900">{identifierLabel}</span>
+                      <div className="flex items-center gap-3 rounded-2xl border border-gray-200 bg-white px-4 py-3 focus-within:border-ink-900 shadow-sm">
+                        <IdentifierIcon className="h-4 w-4 text-ink-500" />
                         <input
                           type={form.mode === 'email' ? 'email' : 'tel'}
                           autoComplete={form.mode === 'email' ? 'email' : 'tel'}
                           value={identifierValue}
                           onChange={(event) => handleChange(form.mode, event.currentTarget.value)}
-                          className="w-full bg-transparent text-ink-900 outline-none"
+                          className="w-full bg-transparent text-ink-900 placeholder:text-ink-400 outline-none"
                           placeholder={
                             form.mode === 'email' ? 'you@example.com' : '+1 (415) 555-0101'
                           }
@@ -199,15 +201,15 @@ export function SignInModal({ isOpen, onClose }: SignInModalProps) {
                     </label>
 
                     <label className="block space-y-2">
-                      <span className="text-sm font-medium text-ink-700">Password</span>
-                      <div className="flex items-center gap-3 rounded-2xl border border-ink-200 px-4 py-3 focus-within:border-ink-900">
-                        <Lock className="h-4 w-4 text-ink-400" />
+                      <span className="text-sm font-bold text-ink-900">Password</span>
+                      <div className="flex items-center gap-3 rounded-2xl border border-gray-200 bg-white px-4 py-3 focus-within:border-ink-900 shadow-sm">
+                        <Lock className="h-4 w-4 text-ink-500" />
                         <input
                           type="password"
                           autoComplete="current-password"
                           value={form.password}
                           onChange={(event) => handleChange('password', event.currentTarget.value)}
-                          className="w-full bg-transparent text-ink-900 outline-none"
+                          className="w-full bg-transparent text-ink-900 placeholder:text-ink-400 outline-none"
                           placeholder="At least 8 characters"
                         />
                       </div>

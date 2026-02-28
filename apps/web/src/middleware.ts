@@ -59,10 +59,14 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // Protect dashboard routes: redirect to sign-in when no session cookie is present
-    if (pathname.startsWith('/dashboard')) {
-    const token = request.cookies.get('next-auth.session-token') || request.cookies.get('__Secure-next-auth.session-token');
-    if (!token) {
+  // Protect dashboard routes: require session token OR lightweight onboarding session cookie
+  if (pathname.startsWith('/dashboard')) {
+    const token =
+      request.cookies.get('next-auth.session-token') ||
+      request.cookies.get('__Secure-next-auth.session-token');
+    const onboardingSession = request.cookies.get('lovedate_session');
+
+    if (!token && !onboardingSession) {
       const signInUrl = new URL('/', request.url);
       signInUrl.searchParams.set('openSignIn', '1');
       signInUrl.searchParams.set('from', pathname);

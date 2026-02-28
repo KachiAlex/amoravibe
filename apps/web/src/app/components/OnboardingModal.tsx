@@ -524,36 +524,49 @@ export function OnboardingModal({ isOpen, onClose }: OnboardingModalProps) {
         completedAt: Date.now(),
       });
 
-      // Attempt to establish a server session so subsequent navigation sees the user as logged in.
+      // Set lightweight session cookie so dashboard middleware allows access even if NextAuth login skipped
       try {
-        if (formData.email) {
-          // Use NextAuth credentials sign-in when an email/password was provided
-          const res = await signIn('credentials', {
-            redirect: false,
-            email: formData.email.trim(),
-            password: formData.password,
-          });
+        const sessionValue = JSON.stringify({ userId });
+        const expires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toUTCString();
+        document.cookie = `lovedate_session=${encodeURIComponent(sessionValue)}; Path=/; SameSite=Lax; Expires=${expires}`;
+      } catch (err) {
+        console.warn('Unable to set onboarding session cookie', err);
+      }
 
-          if (!res || !res.ok) {
-            console.warn('Auto-login after onboarding failed (next-auth)', res?.error ?? 'unknown');
-          }
-        } else if (formData.phone) {
-          // Use NextAuth credentials for phone-based auto-login
-          try {
+      // Attempt to establish a server session so subsequent navigation sees the user as logged in.
+      // Guarded behind env flag because local dev lacks NextAuth/Prisma backing.
+      const nextAuthEnabled = process.env.NEXT_PUBLIC_NEXTAUTH_ENABLED === 'true';
+      if (nextAuthEnabled) {
+        try {
+          if (formData.email) {
+            // Use NextAuth credentials sign-in when an email/password was provided
             const res = await signIn('credentials', {
               redirect: false,
-              phone: formData.phone || undefined,
+              email: formData.email.trim(),
               password: formData.password,
             });
+
             if (!res || !res.ok) {
               console.warn('Auto-login after onboarding failed (next-auth)', res?.error ?? 'unknown');
             }
-          } catch (e) {
-            console.warn('Auto-login after onboarding failed', e);
+          } else if (formData.phone) {
+            // Use NextAuth credentials for phone-based auto-login
+            try {
+              const res = await signIn('credentials', {
+                redirect: false,
+                phone: formData.phone || undefined,
+                password: formData.password,
+              });
+              if (!res || !res.ok) {
+                console.warn('Auto-login after onboarding failed (next-auth)', res?.error ?? 'unknown');
+              }
+            } catch (e) {
+              console.warn('Auto-login after onboarding failed', e);
+            }
           }
+        } catch (err) {
+          console.warn('Auto-login error', err);
         }
-      } catch (err) {
-        console.warn('Auto-login error', err);
       }
 
       setSuccess(`Welcome aboard, ${displayName}! Redirecting…`);

@@ -1,11 +1,42 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
-    "./src/**/*.{js,ts,jsx,tsx}",
-    "./src/app/**/*.{js,ts,jsx,tsx}"
+    './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
+    './src/components/**/*.{js,ts,jsx,tsx,mdx}',
+    './src/app/**/*.{js,ts,jsx,tsx,mdx}',
+    '../../packages/ui/src/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        'ink-900': '#0d0f1a',
+        'ink-700': '#1c2238',
+        'sand-100': '#f0f0eb',
+        'rose-500': '#ff5c8d',
+        'rose-300': '#ff9fba',
+        'sea-400': '#7ce0d3',
+        'brand-violet': '#8b5cf6',
+        'brand-pink': '#ff79c6',
+        'brand-gradient-start': '#ff79c6',
+        'brand-gradient-end': '#8b5cf6',
+      },
+      borderRadius: {
+        '3xl': '1.5rem',
+      },
+      boxShadow: {
+        'card-lg': '0 20px 60px rgba(15,23,42,0.08)',
+        'active-pill': '0 10px 30px rgba(139,92,246,0.16)',
+      },
+      fontFamily: {
+        sans: ['var(--font-sans)', 'system-ui', 'sans-serif'],
+        display: ['var(--font-display)', 'var(--font-sans)', 'system-ui', 'sans-serif'],
+        mono: ['IBM Plex Mono', 'SFMono-Regular', 'monospace'],
+      },
+      backgroundImage: {
+        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+        'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
+      },
+    },
   },
   plugins: [],
 };

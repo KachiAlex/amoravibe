@@ -1,16 +1,24 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/db';
+import { getSession } from '@/lib/session';
+import { getMatches, getMessages } from '@/lib/dev-data';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(req: Request) {
-  // For demo, count all matches and messages (replace with auth logic for real app)
-  const matchesCount = await prisma.match.count();
-  const messagesCount = await prisma.message.count();
-  // Profile views would require a separate tracking model
+  const session = await getSession();
+  const { searchParams } = new URL(req.url);
+  const userId = searchParams.get('userId') ?? session?.userId ?? null;
+
+  if (!userId) {
+    return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+  }
+
+  const matches = getMatches(userId);
+  const messages = getMessages(userId);
+
   return NextResponse.json({
-    matches: matchesCount,
-    chats: messagesCount,
+    matches: matches.length,
+    chats: messages.length,
     views: 0,
   });
 }

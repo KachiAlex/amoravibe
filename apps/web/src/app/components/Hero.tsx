@@ -16,18 +16,12 @@ export function Hero() {
   useOnboardingModal();
 
   return (
-    <section className="relative pt-24 pb-16 md:pt-32 md:pb-24 overflow-hidden">
-      {/* Animated Background Elements */}
-      <div className="absolute inset-0 -z-10">
-        <div className="absolute top-20 left-10 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob"></div>
-        <div
-          className="absolute top-40 right-10 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob"
-          style={{ animationDelay: '2s' }}
-        ></div>
-        <div
-          className="absolute bottom-20 left-1/2 w-72 h-72 bg-blue-300 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob"
-          style={{ animationDelay: '4s' }}
-        ></div>
+    <section className="relative overflow-hidden bg-[radial-gradient(circle_at_20%_20%,rgba(255,192,203,0.35),transparent_40%),radial-gradient(circle_at_80%_15%,rgba(147,112,219,0.25),transparent_35%),linear-gradient(180deg,#ffffff_0%,#f8f4ff_60%,#f5f5f5_100%)] pt-24 pb-16 md:pt-32 md:pb-24">
+      {/* Soft Background Glows */}
+      <div className="absolute inset-0 -z-10 pointer-events-none">
+        <div className="absolute -left-24 top-10 h-64 w-64 rounded-full bg-pink-200/35 blur-[120px] animate-blob" />
+        <div className="absolute right-0 top-32 h-64 w-64 rounded-full bg-purple-200/30 blur-[120px] animate-blob" style={{ animationDelay: '2s' }} />
+        <div className="absolute left-1/2 bottom-0 h-72 w-72 -translate-x-1/2 rounded-full bg-indigo-200/25 blur-[120px] animate-blob" style={{ animationDelay: '4s' }} />
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

@@ -1,6 +1,11 @@
+"use client";
 import React from 'react';
+import { useTheme } from '@/app/providers/ThemeProvider';
 
 export default function Header({ userName = 'You' }: { userName?: string }) {
+  const { theme, toggleTheme } = useTheme();
+  const isDark = theme === 'dark';
+
   return (
     <header className="flex items-center justify-between mb-8" role="banner">
       <div>
@@ -24,6 +29,14 @@ export default function Header({ userName = 'You' }: { userName?: string }) {
             🔔
           </span>
           <span className="absolute -top-1 -right-1 bg-pink-600 text-white text-xs rounded-full px-1">!</span>
+        </button>
+        <button
+          onClick={toggleTheme}
+          className="flex items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-1 text-sm font-semibold shadow-sm hover:shadow focus:outline-none focus:ring-2 focus:ring-purple-200"
+          aria-label="Toggle theme"
+        >
+          <span aria-hidden>{isDark ? '🌙' : '☀️'}</span>
+          <span className="hidden sm:inline">{isDark ? 'Dark' : 'Light'}</span>
         </button>
         <div className="flex items-center gap-2 bg-white px-3 py-1 rounded-full border border-gray-100 shadow-sm" aria-label="User menu">
           <span className="bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full px-2 py-1 font-bold">JD</span>

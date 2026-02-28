@@ -3,7 +3,7 @@ import { getSession } from '@/lib/session';
 import { acceptMatch } from '@/lib/dev-data';
 
 export async function POST(req: Request, { params }: { params: { id: string } }) {
-  const session = getSession();
+  const session = await getSession();
   if (!session) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   const { id } = params;
   const match = acceptMatch(session.userId, id);

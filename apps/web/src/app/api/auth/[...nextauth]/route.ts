@@ -90,21 +90,30 @@ export async function buildAuthOptions(req?: Request): Promise<NextAuthOptions> 
   };
 }
 
+type NextAuthContext = { params?: { nextauth?: string[] } | Promise<{ nextauth?: string[] }> };
+
+async function resolveNextauthSegments(req: Request, ctx?: NextAuthContext) {
+  const parsed = new URL(req.url).pathname.split('/').filter(Boolean);
+  const authIndex = parsed.findIndex((p) => p === 'auth');
+  const nextauthFromUrl = authIndex >= 0 ? parsed.slice(authIndex + 1) : [];
+
+  const ctxParams = ctx?.params;
+  const resolvedParams = ctxParams && typeof (ctxParams as any).then === 'function' ? await ctxParams : ctxParams;
+  const paramsSegments = resolvedParams?.nextauth;
+  const nextauth = paramsSegments && paramsSegments.length > 0 ? paramsSegments : nextauthFromUrl;
+  const action = Array.isArray(nextauth) && nextauth.length > 0 ? nextauth[0] : undefined;
+  return { nextauth, action };
+}
+
 // Build and call NextAuth per-request so PrismaClient isn't created at module import time.
-async function handlerWithParams(req: Request, ctx: any) {
+async function handlerWithParams(req: Request, ctx?: NextAuthContext) {
   const options = await buildAuthOptions(req);
   const handler = NextAuth(options as any);
   return handler(req as any, ctx as any);
 }
 
-export async function GET(req: Request, ctx: any) {
-  // Decide whether to run NextAuth logic or return a harmless response.
-  const parsed = new URL(req.url).pathname.split('/').filter(Boolean);
-  const authIndex = parsed.findIndex((p) => p === 'auth');
-  const nextauthFromUrl = authIndex >= 0 ? parsed.slice(authIndex + 1) : [];
-  const nextauth = (ctx && ctx.params && ctx.params.nextauth) || nextauthFromUrl || [];
-  const action = Array.isArray(nextauth) && nextauth.length > 0 ? nextauth[0] : undefined;
-
+export async function GET(req: Request, ctx?: NextAuthContext) {
+  const { action } = await resolveNextauthSegments(req, ctx);
   const allowed = new Set(['csrf', 'signin', 'signout', 'callback', 'session', 'providers', 'verify-request', 'error']);
   if (!action || !allowed.has(action)) {
     // Avoid initializing NextAuth/Prisma during build-time collection or unexpected calls.
@@ -115,13 +124,8 @@ export async function GET(req: Request, ctx: any) {
   return handlerWithParams(req, ctx);
 }
 
-export async function POST(req: Request, ctx: any) {
-  const parsed = new URL(req.url).pathname.split('/').filter(Boolean);
-  const authIndex = parsed.findIndex((p) => p === 'auth');
-  const nextauthFromUrl = authIndex >= 0 ? parsed.slice(authIndex + 1) : [];
-  const nextauth = (ctx && ctx.params && ctx.params.nextauth) || nextauthFromUrl || [];
-  const action = Array.isArray(nextauth) && nextauth.length > 0 ? nextauth[0] : undefined;
-
+export async function POST(req: Request, ctx?: NextAuthContext) {
+  const { action } = await resolveNextauthSegments(req, ctx);
   const allowed = new Set(['csrf', 'signin', 'signout', 'callback', 'session', 'providers', 'verify-request', 'error']);
   if (!action || !allowed.has(action)) {
     return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { 'Content-Type': 'application/json' } });

@@ -1,19 +1,12 @@
 
-import Sidebar from '../components/Sidebar';
-import DashboardLayout from '../layout';
 import ProfilePanel from '../components/ProfilePanel';
 
 export const dynamic = 'force-dynamic';
 
 export default function ProfilePage() {
   return (
-    <DashboardLayout>
-      <div className="flex min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-white">
-        <Sidebar />
-        <main className="flex-1 px-12 py-10 flex flex-col">
-          <ProfilePanel />
-        </main>
-      </div>
-    </DashboardLayout>
+    <main className="flex-1 px-4 py-6 sm:px-8 lg:px-12 xl:px-16">
+      <ProfilePanel />
+    </main>
   );
 }

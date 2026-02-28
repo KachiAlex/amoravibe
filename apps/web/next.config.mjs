@@ -11,19 +11,16 @@ const allowedOrigins = [
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   experimental: {
-    // Allow ESM externals to be imported by webpack (helps ESM-only packages like `jose`)
-    esmExternals: 'loose',
     serverActions: {
       allowedOrigins,
     },
   },
+  // Explicitly declare Turbopack config so Next.js 16 treats this file as
+  // compatible even though we still customize webpack below.
+  turbopack: {},
   // Transpile internal workspace packages that ship TypeScript/TSX source
   // directly (e.g. `@lovedate/ui`) so Next's webpack can compile them.
   transpilePackages: ['@lovedate/ui'],
-  eslint: {
-    // allow production builds to succeed locally even when ESLint can't run in CI-like envs
-    ignoreDuringBuilds: true,
-  },
   typescript: {
     // relax type checking for local preview (we still fix types in source)
     ignoreBuildErrors: true,

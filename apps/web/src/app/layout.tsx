@@ -4,6 +4,7 @@ import { Inter, Space_Grotesk } from 'next/font/google';
 import './globals.css';
 import { OnboardingModalProvider } from '@/app/providers/OnboardingModalProvider';
 import { SignInModalProvider } from '@/app/providers/SignInModalProvider';
+import { ThemeProvider } from '@/app/providers/ThemeProvider';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 const spaceGrotesk = Space_Grotesk({
@@ -25,9 +26,11 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${inter.variable} ${spaceGrotesk.variable}`}>
         <Suspense fallback={null}>
-          <OnboardingModalProvider>
-            <SignInModalProvider>{children}</SignInModalProvider>
-          </OnboardingModalProvider>
+          <ThemeProvider>
+            <OnboardingModalProvider>
+              <SignInModalProvider>{children}</SignInModalProvider>
+            </OnboardingModalProvider>
+          </ThemeProvider>
         </Suspense>
       </body>
     </html>
