@@ -1,15 +1,53 @@
 import { PrismaClient } from '@prisma/client';
 
-let prisma: PrismaClient;
+let prisma: PrismaClient | null = null;
+let connectionAttempts = 0;
+const MAX_RETRIES = 3;
+const RETRY_DELAY = 1000; // 1 second
 
-if (process.env.NODE_ENV === 'production') {
-	prisma = new PrismaClient();
-} else {
-	let globalPrisma: PrismaClient | undefined;
-	if (!globalPrisma) {
-		globalPrisma = new PrismaClient();
+function getPrisma() {
+	if (prisma) return prisma;
+
+	try {
+		prisma = new PrismaClient({
+			log: process.env.NODE_ENV === 'development' ? ['warn', 'error'] : ['error'],
+		});
+
+		// Handle connection errors gracefully
+		prisma.$on('error', (e) => {
+			console.error('[Prisma] Database error:', e.message);
+			// Reset connection on error to allow reconnection
+			if (e.message.includes('Can\'t reach database server')) {
+				prisma = null;
+				connectionAttempts = 0;
+			}
+		});
+
+		connectionAttempts = 0;
+		return prisma;
+	} catch (err) {
+		connectionAttempts++;
+		console.error(`[Prisma] Initialization failed (attempt ${connectionAttempts}/${MAX_RETRIES}):`, err);
+		
+		if (connectionAttempts < MAX_RETRIES) {
+			// Reset for retry
+			prisma = null;
+			throw err;
+		}
+		throw err;
 	}
-	prisma = globalPrisma;
 }
 
-export default prisma;
+const handler = new Proxy({} as PrismaClient, {
+	get(target, prop) {
+		try {
+			const client = getPrisma();
+			return (client as any)[prop];
+		} catch (err) {
+			console.error('[Prisma] Error accessing property:', prop, err);
+			throw err;
+		}
+	},
+});
+
+export default handler as PrismaClient;
