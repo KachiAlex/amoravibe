@@ -169,29 +169,32 @@ export default function OnboardingPage() {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    if (process.env.NODE_ENV !== 'production') {
-      console.debug('[Onboarding] handleProfile called', { name, age, location, job, about, interests, gender, orientation });
-    }
+    console.log('[Onboarding] handleProfile called', { name, age, location, job, about, interests, gender, orientation });
     try {
+      const profileData = {
+        name,
+        displayName: name,
+        age: age ? Number(age) : undefined,
+        location,
+        job,
+        about,
+        interests: interests.split(",").map((i) => i.trim()),
+        gender,
+        orientation,
+        onboardingCompleted: true,
+        onboardingStep: 'complete',
+      };
+      console.log('[Onboarding] Sending profile data:', profileData);
       const res = await fetch("/api/profile", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({
-          name,
-          displayName: name,
-          age: age ? Number(age) : undefined,
-          location,
-          job,
-          about,
-          interests: interests.split(",").map((i) => i.trim()),
-          gender,
-          orientation,
-          onboardingCompleted: true,
-          onboardingStep: 'complete',
-        }),
+        body: JSON.stringify(profileData),
       });
-      if (!res.ok) throw new Error("Profile update failed");
+      console.log('[Onboarding] Profile response status:', res.status);
+      const responseData = await res.json();
+      console.log('[Onboarding] Profile response:', responseData);
+      if (!res.ok) throw new Error(responseData.error || "Profile update failed");
       
       // Auto-assign user to correct space based on orientation
       const spaceOrientation = orientation === 'lgbtq' ? 'lgbtq' : 'straight';
