@@ -82,6 +82,12 @@ export async function buildAuthOptions(req?: Request): Promise<NextAuthOptions> 
     session: { strategy: 'jwt' },
     pages: { signIn: '/?openSignIn=1', error: '/auth/error' },
     callbacks: {
+      async jwt({ token, user }: any) {
+        if (user) {
+          token.sub = user.id;
+        }
+        return token;
+      },
       async session({ session, token }: any) {
         if (token?.sub) (session as any).userId = token.sub;
         return session;
