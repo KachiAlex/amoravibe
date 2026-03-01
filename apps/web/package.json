@@ -14,7 +14,7 @@
     "typecheck": "tsc --noEmit",
     "check:duplicate-api-routes": "node scripts/check-duplicate-api-routes.js",
     "prelint": "npm run check:duplicate-api-routes",
-    "lint": "next lint --dir .",
+    "lint": "eslint --ext .ts,.tsx,.js,.jsx --max-warnings=0 .",
     "prisma:generate": "prisma generate --schema=../../prisma/schema.prisma",
     "prisma:migrate:dev": "prisma migrate dev --schema=../../prisma/schema.prisma --name init",
     "postinstall": "prisma generate --schema=../../prisma/schema.prisma",

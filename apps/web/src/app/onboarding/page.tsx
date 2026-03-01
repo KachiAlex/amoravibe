@@ -20,6 +20,8 @@ interface OnboardingData {
   job: string;
   about: string;
   interests: string;
+  gender: string;
+  orientation: string;
 }
 
 export default function OnboardingPage() {
@@ -38,6 +40,8 @@ export default function OnboardingPage() {
   const [job, setJob] = useState("");
   const [about, setAbout] = useState("");
   const [interests, setInterests] = useState("");
+  const [gender, setGender] = useState("");
+  const [orientation, setOrientation] = useState("");
 
   // Load saved data on mount
   useEffect(() => {
@@ -64,9 +68,11 @@ export default function OnboardingPage() {
       job,
       about,
       interests,
+      gender,
+      orientation,
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-  }, [step, email, password, name, age, location, job, about, interests]);
+  }, [step, email, password, name, age, location, job, about, interests, gender, orientation]);
 
   function resumeOnboarding() {
     const saved = localStorage.getItem(STORAGE_KEY);
@@ -82,6 +88,8 @@ export default function OnboardingPage() {
         setJob(data.job);
         setAbout(data.about);
         setInterests(data.interests);
+        setGender(data.gender);
+        setOrientation(data.orientation);
         setShowResumePrompt(false);
       } catch (err) {
         console.error("Failed to resume onboarding", err);
@@ -101,6 +109,8 @@ export default function OnboardingPage() {
     setJob("");
     setAbout("");
     setInterests("");
+    setGender("");
+    setOrientation("");
     setShowResumePrompt(false);
   }
 
@@ -159,7 +169,7 @@ export default function OnboardingPage() {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    try { console.debug('[Onboarding] handleProfile called', { name, age, location, job, about, interests }); } catch (err) {}
+    try { console.debug('[Onboarding] handleProfile called', { name, age, location, job, about, interests, gender, orientation }); } catch (err) {}
     try {
       const res = await fetch("/api/profile", {
         method: "PATCH",
@@ -173,11 +183,27 @@ export default function OnboardingPage() {
           job,
           about,
           interests: interests.split(",").map((i) => i.trim()),
+          gender,
+          orientation,
           onboardingCompleted: true,
           onboardingStep: 'complete',
         }),
       });
       if (!res.ok) throw new Error("Profile update failed");
+      
+      // Auto-assign user to correct space based on orientation
+      const spaceOrientation = orientation === 'lgbtq' ? 'lgbtq' : 'straight';
+      try {
+        await fetch("/api/spaces/join", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ orientation: spaceOrientation }),
+        });
+      } catch (err) {
+        console.warn("Failed to auto-assign space", err);
+      }
+      
       // Check if session is still valid before routing
       const sessionRes = await fetch("/api/auth/session");
       if (!sessionRes.ok) {
@@ -292,7 +318,6 @@ export default function OnboardingPage() {
                   placeholder="Full Name"
                   value={name}
                   onChange={e => {
-                    // Debug: log input events to diagnose typing issues
                     try { console.debug('onboarding:name:onChange', e.target.value); } catch (err) {}
                     setName(e.target.value);
                   }}
@@ -306,6 +331,28 @@ export default function OnboardingPage() {
                   onChange={e => setAge(e.target.value)}
                   required
                 />
+                <select
+                  className="w-full rounded-lg px-4 py-3 bg-white/80 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-400"
+                  value={gender}
+                  onChange={e => setGender(e.target.value)}
+                  required
+                >
+                  <option value="">Select Gender</option>
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                  <option value="non-binary">Non-binary</option>
+                  <option value="other">Other</option>
+                </select>
+                <select
+                  className="w-full rounded-lg px-4 py-3 bg-white/80 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-400"
+                  value={orientation}
+                  onChange={e => setOrientation(e.target.value)}
+                  required
+                >
+                  <option value="">Select Sexual Orientation</option>
+                  <option value="straight">Straight</option>
+                  <option value="lgbtq">LGBTQ+</option>
+                </select>
                 <input
                   type="text"
                   className="w-full rounded-lg px-4 py-3 bg-white/80 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-400"
