@@ -33,15 +33,6 @@ export default function SpacesPanel() {
   
   const abortControllerRef = useRef<AbortController>();
 
-  useEffect(() => {
-    fetchSpaces();
-    return () => {
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
-    };
-  }, []);
-
   const fetchSpaces = useCallback(async () => {
     setSpacesLoading(true);
     setError(null);
@@ -56,6 +47,15 @@ export default function SpacesPanel() {
       setSpacesLoading(false);
     }
   }, []);
+
+  useEffect(() => {
+    fetchSpaces();
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, [fetchSpaces]);
 
   const fetchRooms = useCallback(async (spaceId: string) => {
     if (abortControllerRef.current) {
@@ -216,6 +216,12 @@ export default function SpacesPanel() {
   return (
     <div className="max-w-6xl mx-auto py-10">
       <h2 className="text-3xl font-bold mb-8">Spaces & Communities</h2>
+
+      {error && <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-red-700">{error}</div>}
+
+      {spacesLoading && spaces.length === 0 ? (
+        <div className="text-center py-12 text-gray-500">Loading spaces…</div>
+      ) : null}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {spaces.map((space) => (

@@ -15,8 +15,6 @@
     "build": "turbo run build",
     "lint": "turbo run lint",
     "test": "turbo run test",
-    "deploy:web:firebase": "cross-env npm_config_loglevel=silent npm_config_optional=true firebase deploy --only hosting --config firebase.json",
-    "guard:firebase": "node scripts/ensure-firebase-config.mjs",
     "db:seed": "prisma db seed"
   },
   "postinstall": "yarn workspace web run prisma:generate || true",
@@ -49,9 +47,6 @@
     "react-dom": "18.3.1"
   },
   "lint-staged": {
-    "firebase.json": [
-      "pnpm guard:firebase"
-    ],
     "*.{ts,tsx,js,jsx}": [
       "npx eslint --max-warnings=0 --no-error-on-unmatched-pattern"
     ],

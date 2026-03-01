@@ -80,7 +80,7 @@ export default function UserTable() {
       <div className="flex gap-3 mb-4">
         <input
           value={search}
-          onChange={(e) => handleSearchChange(e.target.value)}
+          onChange={(e) => { setSearch(e.target.value); setOffset(0); }}
           placeholder="Search by name, email or city"
           className="flex-1 rounded-xl border px-4 py-2 text-sm outline-none"
         />
