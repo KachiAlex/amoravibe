@@ -7,8 +7,12 @@ export const dynamic = 'force-dynamic';
 export async function GET(req: Request) {
   const url = new URL(req.url);
   const other = url.searchParams.get('with');
-  const session = getSession();
-  const userId = session?.userId ?? (await prisma.user.findFirst()).id;
+  const session = await getSession();
+  const fallbackUser = await prisma.user.findFirst();
+  const userId = session?.userId ?? fallbackUser?.id;
+  if (!userId) {
+    return NextResponse.json({ error: 'No user context' }, { status: 401 });
+  }
 
   // SSE headers
   const headers = new Headers({
@@ -22,7 +26,8 @@ export async function GET(req: Request) {
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
     async start(controller) {
-      while (true) {
+      let active = true;
+      while (active) {
         const msgs = await prisma.message.findMany({
           where: {
             OR: [
@@ -40,7 +45,9 @@ export async function GET(req: Request) {
         await new Promise(r => setTimeout(r, 2000));
       }
     },
-    cancel() {},
+    cancel() {
+      this.closed = true;
+    },
   });
 
   return new Response(stream, { headers });
