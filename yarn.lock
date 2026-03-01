@@ -2392,7 +2392,7 @@ __metadata:
 
 "@lovedate/ui@file:../../packages/ui::locator=web%40workspace%3Aapps%2Fweb":
   version: 0.1.0
-  resolution: "@lovedate/ui@file:../../packages/ui#../../packages/ui::hash=fc46e5&locator=web%40workspace%3Aapps%2Fweb"
+  resolution: "@lovedate/ui@file:../../packages/ui#../../packages/ui::hash=99c6f9&locator=web%40workspace%3Aapps%2Fweb"
   dependencies:
     "@radix-ui/react-slot": "npm:^1.0.2"
   peerDependencies:
@@ -2401,7 +2401,7 @@ __metadata:
   peerDependenciesMeta:
     react-dom:
       optional: true
-  checksum: 10c0/8c26ce4bde7562c3703c3bdf9ad1c4994268b44024fd20c784a50a4d5d853c508fdb1273eeee5db70b2cafd94eeaa905a124f4fbc669ca6800c6272f1f9fa905
+  checksum: 10c0/d5a5844aadce54283f8d441ea9c37c85ede6781c65242e645a3a9833e79bf70ee3ad1e265ee08f2f2e0fd50f15eb36ddeb4f0741091631b1d2f4fef018728d95
   languageName: node
   linkType: hard
 
