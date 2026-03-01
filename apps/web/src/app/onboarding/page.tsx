@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
@@ -8,11 +8,26 @@ import { Heart, Shield, Lock } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
+const STORAGE_KEY = "onboarding_form_data";
+
+interface OnboardingData {
+  step: number;
+  email: string;
+  password: string;
+  name: string;
+  age: string;
+  location: string;
+  job: string;
+  about: string;
+  interests: string;
+}
+
 export default function OnboardingPage() {
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showResumePrompt, setShowResumePrompt] = useState(false);
   // Step 1: Signup
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -23,6 +38,75 @@ export default function OnboardingPage() {
   const [job, setJob] = useState("");
   const [about, setAbout] = useState("");
   const [interests, setInterests] = useState("");
+
+  // Load saved data on mount
+  useEffect(() => {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      try {
+        const data: OnboardingData = JSON.parse(saved);
+        setShowResumePrompt(true);
+      } catch (err) {
+        console.error("Failed to parse saved onboarding data", err);
+      }
+    }
+  }, []);
+
+  // Save form data to localStorage whenever it changes
+  useEffect(() => {
+    const data: OnboardingData = {
+      step,
+      email,
+      password,
+      name,
+      age,
+      location,
+      job,
+      about,
+      interests,
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  }, [step, email, password, name, age, location, job, about, interests]);
+
+  function resumeOnboarding() {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      try {
+        const data: OnboardingData = JSON.parse(saved);
+        setStep(data.step);
+        setEmail(data.email);
+        setPassword(data.password);
+        setName(data.name);
+        setAge(data.age);
+        setLocation(data.location);
+        setJob(data.job);
+        setAbout(data.about);
+        setInterests(data.interests);
+        setShowResumePrompt(false);
+      } catch (err) {
+        console.error("Failed to resume onboarding", err);
+        setShowResumePrompt(false);
+      }
+    }
+  }
+
+  function startFresh() {
+    localStorage.removeItem(STORAGE_KEY);
+    setStep(1);
+    setEmail("");
+    setPassword("");
+    setName("");
+    setAge("");
+    setLocation("");
+    setJob("");
+    setAbout("");
+    setInterests("");
+    setShowResumePrompt(false);
+  }
+
+  function clearSavedData() {
+    localStorage.removeItem(STORAGE_KEY);
+  }
 
   async function handleSignup(e: React.FormEvent) {
     e.preventDefault();
@@ -66,6 +150,11 @@ export default function OnboardingPage() {
     }
   }
 
+  async function handleProfileSuccess() {
+    clearSavedData();
+    router.push("/dashboard");
+  }
+
   async function handleProfile(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
@@ -96,7 +185,7 @@ export default function OnboardingPage() {
         setLoading(false);
         return;
       }
-      router.push("/dashboard");
+      await handleProfileSuccess();
     } catch (err: any) {
       setError(err.message || "Profile update failed");
     } finally {
@@ -145,6 +234,26 @@ export default function OnboardingPage() {
             </div>
           </div>
           <div className="mb-8 space-y-4">
+            {showResumePrompt && (
+              <div className="bg-blue-900/30 border border-blue-500/50 rounded-xl p-6 mb-6">
+                <h3 className="text-lg font-semibold text-blue-300 mb-3">Resume Your Onboarding?</h3>
+                <p className="text-gray-300 mb-4">We found your previous progress. Would you like to continue where you left off?</p>
+                <div className="flex gap-3">
+                  <button
+                    onClick={resumeOnboarding}
+                    className="flex-1 rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white transition hover:bg-blue-700"
+                  >
+                    Resume
+                  </button>
+                  <button
+                    onClick={startFresh}
+                    className="flex-1 rounded-lg border border-gray-400 px-4 py-2 font-semibold text-gray-300 transition hover:border-gray-200 hover:text-white"
+                  >
+                    Start Fresh
+                  </button>
+                </div>
+              </div>
+            )}
             {step === 1 && (
               <form onSubmit={handleSignup} className="space-y-4 bg-white/10 rounded-xl p-8 shadow-lg">
                 <h2 className="text-xl font-bold text-white mb-4">Sign Up</h2>
