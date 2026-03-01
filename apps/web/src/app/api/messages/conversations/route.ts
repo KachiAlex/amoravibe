@@ -8,8 +8,12 @@ export async function GET(req: Request) {
   const url = new URL(req.url);
   const limit = Math.min(parseInt(url.searchParams.get('limit') || '50', 10), 200);
 
-  const session = getSession();
-  const userId = session?.userId ?? (await prisma.user.findFirst()).id;
+  const session = await getSession();
+  const fallbackUser = await prisma.user.findFirst();
+  const userId = session?.userId ?? fallbackUser?.id;
+  if (!userId) {
+    return NextResponse.json({ conversations: [] }, { status: 200 });
+  }
 
   // Fetch recent messages involving the user, then reduce into conversation summaries
   const recent = await prisma.message.findMany({

@@ -3,6 +3,8 @@ import Link from 'next/link';
 import { getSession } from '@/lib/session';
 import { DiscoverClient } from './DiscoverClient';
 import { getProfile } from '@/lib/dev-data';
+import Header from '../components/Header';
+import StatsCards from '../components/StatsCards';
 
 export const dynamic = 'force-dynamic';
 

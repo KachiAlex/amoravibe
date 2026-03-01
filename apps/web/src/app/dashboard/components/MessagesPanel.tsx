@@ -110,7 +110,7 @@ export default function MessagesPanel({ initialMessages = [] }: { initialMessage
   }
 
   return (
-    <section aria-label="Messages panel">
+    <section aria-label="Messages panel" className="bg-gradient-to-br from-white via-gray-50 to-purple-50 rounded-2xl p-6">
       <div className="mb-6 flex items-center justify-between">
         <h3 className="text-2xl font-bold">Messages</h3>
         <div className="flex gap-2">
