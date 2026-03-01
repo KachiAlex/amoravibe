@@ -1,5 +1,5 @@
 import type { DashboardData } from '../types';
-import { getSession } from '@/lib/session';
+import { resolveUserId } from '@/lib/auth-user';
 import { fetchDashboardSnapshot } from '@/lib/dashboard-service';
 import { headers } from 'next/headers';
 
@@ -53,15 +53,15 @@ async function fetchDashboardViaApi(): Promise<DashboardData | null> {
 
 // Server-safe data loader for dashboard content.
 export async function getDashboardData(): Promise<DashboardData> {
-  const session = await getSession();
-  const cacheKey = getCacheKey(session?.userId ?? null);
+  const userId = await resolveUserId();
+  const cacheKey = getCacheKey(userId);
   const cached = readCache(cacheKey);
   if (cached) {
     return cached;
   }
 
   const apiSnapshot = await fetchDashboardViaApi();
-  const snapshot = apiSnapshot ?? (await fetchDashboardSnapshot(session?.userId ?? null));
+  const snapshot = apiSnapshot ?? (await fetchDashboardSnapshot(userId ?? null));
   writeCache(cacheKey, snapshot);
   return snapshot;
 }

@@ -3,7 +3,6 @@ import { PrismaClient } from '@prisma/client';
 let prisma: PrismaClient | null = null;
 let connectionAttempts = 0;
 const MAX_RETRIES = 3;
-const RETRY_DELAY = 1000; // 1 second
 
 function getPrisma() {
 	if (prisma) return prisma;

@@ -1,6 +1,6 @@
 "use client"
 import React, { useEffect, useState } from 'react';
-import { signIn } from 'next-auth/react';
+import Image from 'next/image';
 
 type Message = {
   id: string;
@@ -11,18 +11,20 @@ type Message = {
   time?: string;
 };
 
-export default function MessagesPanel({ initialMessages = [] }: { initialMessages?: Message[] }) {
+type MessagesPanelProps = { initialMessages?: Message[] };
+
+export default function MessagesPanel({ initialMessages = [] }: MessagesPanelProps): JSX.Element {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
-  const [text, setText] = useState('');
-  const [loading, setLoading] = useState(false);
 
   // Polling interval in milliseconds
   const POLL_INTERVAL = 10000;
 
+  const hasInitialMessages = initialMessages.length > 0;
+
   useEffect(() => {
     let isMounted = true;
     // hydrate from server on mount (if server provided none)
-    if (messages.length === 0) {
+    if (!hasInitialMessages) {
       fetch('/api/messages', { credentials: 'same-origin' })
         .then((r) => r.json())
         .then((data) => {
@@ -45,69 +47,7 @@ export default function MessagesPanel({ initialMessages = [] }: { initialMessage
       isMounted = false;
       clearInterval(interval);
     };
-  }, []);
-
-  async function sendMessage() {
-    if (!text.trim()) return;
-    const optimistic = {
-      id: `tmp-${Date.now()}`,
-      from: 'You',
-      preview: text.slice(0, 120),
-      text,
-      time: 'just now',
-    };
-    setMessages((s) => [optimistic, ...s]);
-    setText('');
-    setLoading(true);
-    try {
-      // send with credentials so cookies are included
-      let res = await fetch('/api/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'same-origin',
-        body: JSON.stringify({ text: optimistic.text }),
-      });
-
-      // if unauthorized, try a one-time re-login and retry once
-      if (res.status === 401) {
-        try {
-          // Try quick guest sign-in via NextAuth credentials
-          await signIn('credentials', { redirect: false, username: 'guest' });
-          res = await fetch('/api/messages', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'same-origin',
-            body: JSON.stringify({ text: optimistic.text }),
-          });
-        } catch (e) {
-          // fall through to error handling below
-        }
-      }
-      }
-
-      const body = await res.json().catch(() => ({}));
-      if (body?.message) {
-        // replace optimistic with server message id
-        setMessages((s) => s.map((m) => (m.id === optimistic.id ? body.message : m)));
-      } else {
-        // rollback optimistic on unexpected response
-        setMessages((s) => s.filter((m) => m.id !== optimistic.id));
-        console.error('Send failed', body);
-      }
-    } catch (e) {
-      // rollback optimistic on error
-      setMessages((s) => s.filter((m) => m.id !== optimistic.id));
-      console.error('Send failed', e);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  function handleDelete(id: string) {
-    setMessages((prev) => prev.filter((m) => m.id !== id));
-    // Optionally: send delete to server
-    fetch(`/api/messages/${id}`, { method: 'DELETE', credentials: 'same-origin' }).catch(() => {});
-  }
+  }, [hasInitialMessages]);
 
   return (
     <section aria-label="Messages panel" className="bg-gradient-to-br from-white via-gray-50 to-purple-50 rounded-2xl p-6">
@@ -125,10 +65,13 @@ export default function MessagesPanel({ initialMessages = [] }: { initialMessage
             key={m.id}
             className="bg-white rounded-2xl shadow flex items-center gap-4 p-6 relative group hover:shadow-lg transition border border-gray-100"
           >
-            <img
+            <Image
               src={m.avatar || 'https://randomuser.me/api/portraits/lego/1.jpg'}
               alt={`${m.from} avatar`}
+              width={64}
+              height={64}
               className="w-16 h-16 rounded-full object-cover border-2 border-gray-100"
+              unoptimized
             />
             <div className="flex-1 min-w-0">
               <div className="flex justify-between items-center mb-1">

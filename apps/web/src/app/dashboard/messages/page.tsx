@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import Header from '../components/Header';
 import { getSession } from '@/lib/session';
 import { getMessages as getDevMessages } from '@/lib/dev-data';

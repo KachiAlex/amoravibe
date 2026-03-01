@@ -8,8 +8,9 @@ export type AdminUser = {
   createdAt?: string;
 };
 
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
+
 const DATA_FILE = path.join(process.cwd(), 'apps', 'web', 'data', 'admin-users.json');
 
 const seededUsers: AdminUser[] = [
@@ -49,7 +50,7 @@ function loadData(): AdminUser[] {
   return seededUsers.slice();
 }
 
-let runtimeUsers = loadData();
+const runtimeUsers = loadData();
 
 export function getUsers() {
   return runtimeUsers;

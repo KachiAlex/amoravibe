@@ -16,7 +16,7 @@ export async function requireAdmin(req: NextApiRequest, res: NextApiResponse): P
       res.status(401).json({ message: 'Invalid token' });
       return null;
     }
-    let user = findUser(payload.userId) || findUserByEmail(payload.userId);
+    const user = findUser(payload.userId) || findUserByEmail(payload.userId);
     if (!user || user.role !== 'admin') {
       res.status(403).json({ message: 'Admin access required' });
       return null;
@@ -32,7 +32,7 @@ export async function requireAdmin(req: NextApiRequest, res: NextApiResponse): P
       res.status(401).json({ message: 'Invalid token cookie' });
       return null;
     }
-    let user = findUser(payload.userId) || findUserByEmail(payload.userId);
+    const user = findUser(payload.userId) || findUserByEmail(payload.userId);
     if (!user || user.role !== 'admin') {
       res.status(403).json({ message: 'Admin access required' });
       return null;
@@ -61,7 +61,7 @@ export async function requireAdmin(req: NextApiRequest, res: NextApiResponse): P
     return null;
   }
 
-  let user = findUser(userId) || findUserByEmail(userId);
+  const user = findUser(userId) || findUserByEmail(userId);
   if (!user || user.role !== 'admin') {
     res.status(403).json({ message: 'Admin access required' });
     return null;

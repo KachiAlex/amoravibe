@@ -1,49 +1,31 @@
 "use client"
 import React, { useEffect, useRef, useState, KeyboardEvent } from 'react';
-import dynamic from 'next/dynamic';
 import type { Message } from '../types';
+import MessagesPanel from './MessagesPanel';
+import DiscoverPanel from './DiscoverPanel';
+import ProfilePanel from './ProfilePanel';
+import SettingsPanel from './SettingsPanel';
+import SpacesPanel from './SpacesPanel';
+import MySpacesPanel from './MySpacesPanel';
 
-const MessagesPanel = dynamic(() => import('./MessagesPanel'), {
-  loading: () => <div className="stat-card">Loading messages...</div>,
-  ssr: false,
-});
-const DiscoverPanel = dynamic(() => import('./DiscoverPanel'), {
-  loading: () => <div className="stat-card">Loading...</div>,
-  ssr: false,
-});
-const ProfilePanel = dynamic(() => import('./ProfilePanel'), {
-  loading: () => <div className="stat-card">Loading profile...</div>,
-  ssr: false,
-});
-const SettingsPanel = dynamic(() => import('./SettingsPanel'), {
-  loading: () => <div className="stat-card">Loading settings...</div>,
-  ssr: false,
-});
-const SpacesPanel = dynamic(() => import('./SpacesPanel'), {
-  loading: () => <div className="stat-card">Loading spaces...</div>,
-  ssr: false,
-});
-const MySpacesPanel = dynamic(() => import('./MySpacesPanel'), {
-  loading: () => <div className="stat-card">Loading my spaces...</div>,
-  ssr: false,
-});
+const DASHBOARD_TABS = [
+  { id: 'messages', label: 'Messages' },
+  { id: 'discover', label: 'Discover' },
+  { id: 'spaces', label: 'Spaces' },
+  { id: 'myspaces', label: 'My Spaces' },
+  { id: 'profile', label: 'Profile' },
+  { id: 'settings', label: 'Settings' },
+];
 
 export default function Tabs({ messages }: { messages?: Message[] }) {
-  const tabs = [
-    { id: 'messages', label: 'Messages' },
-    { id: 'discover', label: 'Discover' },
-    { id: 'spaces', label: 'Spaces' },
-    { id: 'myspaces', label: 'My Spaces' },
-    { id: 'profile', label: 'Profile' },
-    { id: 'settings', label: 'Settings' },
-  ];
+  const tabs = DASHBOARD_TABS;
 
   const [active, setActive] = useState<string>(tabs[0].id);
   const btnRefs = useRef<(HTMLButtonElement | null)[]>([]) as React.MutableRefObject<(HTMLButtonElement | null)[]>;
 
   useEffect(() => {
     // ensure the active tab button is focused when changed programmatically
-    const idx = tabs.findIndex((t) => t.id === active);
+    const idx = DASHBOARD_TABS.findIndex((t) => t.id === active);
     btnRefs.current[idx]?.focus();
   }, [active]);
 

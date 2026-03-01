@@ -17,6 +17,7 @@ function createElementFactory(tag: string) {
       whileTap,
       ...domProps
     } = rest || {};
+    void [initial, animate, exit, transition, variants, whileHover, whileTap];
     return React.createElement(tag, domProps, children);
   };
 }

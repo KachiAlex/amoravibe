@@ -2,6 +2,7 @@
 import Header from '../../components/Header';
 import StatsCards from '../../components/StatsCards';
 import { useParams } from 'next/navigation';
+import Image from 'next/image';
 import { getMessages as getDevMessages } from '@/lib/dev-data';
 
 import React, { useEffect, useMemo, useState } from 'react';
@@ -81,7 +82,14 @@ export default function ChatPage() {
         </div>
         <h2 className="text-3xl font-bold mb-4">Chat with {chat.from}</h2>
         <div className="flex items-center mb-6">
-          <img src={chat.avatar} alt={`${chat.from} avatar`} className="w-14 h-14 rounded-full object-cover mr-4" />
+          <Image
+            src={chat.avatar || 'https://randomuser.me/api/portraits/lego/1.jpg'}
+            alt={`${chat.from} avatar`}
+            width={56}
+            height={56}
+            className="w-14 h-14 rounded-full object-cover mr-4"
+            unoptimized
+          />
           <span className="font-bold text-lg">{chat.from}</span>
         </div>
         <div className="flex-1 overflow-y-auto space-y-4 mb-6">

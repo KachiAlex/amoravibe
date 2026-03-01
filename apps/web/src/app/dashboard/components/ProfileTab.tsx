@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 
 export default function ProfileTab({ profile, onEdit }: { profile: any; onEdit: () => void }) {
   const [avatarPreview, setAvatarPreview] = useState(profile.avatar || '/images/default-avatar.png');
@@ -69,9 +70,9 @@ export default function ProfileTab({ profile, onEdit }: { profile: any; onEdit: 
   return (
     <div className="flex flex-col items-center min-h-[70vh] bg-gradient-to-br from-white via-fuchsia-50 to-purple-50">
       <div className="relative w-full max-w-md rounded-3xl shadow-2xl overflow-hidden bg-white mt-8">
-        <img src={profile.cover || '/images/default-cover.jpg'} alt="cover" className="w-full h-64 object-cover" style={{borderTopLeftRadius:'1.5rem',borderTopRightRadius:'1.5rem'}} />
+        <Image src={profile.cover || '/images/default-cover.jpg'} alt="cover" width={800} height={256} className="w-full h-64 object-cover" style={{borderTopLeftRadius:'1.5rem',borderTopRightRadius:'1.5rem'}} />
         <div className="absolute left-1/2 top-48 -translate-x-1/2 flex flex-col items-center gap-3">
-          <img src={avatarPreview} alt="avatar" className="w-32 h-32 rounded-full border-4 border-white shadow-lg object-cover" />
+          <Image src={avatarPreview} alt="avatar" width={128} height={128} className="w-32 h-32 rounded-full border-4 border-white shadow-lg object-cover" />
           <div className="flex flex-col items-center gap-2">
             <button
               type="button"

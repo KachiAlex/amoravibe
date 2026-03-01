@@ -16,7 +16,7 @@ const DEFAULT_TTL = 60 * 5; // 5 minutes
 
 type CachedValue = { value: TrustCenterSnapshotResponse; expiresAt: number };
 
-let memoryCache = new Map<string, CachedValue>();
+const memoryCache = new Map<string, CachedValue>();
 
 function nowSeconds() {
   return Math.floor(Date.now() / 1000);
@@ -48,7 +48,11 @@ async function getFromUpstash(key: string): Promise<TrustCenterSnapshotResponse 
   } catch (err) {
     console.warn('[trust-cache] upstash read failed', (err as any)?.message ?? String(err));
     increment('trust.cache.upstash.read_failed', []);
-    try { captureMessage('trust-cache.upstash.read_failed', { key, error: (err as any)?.message ?? String(err) }); } catch (_) {}
+    try {
+      captureMessage('trust-cache.upstash.read_failed', { key, error: (err as any)?.message ?? String(err) });
+    } catch (captureError) {
+      console.warn('[trust-cache] failed to capture upstash read error', captureError);
+    }
     return null;
   }
 }
@@ -61,11 +65,15 @@ async function setToUpstash(key: string, value: TrustCenterSnapshotResponse, ttl
       token: process.env.UPSTASH_REDIS_REST_TOKEN!,
     });
     await redis.set(key, JSON.stringify(value), { ex: ttl });
-  increment('trust.cache.upstash.write', []);
+    increment('trust.cache.upstash.write', []);
   } catch (err) {
     console.warn('[trust-cache] upstash write failed', (err as any)?.message ?? String(err));
     increment('trust.cache.upstash.write_failed', []);
-    try { captureMessage('trust-cache.upstash.write_failed', { key, error: (err as any)?.message ?? String(err) }); } catch (_) {}
+    try {
+      captureMessage('trust-cache.upstash.write_failed', { key, error: (err as any)?.message ?? String(err) });
+    } catch (captureError) {
+      console.warn('[trust-cache] failed to capture upstash write error', captureError);
+    }
   }
 }
 

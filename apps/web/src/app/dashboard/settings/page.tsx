@@ -1,6 +1,5 @@
 import Header from '../components/Header';
 import StatsCards from '../components/StatsCards';
-import SettingsPanel from '../components/SettingsPanel';
 import { getSession } from '@/lib/session';
 import db from '@/lib/db';
 

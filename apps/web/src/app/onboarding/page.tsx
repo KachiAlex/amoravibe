@@ -48,7 +48,7 @@ export default function OnboardingPage() {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       try {
-        const data: OnboardingData = JSON.parse(saved);
+        JSON.parse(saved);
         setShowResumePrompt(true);
       } catch (err) {
         console.error("Failed to parse saved onboarding data", err);
@@ -169,7 +169,9 @@ export default function OnboardingPage() {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    try { console.debug('[Onboarding] handleProfile called', { name, age, location, job, about, interests, gender, orientation }); } catch (err) {}
+    if (process.env.NODE_ENV !== 'production') {
+      console.debug('[Onboarding] handleProfile called', { name, age, location, job, about, interests, gender, orientation });
+    }
     try {
       const res = await fetch("/api/profile", {
         method: "PATCH",
@@ -318,7 +320,9 @@ export default function OnboardingPage() {
                   placeholder="Full Name"
                   value={name}
                   onChange={e => {
-                    try { console.debug('onboarding:name:onChange', e.target.value); } catch (err) {}
+                    if (process.env.NODE_ENV !== 'production') {
+                      console.debug('onboarding:name:onChange', e.target.value);
+                    }
                     setName(e.target.value);
                   }}
                   required

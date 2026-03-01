@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
+import Image from "next/image";
 
 type Space = {
   id: string;
@@ -113,10 +114,13 @@ export default function MySpacesPanel() {
             ) : (
               messages.map((msg) => (
                 <div key={msg.id} className="flex gap-3">
-                  <img
+                  <Image
                     src={msg.user.avatar || "https://via.placeholder.com/40"}
                     alt={msg.user.displayName}
+                    width={40}
+                    height={40}
                     className="w-10 h-10 rounded-full object-cover"
+                    unoptimized
                   />
                   <div>
                     <p className="font-semibold text-sm">{msg.user.displayName}</p>
@@ -158,7 +162,7 @@ export default function MySpacesPanel() {
 
       {joinedSpaces.length === 0 ? (
         <div className="text-center py-12 text-gray-500">
-          You haven't joined any spaces yet. Go to the Spaces tab to join!
+          You haven&apos;t joined any spaces yet. Go to the Spaces tab to join!
         </div>
       ) : (
         <div className="space-y-8">

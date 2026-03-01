@@ -12,7 +12,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // Prefer DB-backed audit entries when available
   try {
-    const { fetchAudit } = require('@/lib/persistence');
+    const { fetchAudit } = await import('@/lib/persistence');
     const persisted = await fetchAudit(200);
     if (persisted && Array.isArray(persisted)) return res.status(200).json(persisted);
   } catch (e) {

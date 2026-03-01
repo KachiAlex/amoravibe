@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import type { Message } from '@/lib/dev-data';
 
 type MessageWithUnread = Message & { unread?: boolean };
@@ -127,7 +128,7 @@ export function MessagesClient({
         <div className="flex flex-col gap-6 px-6 py-8 sm:px-10 sm:py-10">
           <div className="flex flex-col gap-1">
             <p className="text-sm font-semibold text-ink-700">Welcome back, <span className="text-fuchsia-700">{userName || 'John'}</span>! 👋</p>
-            <p className="text-sm text-ink-700">You have 3 new matches and 2 new messages</p>
+            <p className="text-sm text-ink-700">You have 3 new matches and {unreadCount} unread {unreadCount === 1 ? 'message' : 'messages'}</p>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -175,7 +176,7 @@ export function MessagesClient({
                   filter === 'unread' ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white' : 'text-fuchsia-700'
                 }`}
               >
-                Unread ({messages.filter((m) => m.unread && !readMap[m.id]).length})
+                Unread ({unreadCount})
               </button>
             </div>
           </div>
@@ -216,7 +217,13 @@ export function MessagesClient({
                   } ${muted[m.id] ? 'opacity-70' : ''}`}
                 >
                   <div className="relative">
-                    <img src={m.avatar} alt={`${m.from} avatar`} className="h-12 w-12 rounded-full object-cover shadow-sm" />
+                    <Image
+                      src={m.avatar}
+                      alt={`${m.from} avatar`}
+                      width={48}
+                      height={48}
+                      className="h-12 w-12 rounded-full object-cover shadow-sm"
+                    />
                     {(m.online || isUnread) && (
                       <span
                         className={`absolute -right-1 -bottom-1 h-3 w-3 rounded-full ring-2 ring-white ${

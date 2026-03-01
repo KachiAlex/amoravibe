@@ -3,10 +3,12 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 type Stats = { matches: number; chats: number; views: number };
 
+function statsEqual(a: Stats, b: Stats) {
+  return a.matches === b.matches && a.chats === b.chats && a.views === b.views;
+}
+
 export default function StatsCards({ stats: statsProp }: { stats?: Stats }) {
   const hasServerStats = Boolean(statsProp);
-  const statsEqual = (a: Stats, b: Stats) =>
-    a.matches === b.matches && a.chats === b.chats && a.views === b.views;
   const normalizedStats = useMemo<Stats>(
     () => ({
       matches: statsProp?.matches ?? 0,
@@ -36,9 +38,9 @@ export default function StatsCards({ stats: statsProp }: { stats?: Stats }) {
     if (!hasServerStats) return;
     setLoading(false);
     setStats((prev) => (statsEqual(prev, normalizedStats) ? prev : normalizedStats));
-  }, [normalizedStats, hasServerStats, statsEqual]);
+  }, [normalizedStats, hasServerStats]);
 
-  async function fetchStats(manual = false) {
+  const fetchStats = useCallback(async (manual = false) => {
     if (manual) setRefreshing(true);
     setError(null);
     trackDashboardEvent('stats_refresh_requested', { manual });
@@ -64,7 +66,7 @@ export default function StatsCards({ stats: statsProp }: { stats?: Stats }) {
       setLoading(false);
       if (manual) setRefreshing(false);
     }
-  }
+  }, [trackDashboardEvent]);
 
   // animate display numbers towards the latest stats
   useEffect(() => {
@@ -92,8 +94,7 @@ export default function StatsCards({ stats: statsProp }: { stats?: Stats }) {
     if (!hasServerStats) {
       fetchStats();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hasServerStats]);
+  }, [hasServerStats, fetchStats]);
 
   useEffect(() => {
     const refreshHandler = () => fetchStats();
@@ -115,7 +116,7 @@ export default function StatsCards({ stats: statsProp }: { stats?: Stats }) {
       window.removeEventListener('dashboard:stats:refresh', refreshHandler as EventListener);
       window.removeEventListener('dashboard:stats:optimistic', optimisticHandler as EventListener);
     };
-  }, []);
+  }, [fetchStats]);
 
   const header = (
     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-6">

@@ -3,7 +3,6 @@ import React from 'react';
 import Header from './components/Header';
 import StatsCards from './components/StatsCards';
 import MatchesGrid from './components/MatchesGrid';
-import Tabs from './components/Tabs';
 import { DashboardMessagesWidget } from './components/DashboardMessagesWidget';
 import { getDashboardData } from './hooks/useDashboardData';
 

@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 type Conv = {
   otherId: string;
@@ -40,9 +41,16 @@ export default function MessagesList() {
       </div>
       <div className="space-y-3" role="list">
         {convs.map((c) => (
-            <a href={`/messages/${c.otherId}`} key={c.otherId} role="listitem" className="block cursor-pointer stat-card flex items-center gap-4 p-4 rounded-2xl bg-white shadow border border-gray-100 hover:bg-gray-50">
+            <Link href={`/messages/${c.otherId}`} key={c.otherId} role="listitem" className="block cursor-pointer stat-card flex items-center gap-4 p-4 rounded-2xl bg-white shadow border border-gray-100 hover:bg-gray-50">
               <div className="relative">
-                <img src={c.avatar ?? '/images/default-avatar.png'} alt={`${c.otherName} avatar`} className="w-12 h-12 rounded-full object-cover border-2 border-gray-100" />
+                <Image
+                  src={c.avatar ?? '/images/default-avatar.png'}
+                  alt={`${c.otherName} avatar`}
+                  width={48}
+                  height={48}
+                  className="w-12 h-12 rounded-full object-cover border-2 border-gray-100"
+                  unoptimized
+                />
                 {c.unread > 0 && (
                   <span className="absolute -top-1 -right-1 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-500 rounded-full">{c.unread}</span>
                 )}
@@ -54,7 +62,7 @@ export default function MessagesList() {
                 </div>
                 <p className="text-sm text-gray-500 break-words truncate">{c.lastMessage}</p>
               </div>
-            </a>
+            </Link>
         ))}
         {convs.length === 0 && !loading && <div className="text-sm text-gray-500">No conversations yet</div>}
       </div>

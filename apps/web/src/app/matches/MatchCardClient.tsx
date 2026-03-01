@@ -110,6 +110,18 @@ export default function MatchCardClient({ match }: { match: MatchCandidate }) {
             ))}
           </div>
         ) : null}
+
+        <div className="mt-auto flex flex-wrap gap-2 pt-2">
+          <PillButton onClick={handleLike} disabled={busy || liked} variant="solid">
+            {liked ? 'Liked' : 'Like'}
+          </PillButton>
+          <PillButton onClick={handleUnmatch} disabled={busy} variant="outline">
+            Pass
+          </PillButton>
+          <PillButton onClick={handleReport} disabled={busy} variant="outline" className="text-red-600 border-red-200 hover:bg-red-50">
+            Report
+          </PillButton>
+        </div>
       </div>
     </div>
   );
