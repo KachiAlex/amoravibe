@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect, useState } from 'react';
+import Image from 'next/image';
 
 type Match = {
   id: string;
@@ -88,7 +89,14 @@ export default function MatchesListClient({ initialMatches = [] }: { initialMatc
             className="min-w-[380px] max-w-[400px] bg-white rounded-3xl shadow-lg flex flex-col p-0 mr-4 scroll-snap-align-start relative"
             style={{scrollSnapAlign:'start'}}>
             <div className="relative">
-              <img src={m.avatar} alt="" className="w-full h-64 object-cover rounded-t-3xl" />
+              <Image
+                src={m.avatar || '/images/default-avatar.png'}
+                alt=""
+                width={640}
+                height={256}
+                className="w-full h-64 object-cover rounded-t-3xl"
+                unoptimized
+              />
               {typeof m.matchPercent === 'number' && (
                 <span className="absolute top-4 left-4 bg-fuchsia-500 text-white text-sm font-semibold rounded-full px-4 py-1 shadow">{m.matchPercent}% Match</span>
               )}

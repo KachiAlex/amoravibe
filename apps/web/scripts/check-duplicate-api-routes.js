@@ -1,7 +1,8 @@
-const fs = require('fs').promises;
-const path = require('path');
+import { promises as fs } from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-const ROOT = path.resolve(__dirname, '..'); // apps/web
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..'); // apps/web
 const PAGES_API = path.join(ROOT, 'src', 'pages', 'api');
 const APP_API = path.join(ROOT, 'src', 'app', 'api');
 const PAGE_EXTS = ['.js', '.ts', '.jsx', '.tsx', '.mjs', '.cjs', '.json'];

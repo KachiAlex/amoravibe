@@ -38,7 +38,11 @@ test('onboarding creates account and navigates to dashboard', async ({ page }) =
   const sessionResp = await page.waitForResponse((r) => r.url().includes('/api/auth/session'), { timeout: 5000 }).catch(() => null);
   if (sessionResp) {
     console.log('SESSION status', sessionResp.status());
-    try { console.log('SESSION body', await sessionResp.text()); } catch(e){}
+    try {
+      console.log('SESSION body', await sessionResp.text());
+    } catch (sessionErr) {
+      console.warn('SESSION body read failed', sessionErr);
+    }
   } else {
     console.log('No session response observed');
   }

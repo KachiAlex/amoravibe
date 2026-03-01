@@ -45,7 +45,9 @@ export default function SpacesPanel() {
 
   async function fetchRooms(spaceId: string) {
     try {
-      const res = await fetch(`/api/spaces/${spaceId}/rooms`);
+      const res = await fetch(`/api/spaces/${spaceId}/rooms`, {
+        credentials: 'include',
+      });
       const data = await res.json();
       setRooms(data.rooms || []);
     } catch (err) {
