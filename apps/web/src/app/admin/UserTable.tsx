@@ -1,6 +1,6 @@
 
 "use client";
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState, useRef, useMemo } from 'react';
 import { Card } from '@lovedate/ui';
 
 export default function UserTable() {
@@ -15,28 +15,70 @@ export default function UserTable() {
   const [offset, setOffset] = useState(0);
   const [selectedUser, setSelectedUser] = useState<any | null>(null);
 
+  const searchTimeoutRef = useRef<NodeJS.Timeout>();
+  const abortControllerRef = useRef<AbortController>();
+
   const fetchUsers = useCallback(() => {
+    // Cancel previous request if still in flight
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    
+    abortControllerRef.current = new AbortController();
     setLoading(true);
+    
     const params = new URLSearchParams();
     if (search) params.set('search', search);
     params.set('limit', String(limit));
     params.set('offset', String(offset));
 
-    fetch(`/api/trust/admin/users?${params.toString()}`)
+    fetch(`/api/trust/admin/users?${params.toString()}`, {
+      signal: abortControllerRef.current.signal
+    })
       .then((res) => (res.ok ? res.json() : Promise.reject(res.statusText)))
       .then((data) => {
         setUsers(data.users || []);
         setTotal(data.total || 0);
       })
-      .catch((err) => setError(String(err)))
+      .catch((err) => {
+        if (err.name !== 'AbortError') {
+          setError(String(err));
+        }
+      })
       .finally(() => setLoading(false));
   }, [search, limit, offset]);
+
+  // Debounce search input
+  const handleSearchChange = useCallback((value: string) => {
+    setSearch(value);
+    setOffset(0);
+    
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+    
+    searchTimeoutRef.current = setTimeout(() => {
+      // Fetch will be triggered by useEffect watching search
+    }, 300);
+  }, []);
 
   useEffect(() => {
     fetchUsers();
     // clear selected user when list changes
     setSelectedUser(null);
   }, [fetchUsers]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, []);
 
   const handleVerify = async (id: string) => {
     setActionLoading(id + '-verify');
@@ -81,7 +123,7 @@ export default function UserTable() {
       <div className="flex gap-3 mb-4">
         <input
           value={search}
-          onChange={(e) => { setSearch(e.target.value); setOffset(0); }}
+          onChange={(e) => handleSearchChange(e.target.value)}
           placeholder="Search by name, email or city"
           className="flex-1 rounded-xl border px-4 py-2 text-sm outline-none"
         />
