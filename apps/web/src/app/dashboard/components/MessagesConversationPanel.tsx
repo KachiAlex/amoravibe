@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from "react";
+import Image from "next/image";
 
 // Message and Conversation types
 export type Message = {
@@ -73,7 +74,14 @@ export default function MessagesConversationPanel({ conversations = demoConversa
               className={`flex items-center gap-3 px-4 py-2 cursor-pointer hover:bg-fuchsia-50 ${activeId === c.id ? "bg-fuchsia-100" : ""}`}
               onClick={() => setActiveId(c.id)}
             >
-              <img src={c.contactAvatar} alt="avatar" className="w-10 h-10 rounded-full object-cover" />
+              <Image
+                src={c.contactAvatar || '/images/default-avatar.png'}
+                alt="avatar"
+                width={40}
+                height={40}
+                className="w-10 h-10 rounded-full object-cover"
+                unoptimized
+              />
               <div className="flex-1 min-w-0">
                 <div className="font-medium truncate">{c.contactName}</div>
                 <div className="text-xs text-gray-400 truncate">
@@ -93,7 +101,14 @@ export default function MessagesConversationPanel({ conversations = demoConversa
         <div className="px-6 py-4 border-b font-bold text-lg flex items-center gap-3">
           {activeConv && (
             <>
-              <img src={activeConv.contactAvatar} alt="avatar" className="w-8 h-8 rounded-full object-cover" />
+              <Image
+                src={activeConv.contactAvatar || '/images/default-avatar.png'}
+                alt="avatar"
+                width={32}
+                height={32}
+                className="w-8 h-8 rounded-full object-cover"
+                unoptimized
+              />
               <span>{activeConv.contactName}</span>
             </>
           )}

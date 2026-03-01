@@ -1,5 +1,6 @@
 "use client";
 import Link from 'next/link';
+import Image from 'next/image';
 import useSWR from 'swr';
 import type { Message } from '../types';
 
@@ -56,10 +57,13 @@ export function DashboardMessagesWidget({ messages = [] }: { messages?: Message[
             className="flex items-center gap-4 rounded-2xl border border-gray-100 bg-white/80 p-4 shadow hover:bg-white"
           >
             <div className="relative">
-              <img
+              <Image
                 src={message.avatar ?? '/images/default-avatar.png'}
                 alt={`${message.from} avatar`}
+                width={48}
+                height={48}
                 className="h-12 w-12 rounded-full object-cover border-2 border-gray-100"
+                unoptimized
               />
               {message.unread ? (
                 <span className="absolute -top-1 -right-1 inline-flex items-center justify-center rounded-full bg-red-500 px-2 py-0.5 text-xs font-semibold text-white">

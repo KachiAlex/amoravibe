@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import Image from "next/image";
 import { motion, AnimatePresence } from '@/lib/motion-shim';
 
 export default function DiscoverSwipePanel({ onBack }: { onBack?: () => void }) {
@@ -29,7 +30,7 @@ export default function DiscoverSwipePanel({ onBack }: { onBack?: () => void }) 
       setHistory(h => [...h, { ...profiles[idx], action: 'like' }]);
       const id = profiles[idx].id;
       await fetch(`/api/matches/${id}/like`, { method: 'POST', credentials: 'include' });
-      nextProfile('like');
+      nextProfile();
     } catch (e) {
       setError('Failed to like profile.');
     }
@@ -40,7 +41,7 @@ export default function DiscoverSwipePanel({ onBack }: { onBack?: () => void }) 
       setHistory(h => [...h, { ...profiles[idx], action: 'pass' }]);
       const id = profiles[idx].id;
       await fetch(`/api/matches/${id}/pass`, { method: 'POST', credentials: 'include' });
-      nextProfile('pass');
+      nextProfile();
     } catch (e) {
       setError('Failed to pass profile.');
     }
@@ -52,7 +53,7 @@ export default function DiscoverSwipePanel({ onBack }: { onBack?: () => void }) 
     setHistory(history.slice(0, -1));
     setIdx(0);
   }
-  function nextProfile(action?: string) {
+  function nextProfile() {
     if (idx + 1 < profiles.length) {
       setIdx(idx + 1);
     } else {
@@ -95,7 +96,15 @@ export default function DiscoverSwipePanel({ onBack }: { onBack?: () => void }) 
             className="flex flex-col items-center justify-center w-full"
           >
             <div className="relative w-full max-w-md rounded-3xl shadow-2xl overflow-hidden bg-white mt-4">
-              <img src={profile.cover || '/images/default-cover.jpg'} alt="cover" className="w-full h-80 object-cover" style={{borderTopLeftRadius:'1.5rem',borderTopRightRadius:'1.5rem'}} />
+              <Image
+                src={profile.cover || '/images/default-cover.jpg'}
+                alt="cover"
+                width={640}
+                height={320}
+                className="w-full h-80 object-cover"
+                style={{borderTopLeftRadius:'1.5rem',borderTopRightRadius:'1.5rem'}}
+                unoptimized
+              />
               <span className="absolute top-4 right-4 bg-white bg-opacity-90 text-gray-700 text-base font-semibold px-4 py-2 rounded-full shadow">{profile.distance || '2 miles away'}</span>
               <div className="absolute top-4 left-1/2 -translate-x-1/2 w-3/4 h-1 bg-white/80 rounded-full" />
               <div className="absolute top-72 right-6">

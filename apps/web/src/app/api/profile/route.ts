@@ -25,18 +25,22 @@ export async function PATCH(req: Request) {
   let userId: string | undefined;
   // legacy session cookie
   const legacy = await getLegacySession();
+  console.log('[Profile] Legacy session:', legacy);
   if (legacy?.userId) userId = legacy.userId;
   // Try NextAuth session as fallback
   if (!userId) {
     const serverSession = await getServerSession(await buildAuthOptions());
+    console.log('[Profile] NextAuth session:', serverSession);
     if (serverSession && (serverSession as any).userId) userId = (serverSession as any).userId;
     // also support session.user?.email or id
     if (!userId && serverSession?.user?.email) {
       // find user id by email when NextAuth session provides only email
       const u = await prisma.user.findUnique({ where: { email: serverSession.user.email as string } });
+      console.log('[Profile] User lookup by email:', { email: serverSession.user.email, found: !!u });
       if (u) userId = u.id;
     }
   }
+  console.log('[Profile] Resolved userId:', userId);
   if (!userId) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
   const body = await req.json().catch(() => ({}));
   const data: any = {};
