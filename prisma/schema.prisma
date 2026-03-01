@@ -20,6 +20,8 @@ model User {
   avatar             String?
   about              String?
   interests          String[]
+  gender             String?
+  orientation        String?
   onboardingCompleted Boolean             @default(false)
   onboardingStep      String?
   profileCompletedAt  DateTime?
@@ -35,6 +37,10 @@ model User {
   conversationsAsOther ConversationState[] @relation("ConversationStateOther")
   messagesSent       Message[]           @relation("MessagesFrom")
   messagesReceived   Message[]           @relation("MessagesTo")
+  spaceMembers       SpaceMember[]
+  roomsCreated       Room[]              @relation("RoomCreator")
+  roomMembers        RoomMember[]
+  roomMessages       RoomMessage[]
 }
 
 model Match {
@@ -100,10 +106,69 @@ enum MatchStatus {
 }
 
 model Space {
-  id          String   @id @default(uuid())
-  name        String   @unique
+  id                    String          @id @default(uuid())
+  name                  String          @unique
+  description           String?
+  icon                  String?
+  orientation           String          // "straight" or "lgbtq"
+  createdAt             DateTime        @default(now())
+  members               SpaceMember[]
+  rooms                 Room[]
+  roomCreationLimit     Int             @default(10)
+}
+
+model SpaceMember {
+  id        String   @id @default(uuid())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  space     Space    @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  spaceId   String
+  joinedAt  DateTime @default(now())
+
+  @@unique([userId, spaceId], map: "uniq_space_member")
+}
+
+model Room {
+  id          String        @id @default(uuid())
+  name        String
   description String?
-  createdAt   DateTime @default(now())
+  space       Space         @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  spaceId     String
+  creator     User          @relation("RoomCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+  creatorId   String
+  isPublic    Boolean       @default(true)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @default(now()) @updatedAt
+  members     RoomMember[]
+  messages    RoomMessage[]
+
+  @@index([spaceId], map: "idx_room_space")
+  @@index([creatorId], map: "idx_room_creator")
+}
+
+model RoomMember {
+  id        String   @id @default(uuid())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  room      Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  roomId    String
+  joinedAt  DateTime @default(now())
+
+  @@unique([userId, roomId], map: "uniq_room_member")
+  @@index([roomId], map: "idx_room_member_room")
+}
+
+model RoomMessage {
+  id        String   @id @default(uuid())
+  room      Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  roomId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  text      String
+  createdAt DateTime @default(now())
+
+  @@index([roomId], map: "idx_room_message_room")
+  @@index([userId], map: "idx_room_message_user")
 }
 
 enum MatchActionType {
