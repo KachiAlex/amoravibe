@@ -12,8 +12,19 @@ export default function ChatPage() {
   const messages = getDevMessages('demo-user');
   const chat = useMemo(() => messages.find((m) => m.id === chatId), [messages, chatId]);
   const [input, setInput] = useState('');
+  const [displayName, setDisplayName] = useState('You');
   // For demo, synthesize a simple thread from the message summary
   const [localMessages, setLocalMessages] = useState<any[]>([]);
+
+  useEffect(() => {
+    // Fetch user's display name
+    fetch('/api/profile')
+      .then((res) => res.json())
+      .then((data) => {
+        setDisplayName(data.displayName ?? data.name ?? 'You');
+      })
+      .catch(() => setDisplayName('You'));
+  }, []);
 
   useEffect(() => {
     if (!chat) {
@@ -64,7 +75,7 @@ export default function ChatPage() {
   return (
     <div className="flex-1 flex flex-col min-h-screen h-screen bg-gradient-to-br from-white via-gray-50 to-purple-50">
       <main className="flex-1 flex flex-col min-h-screen h-screen px-12 py-10">
-        <Header userName="John Doe" />
+        <Header userName={displayName} />
         <div className="mb-10 flex justify-center gap-8">
           <StatsCards stats={{ matches: 24, chats: 18, views: 156 }} />
         </div>

@@ -1,16 +1,26 @@
 import Header from '../components/Header';
 import StatsCards from '../components/StatsCards';
 import SettingsPanel from '../components/SettingsPanel';
+import { getSession } from '@/lib/session';
+import db from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 
-export default function SettingsPage() {
+export default async function SettingsPage() {
+  const session = await getSession();
+  let displayName = 'You';
+  
+  if (session?.userId) {
+    const user = await db.user.findUnique({ where: { id: session.userId } });
+    displayName = user?.displayName ?? user?.name ?? 'You';
+  }
+
   return (
     <div className="flex-1 flex flex-col min-h-screen h-screen bg-gradient-to-br from-white via-gray-50 to-purple-50">
       <main id="settings-main" className="flex-1 flex flex-col min-h-screen h-screen">
         <div className="flex-1 w-full min-h-screen h-full md:rounded-l-xl shadow-lg bg-white/90 backdrop-blur-md">
           <div className="max-w-6xl mx-auto px-4 md:px-8 py-10">
-            <Header userName="John Doe" />
+            <Header userName={displayName} />
             <div className="mb-10 flex justify-center gap-8">
               <StatsCards stats={{ matches: 24, chats: 18, views: 156 }} />
             </div>

@@ -2,7 +2,8 @@ import type { DashboardData, Match as DashboardMatch, Message as DashboardMessag
 import db from '@/lib/db';
 
 async function buildFromDatabase(userId: string) {
-  const [matches, messages, stats] = await Promise.all([
+  const [user, matches, messages, stats] = await Promise.all([
+    db.user.findUnique({ where: { id: userId } }),
     db.match.findMany({
       where: {
         OR: [{ requesterId: userId }, { targetUserId: userId }],
@@ -45,7 +46,7 @@ async function buildFromDatabase(userId: string) {
   }));
 
   return {
-    userName: userId,
+    userName: user?.displayName ?? user?.name ?? 'You',
     stats: { matches: stats, chats: messages.length, views: 0 },
     matches: formattedMatches,
     messages: formattedMessages,
