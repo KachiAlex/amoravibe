@@ -5211,7 +5211,7 @@ __metadata:
     pg: "npm:^8.19.0"
     playwright: "npm:^1.58.2"
     prettier: "npm:^3.2.4"
-    prisma: "npm:^5.22.0"
+    prisma: "npm:5.22.0"
     react: "npm:18.3.1"
     react-dom: "npm:18.3.1"
     turbo: "npm:^2.8.1"
@@ -11575,7 +11575,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prisma@npm:^5.22.0":
+"prisma@npm:5.22.0, prisma@npm:^5.22.0":
   version: 5.22.0
   resolution: "prisma@npm:5.22.0"
   dependencies:

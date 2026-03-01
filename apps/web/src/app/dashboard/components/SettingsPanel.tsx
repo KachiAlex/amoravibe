@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import SettingsTab from "./SettingsTab";
 import SettingsDeleteModal from "./SettingsDeleteModal";
 
+export default function SettingsPanel() {
   const [settings, setSettings] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string|null>(null);

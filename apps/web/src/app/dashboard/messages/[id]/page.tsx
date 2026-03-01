@@ -1,5 +1,4 @@
 "use client";
-import Sidebar from '../../components/Sidebar';
 import Header from '../../components/Header';
 import StatsCards from '../../components/StatsCards';
 import { useParams } from 'next/navigation';
@@ -63,9 +62,8 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-white">
-      <Sidebar />
-      <main className="flex-1 px-12 py-10 flex flex-col">
+    <div className="flex-1 flex flex-col min-h-screen h-screen bg-gradient-to-br from-white via-gray-50 to-purple-50">
+      <main className="flex-1 flex flex-col min-h-screen h-screen px-12 py-10">
         <Header userName="John Doe" />
         <div className="mb-10 flex justify-center gap-8">
           <StatsCards stats={{ matches: 24, chats: 18, views: 156 }} />

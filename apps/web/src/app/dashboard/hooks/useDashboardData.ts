@@ -26,8 +26,8 @@ function writeCache(key: string, data: DashboardData) {
   dashboardCache.set(key, { data, expiresAt: Date.now() + CACHE_TTL_SECONDS * 1000 });
 }
 
-function getRequestOrigin() {
-  const hdrs = headers();
+async function getRequestOrigin() {
+  const hdrs = await headers();
   const forwardedProto = hdrs.get('x-forwarded-proto');
   const forwardedHost = hdrs.get('x-forwarded-host');
   const host = hdrs.get('host');
@@ -38,7 +38,7 @@ function getRequestOrigin() {
 
 async function fetchDashboardViaApi(): Promise<DashboardData | null> {
   try {
-    const origin = process.env.NEXT_PUBLIC_APP_URL ?? getRequestOrigin() ?? 'http://localhost:4000';
+    const origin = process.env.NEXT_PUBLIC_APP_URL ?? (await getRequestOrigin()) ?? 'http://localhost:4000';
     const res = await fetch(`${origin}/api/dashboard`, {
       cache: 'no-store',
       headers: { 'x-dashboard-fetch': 'server' },

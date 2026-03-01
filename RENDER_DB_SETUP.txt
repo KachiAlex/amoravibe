@@ -1,0 +1,35 @@
+RENDER DATABASE SETUP INSTRUCTIONS
+===================================
+
+Your Render database is ready. Follow these steps:
+
+1. UPDATE .env.local
+   Replace the DATABASE_URL line with:
+   
+   DATABASE_URL="postgresql://amoravibe_user:knKUyuneX3rBzWEDxN5Z3wOX1EWYcNH7@dpg-d6i06f0gjchc73d0gv10-a.virginia-postgres.render.com/amoravibe"
+
+2. REGENERATE PRISMA CLIENT
+   Run: yarn prisma generate
+
+3. RUN DATABASE MIGRATIONS
+   Run: yarn prisma migrate deploy
+
+4. START DEV SERVER
+   Run: yarn workspace web dev
+
+5. TEST THE CONNECTION
+   Navigate to: http://localhost:4000/dashboard
+
+Your Render database details:
+- Host: dpg-d6i06f0gjchc73d0gv10-a.virginia-postgres.render.com
+- Database: amoravibe
+- Username: amoravibe_user
+- Password: knKUyuneX3rBzWEDxN5Z3wOX1EWYcNH7
+- Connection String: postgresql://amoravibe_user:knKUyuneX3rBzWEDxN5Z3wOX1EWYcNH7@dpg-d6i06f0gjchc73d0gv10-a.virginia-postgres.render.com/amoravibe
+
+Benefits of Render over Neon:
+✓ Always-on database (no suspension)
+✓ Simple connection string (no pooler endpoint needed)
+✓ No SSL configuration required
+✓ More stable for development
+✓ Better reliability long-term
