@@ -89,8 +89,21 @@ export default function ConversationClient({ otherId }: { otherId: string }) {
         <div />
       </div>
       <div className="border rounded-lg p-4 h-[60vh] overflow-auto bg-white/80">
-        {nextCursor && <button onClick={loadMore} className="text-sm text-blue-600 mb-2">Load older messages</button>}
+        {nextCursor && (
+          <button
+            onClick={loadMore}
+            className="text-sm text-blue-600 mb-2 disabled:opacity-60"
+            disabled={loading}
+          >
+            {loading ? 'Loading…' : 'Load older messages'}
+          </button>
+        )}
         <div className="space-y-3">
+          {loading && (
+            <div className="text-xs text-gray-500" role="status" aria-live="polite">
+              Loading messages…
+            </div>
+          )}
           {messages.map((m) => (
             <div key={m.id} className={`p-2 rounded-lg ${m.fromId === 'me' ? 'bg-indigo-100 self-end' : 'bg-gray-100'}`}>
               <div className="text-sm text-gray-700">{m.text} {m._pending && <span className="text-xs text-gray-500">(sending…)</span>}</div>
