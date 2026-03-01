@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 
 type Space = {
   id: string;
@@ -28,38 +28,66 @@ export default function SpacesPanel() {
   const [loading, setLoading] = useState(false);
   const [showCreateRoomForm, setShowCreateRoomForm] = useState(false);
   const [roomFormData, setRoomFormData] = useState({ name: '', description: '' });
+  const [spacesLoading, setSpacesLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  
+  const abortControllerRef = useRef<AbortController>();
 
   useEffect(() => {
     fetchSpaces();
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
   }, []);
 
-  async function fetchSpaces() {
+  const fetchSpaces = useCallback(async () => {
+    setSpacesLoading(true);
+    setError(null);
     try {
       const res = await fetch("/api/spaces");
       const data = await res.json();
       setSpaces(data.spaces || []);
     } catch (err) {
       console.error("Failed to fetch spaces", err);
+      setError("Failed to load spaces");
+    } finally {
+      setSpacesLoading(false);
     }
-  }
+  }, []);
 
-  async function fetchRooms(spaceId: string) {
+  const fetchRooms = useCallback(async (spaceId: string) => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    
+    abortControllerRef.current = new AbortController();
+    setLoading(true);
+    
     try {
       const res = await fetch(`/api/spaces/${spaceId}/rooms`, {
         credentials: 'include',
+        signal: abortControllerRef.current.signal
       });
       const data = await res.json();
       setRooms(data.rooms || []);
     } catch (err) {
-      console.error("Failed to fetch rooms", err);
+      if ((err as Error).name !== 'AbortError') {
+        console.error("Failed to fetch rooms", err);
+        setError("Failed to load rooms");
+      }
+    } finally {
+      setLoading(false);
     }
-  }
+  }, []);
 
-  function handleSelectSpace(space: Space) {
+  const handleSelectSpace = useCallback((space: Space) => {
     setSelectedSpace(space);
     setShowCreateRoomForm(false);
+    setError(null);
     fetchRooms(space.id);
-  }
+  }, [fetchRooms]);
 
   async function handleCreateRoom(e: React.FormEvent) {
     e.preventDefault();

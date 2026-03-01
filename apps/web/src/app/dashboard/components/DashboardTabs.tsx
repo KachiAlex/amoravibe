@@ -1,19 +1,38 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, Suspense } from "react";
 import dynamic from "next/dynamic";
 import type { DashboardData } from "../hooks/useDashboardData";
 
-const SpacesPanel = dynamic(() => import("./SpacesPanel"), { ssr: false });
-const MySpacesPanel = dynamic(() => import("./MySpacesPanel"), { ssr: false });
-const DiscoverPanel = dynamic(() => import("./DiscoverPanel"), { ssr: false });
-const MessagesPanel = dynamic(() => import("./MessagesPanel"), { ssr: false });
-const ProfilePanel = dynamic(() => import("./ProfilePanel"), { ssr: false });
+const SpacesPanel = dynamic(() => import("./SpacesPanel"), { 
+  ssr: false,
+  loading: () => <SkeletonLoader height="h-96" />
+});
+const MySpacesPanel = dynamic(() => import("./MySpacesPanel"), { 
+  ssr: false,
+  loading: () => <SkeletonLoader height="h-96" />
+});
+const DiscoverPanel = dynamic(() => import("./DiscoverPanel"), { 
+  ssr: false,
+  loading: () => <SkeletonLoader height="h-96" />
+});
+const MessagesPanel = dynamic(() => import("./MessagesPanel"), { 
+  ssr: false,
+  loading: () => <SkeletonLoader height="h-96" />
+});
+const ProfilePanel = dynamic(() => import("./ProfilePanel"), { 
+  ssr: false,
+  loading: () => <SkeletonLoader height="h-96" />
+});
 
 type Tab = "home" | "spaces" | "myspaces" | "discover" | "messages" | "profile";
 
 interface DashboardTabsProps {
   data: DashboardData;
+}
+
+function SkeletonLoader({ height }: { height: string }) {
+  return <div className={`${height} bg-gray-100 rounded-lg animate-pulse`} />;
 }
 
 export function DashboardTabs({ data }: DashboardTabsProps) {
@@ -99,11 +118,31 @@ export function DashboardTabs({ data }: DashboardTabsProps) {
           </div>
         )}
 
-        {activeTab === "spaces" && <SpacesPanel />}
-        {activeTab === "myspaces" && <MySpacesPanel />}
-        {activeTab === "discover" && <DiscoverPanel />}
-        {activeTab === "messages" && <MessagesPanel />}
-        {activeTab === "profile" && <ProfilePanel />}
+        {activeTab === "spaces" && (
+          <Suspense fallback={<SkeletonLoader height="h-96" />}>
+            <SpacesPanel />
+          </Suspense>
+        )}
+        {activeTab === "myspaces" && (
+          <Suspense fallback={<SkeletonLoader height="h-96" />}>
+            <MySpacesPanel />
+          </Suspense>
+        )}
+        {activeTab === "discover" && (
+          <Suspense fallback={<SkeletonLoader height="h-96" />}>
+            <DiscoverPanel />
+          </Suspense>
+        )}
+        {activeTab === "messages" && (
+          <Suspense fallback={<SkeletonLoader height="h-96" />}>
+            <MessagesPanel />
+          </Suspense>
+        )}
+        {activeTab === "profile" && (
+          <Suspense fallback={<SkeletonLoader height="h-96" />}>
+            <ProfilePanel />
+          </Suspense>
+        )}
       </div>
     </div>
   );
