@@ -4,8 +4,8 @@ import prisma from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 
-export async function DELETE(req: Request) {
-  const session = getSession();
+export async function DELETE() {
+  const session = await getSession();
   if (!session) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
   try {
     await prisma.user.delete({ where: { id: session.userId } });

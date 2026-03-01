@@ -5,7 +5,7 @@ import { getServerSession } from 'next-auth';
 import { buildAuthOptions } from '../auth/[...nextauth]/route';
 
 export const dynamic = 'force-dynamic';
-export async function GET(req: Request) {
+export async function GET() {
   // For demo, fetch the first user (replace with auth logic for real app)
   const user = await prisma.user.findFirst();
   if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 });

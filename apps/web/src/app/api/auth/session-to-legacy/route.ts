@@ -4,7 +4,7 @@ import { buildAuthOptions } from '../[...nextauth]/route';
 import prisma from '@/lib/db';
 import { setSession } from '@/lib/session';
 
-export async function POST(req: Request) {
+export async function POST() {
   try {
     const serverSession = await getServerSession(await buildAuthOptions());
     if (!serverSession) return NextResponse.json({ ok: false, error: 'No session' }, { status: 401 });

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
 const { PrismaClient } = require('../../../prisma/node_modules/.prisma/client');
 
 async function main() {

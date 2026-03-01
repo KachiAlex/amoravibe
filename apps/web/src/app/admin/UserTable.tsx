@@ -1,6 +1,6 @@
 
 "use client";
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Card } from '@lovedate/ui';
 
 export default function UserTable() {
@@ -15,7 +15,7 @@ export default function UserTable() {
   const [offset, setOffset] = useState(0);
   const [selectedUser, setSelectedUser] = useState<any | null>(null);
 
-  const fetchUsers = () => {
+  const fetchUsers = useCallback(() => {
     setLoading(true);
     const params = new URLSearchParams();
     if (search) params.set('search', search);
@@ -30,13 +30,13 @@ export default function UserTable() {
       })
       .catch((err) => setError(String(err)))
       .finally(() => setLoading(false));
-  };
+  }, [search, limit, offset]);
 
   useEffect(() => {
     fetchUsers();
     // clear selected user when list changes
     setSelectedUser(null);
-  }, [search, limit, offset]);
+  }, [fetchUsers]);
 
   const handleVerify = async (id: string) => {
     setActionLoading(id + '-verify');

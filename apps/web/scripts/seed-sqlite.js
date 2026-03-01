@@ -1,4 +1,5 @@
 (async () => {
+  /* eslint-disable @typescript-eslint/no-var-requires */
   try {
     // Use the generated Prisma client inside prisma folder
     const { PrismaClient } = require('../prisma/node_modules/.prisma/client');

@@ -7,6 +7,9 @@ export const dynamic = 'force-dynamic';
 export async function GET(req: Request) {
   const url = new URL(req.url);
   const other = url.searchParams.get('with');
+  if (!other) {
+    return NextResponse.json({ error: 'Missing partner id' }, { status: 400 });
+  }
   const session = await getSession();
   const fallbackUser = await prisma.user.findFirst();
   const userId = session?.userId ?? fallbackUser?.id;
@@ -24,10 +27,10 @@ export async function GET(req: Request) {
   // This is a demo: poll for new messages every 2s
   let lastSeen = new Date();
   const encoder = new TextEncoder();
+  let cancelled = false;
   const stream = new ReadableStream({
     async start(controller) {
-      let active = true;
-      while (active) {
+      while (!cancelled) {
         const msgs = await prisma.message.findMany({
           where: {
             OR: [
@@ -46,7 +49,7 @@ export async function GET(req: Request) {
       }
     },
     cancel() {
-      this.closed = true;
+      cancelled = true;
     },
   });
 
