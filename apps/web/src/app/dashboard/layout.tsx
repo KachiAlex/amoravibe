@@ -1,9 +1,21 @@
-import { getServerSession } from "next-auth";
-import { buildAuthOptions } from "../api/auth/[...nextauth]/route";
+import { cookies } from "next/headers";
+import { verifyToken } from "@/lib/jwt";
 import Sidebar from "./components/Sidebar";
 
+async function getSession() {
+  try {
+    const cookieStore = await cookies();
+    const token = cookieStore.get('auth-token')?.value;
+    if (!token) return null;
+    const payload = await verifyToken(token);
+    return payload;
+  } catch (err) {
+    return null;
+  }
+}
+
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const session = await getServerSession(await buildAuthOptions());
+  const session = await getSession();
   if (!session) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-900 via-gray-900 to-black">

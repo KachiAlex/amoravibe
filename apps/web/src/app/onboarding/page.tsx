@@ -205,13 +205,8 @@ export default function OnboardingPage() {
         console.warn("Failed to auto-assign space", err);
       }
       
-      // Check if session is still valid before routing
-      const sessionRes = await fetch("/api/auth/session");
-      if (!sessionRes.ok) {
-        setError("Session expired. Please sign in again.");
-        setLoading(false);
-        return;
-      }
+      // Session should still be valid from signup, just redirect
+      console.log('[Onboarding] Profile completed, redirecting to dashboard');
       await handleProfileSuccess();
     } catch (err: any) {
       setError(err.message || "Profile update failed");
