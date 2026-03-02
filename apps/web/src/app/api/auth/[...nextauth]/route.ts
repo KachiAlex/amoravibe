@@ -58,18 +58,22 @@ export async function buildAuthOptions(): Promise<NextAuthOptions> {
     session: { strategy: 'jwt' },
     pages: { signIn: '/?openSignIn=1', error: '/auth/error' },
     callbacks: {
-      async jwt({ token, user }: any) {
+      async jwt({ token, user, account }: any) {
+        // On initial sign-in, user object is provided
         if (user) {
           token.sub = user.id;
           token.id = user.id;
+          token.email = user.email;
         }
         return token;
       },
       async session({ session, token }: any) {
+        // Ensure session always has the user ID from token
         if (token?.sub) {
           (session as any).userId = token.sub;
           (session as any).user = (session as any).user || {};
           (session as any).user.id = token.sub;
+          (session as any).user.email = token.email;
         }
         return session;
       },

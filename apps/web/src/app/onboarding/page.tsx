@@ -123,6 +123,7 @@ export default function OnboardingPage() {
     setLoading(true);
     setError(null);
     try {
+      console.log('[Onboarding] Starting signup with:', { email });
       const res = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -130,30 +131,42 @@ export default function OnboardingPage() {
       });
       if (!res.ok) {
         const errJson = await res.json().catch(() => ({}));
+        console.error('[Onboarding] Signup failed:', { status: res.status, error: errJson });
         throw new Error(errJson.error || "Signup failed");
       }
+      const signupData = await res.json();
+      console.log('[Onboarding] Signup successful:', { userId: signupData.userId });
+
       // Sign in immediately after signup
+      console.log('[Onboarding] Attempting sign-in after signup');
       const signin = await signIn("credentials", { redirect: false, email, password });
+      console.log('[Onboarding] Sign-in result:', { ok: !signin?.error, error: signin?.error });
       if ((signin as any)?.error) {
         setError("Sign-in after signup failed. Please try signing in manually.");
         setLoading(false);
         return;
       }
+
       // Ensure legacy session cookie is set for APIs that expect `lovedate_session`
       try {
         await fetch('/api/auth/session-to-legacy', { method: 'POST' });
       } catch (err) {
         console.warn('Could not set legacy session cookie', err);
       }
+
       // Check if session is set
       const sessionRes = await fetch("/api/auth/session");
       if (!sessionRes.ok) {
+        console.error('[Onboarding] Session check failed:', { status: sessionRes.status });
         setError("Session could not be established. Please sign in manually.");
         setLoading(false);
         return;
       }
+      const sessionData = await sessionRes.json();
+      console.log('[Onboarding] Session established:', { userId: (sessionData as any)?.userId });
       setStep(2);
     } catch (err: any) {
+      console.error('[Onboarding] Signup error:', { message: err.message });
       setError(err.message || "Signup failed");
     } finally {
       setLoading(false);
