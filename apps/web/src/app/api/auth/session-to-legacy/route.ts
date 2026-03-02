@@ -1,24 +1,30 @@
 import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { buildAuthOptions } from '../[...nextauth]/route';
-import prisma from '@/lib/db';
+import { verifyToken } from '@/lib/jwt';
 import { setSession } from '@/lib/session';
 
-export async function POST() {
+export async function POST(req: Request) {
   try {
-    const serverSession = await getServerSession(await buildAuthOptions());
-    if (!serverSession) return NextResponse.json({ ok: false, error: 'No session' }, { status: 401 });
+    // Get token from cookies
+    const cookieHeader = req.headers.get('cookie') || '';
+    const cookies = Object.fromEntries(
+      cookieHeader.split('; ').map(c => {
+        const [key, ...val] = c.split('=');
+        return [key, val.join('=')];
+      })
+    );
 
-    // resolve user id
-    let userId: string | undefined = (serverSession as any)?.userId;
-    if (!userId && serverSession.user?.email) {
-      const u = await prisma.user.findUnique({ where: { email: serverSession.user.email as string } });
-      if (u) userId = u.id;
+    const token = cookies['auth-token'];
+    if (!token) {
+      return NextResponse.json({ ok: false, error: 'No session' }, { status: 401 });
     }
-    if (!userId) return NextResponse.json({ ok: false, error: 'User not found' }, { status: 404 });
 
-    // Reuse the same helper the profile API uses so the cookie format stays consistent.
-    await setSession({ userId });
+    const payload = await verifyToken(token);
+    if (!payload?.userId) {
+      return NextResponse.json({ ok: false, error: 'Invalid session' }, { status: 401 });
+    }
+
+    // Set legacy session cookie
+    await setSession({ userId: payload.userId as string });
     return NextResponse.json({ ok: true });
   } catch (err) {
     console.error('[session-to-legacy] error', err);

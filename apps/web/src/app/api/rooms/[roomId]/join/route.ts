@@ -1,17 +1,16 @@
 import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
-import { buildAuthOptions } from '../../../auth/[...nextauth]/route';
+import { getUserIdFromRequest } from '@/lib/auth-request';
 import prisma from '@/lib/db';
 
 export async function POST(req: Request, { params }: { params: { roomId: string } }) {
   try {
-    const session = await getServerSession(await buildAuthOptions());
-    if (!session?.user?.email) {
+    const userId = await getUserIdFromRequest(req);
+    if (!userId) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
     }
 
     const user = await prisma.user.findUnique({
-      where: { email: session.user.email as string },
+      where: { id: userId },
     });
 
     if (!user) {

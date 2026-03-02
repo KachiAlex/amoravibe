@@ -1,21 +1,19 @@
 import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
-import { buildAuthOptions } from '../auth/[...nextauth]/route';
+import { getUserIdFromRequest } from '@/lib/auth-request';
 import prisma from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
-    const session = await getServerSession(await buildAuthOptions());
-    let userId: string | null = null;
-
-    if (session?.user?.email) {
-      const user = await prisma.user.findUnique({
-        where: { email: session.user.email as string },
-      });
-      userId = user?.id || null;
+    const userId = await getUserIdFromRequest(req);
+    if (!userId) {
+      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
     }
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
 
     // Get all spaces with room counts
     const spaces = await prisma.space.findMany({
