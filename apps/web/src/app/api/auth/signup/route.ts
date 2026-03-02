@@ -56,21 +56,24 @@ export async function POST(req: Request) {
 
     // Create user
     try {
+      console.log('[Signup] Creating user with:', { email, hashedPasswordLength: hashedPassword.length });
       const user = await prisma.user.create({
         data: {
           email,
           hashedPassword,
         },
       });
-      console.log('[Signup] User created:', { id: user.id, email: user.email });
+      console.log('[Signup] User created successfully:', { id: user.id, email: user.email, createdAt: user.createdAt });
       return NextResponse.json({ userId: user.id });
     } catch (dbErr) {
       console.error('[Signup] Prisma create error:', dbErr && (dbErr as any).message ? (dbErr as any).message : String(dbErr));
+      console.error('[Signup] Prisma error code:', (dbErr as any)?.code);
       console.error('[Signup] Prisma error stack:', dbErr && (dbErr as any).stack ? (dbErr as any).stack : '<no-stack>');
       try {
         const logEntry = {
           time: new Date().toISOString(),
           message: dbErr && (dbErr as any).message ? (dbErr as any).message : String(dbErr),
+          code: (dbErr as any)?.code,
           stack: dbErr && (dbErr as any).stack ? (dbErr as any).stack : '<no-stack>'
         };
         fs.appendFileSync('tmp/signup_error.log', JSON.stringify(logEntry) + '\n');

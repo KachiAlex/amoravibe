@@ -35,7 +35,7 @@ export async function buildAuthOptions(): Promise<NextAuthOptions> {
           // Email/password
           if (email && password) {
             const user = await prisma.user.findUnique({ where: { email } });
-            console.log('[NextAuth] User lookup:', user);
+            console.log('[NextAuth] User lookup:', { id: user?.id, email: user?.email });
             if (!user || !user.hashedPassword) {
               console.log('[NextAuth] User not found or missing hashedPassword');
               throw new Error('AccountNotFound');
@@ -46,7 +46,8 @@ export async function buildAuthOptions(): Promise<NextAuthOptions> {
               console.log('[NextAuth] Password invalid');
               throw new Error('InvalidPassword');
             }
-            return user as any;
+            console.log('[NextAuth] Returning user:', { id: user.id, email: user.email });
+            return { id: user.id, email: user.email, name: user.displayName } as any;
           }
 
           console.log('[NextAuth] No valid credentials provided');
