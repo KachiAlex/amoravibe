@@ -8,9 +8,14 @@ export async function buildAuthOptions(): Promise<NextAuthOptions> {
   const { PrismaAdapter } = await import("@next-auth/prisma-adapter");
   const prisma = (await import("@/lib/db")).default;
 
+  const secret = process.env.NEXTAUTH_SECRET || process.env.NEXTAUTH_SECRET_FALLBACK || 'development-secret-key-change-in-production';
+  if (!process.env.NEXTAUTH_SECRET && process.env.NODE_ENV === 'production') {
+    console.error('[NextAuth] WARNING: NEXTAUTH_SECRET is not set in production! Session will not work properly.');
+  }
+
   return {
     adapter: PrismaAdapter(prisma),
-    secret: process.env.NEXTAUTH_SECRET,
+    secret,
     providers: [
       CredentialsProvider({
         name: "Credentials",
@@ -25,7 +30,7 @@ export async function buildAuthOptions(): Promise<NextAuthOptions> {
           const password = credentials?.password?.toString() || undefined;
 
           // Debug logging
-          console.log('[NextAuth] authorize called:', { email });
+          console.log('[NextAuth] authorize called:', { email, hasPassword: !!password, timestamp: new Date().toISOString() });
 
           // Dev/admin shortcut
           if (email === 'admin@amoravibe.com' && password === 'admin123') {
