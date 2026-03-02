@@ -2,7 +2,6 @@
 
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { signIn } from 'next-auth/react';
 import { getAuthErrorMessage } from '@/lib/auth-errors';
 import { AnimatePresence, motion } from '@/lib/motion-shim';
 import { CheckCircle2, Loader2, Lock, Mail, Phone, X } from 'lucide-react';
@@ -73,16 +72,20 @@ export function SignInModal({ isOpen, onClose }: SignInModalProps) {
 
     try {
       if (form.mode === 'email') {
-        // Use NextAuth credentials sign-in for email/password
-        const res = await signIn('credentials', {
-          redirect: false,
-          email: form.email.trim(),
-          password: form.password,
+        // Sign in with email/password
+        const res = await fetch('/api/auth/signin', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: form.email.trim(),
+            password: form.password,
+          }),
+          credentials: 'include',
         });
 
-        if (!res || !res.ok) {
-          const { title, description } = getAuthErrorMessage(res?.error ?? undefined);
-          setError(`${title}. ${description}`);
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          setError(data.error || 'Sign in failed');
           setShowToast(true);
           return;
         }
@@ -94,30 +97,12 @@ export function SignInModal({ isOpen, onClose }: SignInModalProps) {
           router.push('/dashboard');
         }, 900);
       } else {
-        // Phone mode: use NextAuth credentials (phone + password)
-        const res = await signIn('credentials', {
-          redirect: false,
-          phone: form.phone.trim(),
-          password: form.password,
-        });
-
-        if (!res || !res.ok) {
-          const { title, description } = getAuthErrorMessage(res?.error ?? undefined);
-          setError(`${title}. ${description}`);
-          setShowToast(true);
-          return;
-        }
-
-        setSuccess('Welcome back! Redirecting…');
-        setTimeout(() => {
-          setSuccess(null);
-          onClose();
-          router.push('/dashboard');
-        }, 1100);
+        // Phone mode not supported with JWT auth
+        setError('Phone sign-in is not currently supported');
+        setShowToast(true);
       }
     } catch (err) {
-      const { title, description } = getAuthErrorMessage('Configuration');
-      setError(`${title}. ${description}`);
+      setError('An error occurred. Please try again.');
       setShowToast(true);
     } finally {
       setPending(false);

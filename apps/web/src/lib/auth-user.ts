@@ -1,31 +1,28 @@
 import { getSession } from '@/lib/session';
 import db from '@/lib/db';
-import { getServerSession } from 'next-auth';
-import { buildAuthOptions } from '@/app/api/auth/[...nextauth]/route';
+import { cookies } from 'next/headers';
+import { verifyToken } from '@/lib/jwt';
 
-/** Resolve the current user's ID from either the legacy session cookie or NextAuth session. */
+/** Resolve the current user's ID from either the JWT token or legacy session cookie. */
 export async function resolveUserId(): Promise<string | null> {
-  const legacy = await getSession();
-  if (legacy?.userId) {
-    return legacy.userId;
-  }
-
+  // Try JWT token first
   try {
-    const authOptions = await buildAuthOptions();
-    const authSession = await getServerSession(authOptions);
-    const explicitId = (authSession as any)?.userId;
-    if (explicitId) {
-      return explicitId as string;
-    }
-    const email = authSession?.user?.email;
-    if (email) {
-      const user = await db.user.findUnique({ where: { email }, select: { id: true } });
-      if (user) {
-        return user.id;
+    const cookieStore = await cookies();
+    const token = cookieStore.get('auth-token')?.value;
+    if (token) {
+      const payload = await verifyToken(token);
+      if (payload?.userId) {
+        return payload.userId as string;
       }
     }
   } catch (error) {
-    console.warn('[auth-user] Unable to resolve NextAuth session', error);
+    console.warn('[auth-user] Unable to resolve JWT session', error);
+  }
+
+  // Fallback to legacy session
+  const legacy = await getSession();
+  if (legacy?.userId) {
+    return legacy.userId;
   }
 
   return null;

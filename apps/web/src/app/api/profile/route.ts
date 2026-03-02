@@ -5,8 +5,17 @@ import { verifyToken } from '@/lib/jwt';
 
 export const dynamic = 'force-dynamic';
 
-async function getUserIdFromRequest(req: Request): Promise<string | null> {
+async function getUserIdFromRequest(req: Request, bodyUserId?: string): Promise<string | null> {
   try {
+    // If userId is provided in body (for onboarding), verify it exists in DB first
+    if (bodyUserId) {
+      const user = await prisma.user.findUnique({ where: { id: bodyUserId } });
+      if (user) {
+        console.log('[Profile] Using userId from body:', bodyUserId);
+        return bodyUserId;
+      }
+    }
+
     // Get token from cookies
     const cookieHeader = req.headers.get('cookie') || '';
     const cookies = Object.fromEntries(
@@ -20,6 +29,7 @@ async function getUserIdFromRequest(req: Request): Promise<string | null> {
     if (token) {
       const payload = await verifyToken(token);
       if (payload?.userId) {
+        console.log('[Profile] Using userId from auth-token:', payload.userId);
         return payload.userId as string;
       }
     }
@@ -27,6 +37,7 @@ async function getUserIdFromRequest(req: Request): Promise<string | null> {
     // Fallback to legacy session
     const legacy = await getLegacySession();
     if (legacy?.userId) {
+      console.log('[Profile] Using userId from legacy session:', legacy.userId);
       return legacy.userId;
     }
 
@@ -53,10 +64,10 @@ export async function GET() {
 }
 
 export async function PATCH(req: Request) {
-  const userId = await getUserIdFromRequest(req);
+  const body = await req.json().catch(() => ({}));
+  const userId = await getUserIdFromRequest(req, body.userId);
   console.log('[Profile] Resolved userId:', userId);
   if (!userId) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
-  const body = await req.json().catch(() => ({}));
   const data: any = {};
   if (body.name !== undefined) data.name = body.name;
   if (body.displayName !== undefined) data.displayName = body.displayName;

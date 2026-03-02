@@ -32,6 +32,7 @@ export default function OnboardingPage() {
   // Step 1: Signup
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [userId, setUserId] = useState<string | null>(null);
   // Step 2: Profile
   const [name, setName] = useState("");
   const [age, setAge] = useState(""); // keep as string for input
@@ -136,6 +137,9 @@ export default function OnboardingPage() {
       }
       const signupData = await res.json();
       console.log('[Onboarding] Signup successful:', { userId: signupData.userId });
+      
+      // Store userId for profile update
+      setUserId(signupData.userId);
 
       // Check if session is set
       const sessionRes = await fetch("/api/auth/session", { credentials: "include" });
@@ -165,9 +169,10 @@ export default function OnboardingPage() {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    console.log('[Onboarding] handleProfile called', { name, age, location, job, about, interests, gender, orientation });
+    console.log('[Onboarding] handleProfile called', { name, age, location, job, about, interests, gender, orientation, userId });
     try {
       const profileData = {
+        userId,
         name,
         displayName: name,
         age: age ? Number(age) : undefined,

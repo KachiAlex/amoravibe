@@ -10,7 +10,6 @@ import {
   type ReactNode,
 } from 'react';
 import { useRouter } from 'next/navigation';
-import { signIn } from 'next-auth/react';
 import { AnimatePresence, motion } from '@/lib/motion-shim';
 import {
   ArrowLeft,
@@ -553,41 +552,7 @@ export function OnboardingModal({ isOpen, onClose }: OnboardingModalProps) {
         console.warn('Unable to set onboarding session cookie', err);
       }
 
-      // Attempt to establish a server session so subsequent navigation sees the user as logged in.
-      // Guarded behind env flag because local dev lacks NextAuth/Prisma backing.
-      const nextAuthEnabled = process.env.NEXT_PUBLIC_NEXTAUTH_ENABLED === 'true';
-      if (nextAuthEnabled) {
-        try {
-          if (formData.email) {
-            // Use NextAuth credentials sign-in when an email/password was provided
-            const res = await signIn('credentials', {
-              redirect: false,
-              email: formData.email.trim(),
-              password: formData.password,
-            });
-
-            if (!res || !res.ok) {
-              console.warn('Auto-login after onboarding failed (next-auth)', res?.error ?? 'unknown');
-            }
-          } else if (formData.phone) {
-            // Use NextAuth credentials for phone-based auto-login
-            try {
-              const res = await signIn('credentials', {
-                redirect: false,
-                phone: formData.phone || undefined,
-                password: formData.password,
-              });
-              if (!res || !res.ok) {
-                console.warn('Auto-login after onboarding failed (next-auth)', res?.error ?? 'unknown');
-              }
-            } catch (e) {
-              console.warn('Auto-login after onboarding failed', e);
-            }
-          }
-        } catch (err) {
-          console.warn('Auto-login error', err);
-        }
-      }
+      // Session is already established from the API call that created the user
 
       setSuccess(`Welcome aboard, ${displayName}! Redirecting…`);
       setTimeout(() => {
