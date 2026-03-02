@@ -10,6 +10,7 @@ export async function buildAuthOptions(): Promise<NextAuthOptions> {
 
   return {
     adapter: PrismaAdapter(prisma),
+    secret: process.env.NEXTAUTH_SECRET,
     providers: [
       CredentialsProvider({
         name: "Credentials",
@@ -34,8 +35,9 @@ export async function buildAuthOptions(): Promise<NextAuthOptions> {
 
           // Email/password
           if (email && password) {
-            const user = await prisma.user.findUnique({ where: { email } });
-            console.log('[NextAuth] User lookup:', { id: user?.id, email: user?.email });
+            const normalizedEmail = email.toLowerCase();
+            const user = await prisma.user.findUnique({ where: { email: normalizedEmail } });
+            console.log('[NextAuth] User lookup:', { searchEmail: normalizedEmail, found: !!user, userId: user?.id });
             if (!user || !user.hashedPassword) {
               console.log('[NextAuth] User not found or missing hashedPassword');
               throw new Error('AccountNotFound');
@@ -55,7 +57,8 @@ export async function buildAuthOptions(): Promise<NextAuthOptions> {
         },
       }),
     ],
-    session: { strategy: 'jwt' },
+    session: { strategy: 'jwt', maxAge: 30 * 24 * 60 * 60 },
+    jwt: { maxAge: 30 * 24 * 60 * 60 },
     pages: { signIn: '/?openSignIn=1', error: '/auth/error' },
     callbacks: {
       async jwt({ token, user, account }: any) {
