@@ -135,6 +135,10 @@ export default function OnboardingPage() {
         throw new Error(errJson.error || "Signup failed");
       }
       const signupData = await res.json();
+      console.log('[Onboarding] Signup response:', JSON.stringify(signupData));
+      if (!signupData.userId) {
+        throw new Error(`Signup succeeded but no userId returned: ${JSON.stringify(signupData)}`);
+      }
       console.log('[Onboarding] Signup successful:', { userId: signupData.userId });
 
       // Sign in immediately after signup
