@@ -137,7 +137,7 @@ async function handlerWithParams(req: Request, ctx?: NextAuthContext) {
   } catch (err) {
     console.warn('[NextAuth] handlerWithParams logging failed', err);
   }
-  const options = await buildAuthOptions(req);
+  const options = await buildAuthOptions();
   const handler = NextAuth(options as any);
   return handler(req as any, ctx as any);
 }
