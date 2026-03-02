@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 import { hash } from 'bcryptjs';
+import { signToken } from '@/lib/jwt';
 
 export const dynamic = 'force-dynamic';
 
@@ -60,19 +61,27 @@ export async function POST(req: Request) {
       throw new Error('User creation failed: no ID returned');
     }
 
-    // Double-check user exists in DB
-    const verifyUser = await prisma.user.findUnique({
-      where: { id: user.id },
+    // Create JWT token
+    const token = await signToken({
+      userId: user.id,
+      email: user.email,
     });
 
-    if (!verifyUser) {
-      throw new Error('User verification failed: user not found after creation');
-    }
-
-    return NextResponse.json(
+    // Set token in httpOnly cookie
+    const response = NextResponse.json(
       { userId: user.id, email: user.email },
       { status: 201 }
     );
+
+    response.cookies.set('auth-token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 30 * 24 * 60 * 60, // 30 days
+      path: '/',
+    });
+
+    return response;
   } catch (error: any) {
     console.error('[Signup] Error:', {
       message: error?.message,

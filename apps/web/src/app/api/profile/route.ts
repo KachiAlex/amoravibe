@@ -1,10 +1,42 @@
 import { NextResponse } from 'next/server';
 import { getSession as getLegacySession, setSession } from '@/lib/session';
 import prisma from '@/lib/db';
-import { getServerSession } from 'next-auth';
-import { buildAuthOptions } from '../auth/[...nextauth]/route';
+import { verifyToken } from '@/lib/jwt';
 
 export const dynamic = 'force-dynamic';
+
+async function getUserIdFromRequest(req: Request): Promise<string | null> {
+  try {
+    // Get token from cookies
+    const cookieHeader = req.headers.get('cookie') || '';
+    const cookies = Object.fromEntries(
+      cookieHeader.split('; ').map(c => {
+        const [key, ...val] = c.split('=');
+        return [key, val.join('=')];
+      })
+    );
+
+    const token = cookies['auth-token'];
+    if (token) {
+      const payload = await verifyToken(token);
+      if (payload?.userId) {
+        return payload.userId as string;
+      }
+    }
+
+    // Fallback to legacy session
+    const legacy = await getLegacySession();
+    if (legacy?.userId) {
+      return legacy.userId;
+    }
+
+    return null;
+  } catch (err) {
+    console.error('[Profile] Error getting userId:', err);
+    return null;
+  }
+}
+
 export async function GET() {
   // For demo, fetch the first user (replace with auth logic for real app)
   const user = await prisma.user.findFirst();
@@ -21,25 +53,7 @@ export async function GET() {
 }
 
 export async function PATCH(req: Request) {
-  // Support both legacy `lovedate_session` cookie and NextAuth session
-  let userId: string | undefined;
-  // legacy session cookie
-  const legacy = await getLegacySession();
-  console.log('[Profile] Legacy session:', legacy);
-  if (legacy?.userId) userId = legacy.userId;
-  // Try NextAuth session as fallback
-  if (!userId) {
-    const serverSession = await getServerSession(await buildAuthOptions());
-    console.log('[Profile] NextAuth session:', serverSession);
-    if (serverSession && (serverSession as any).userId) userId = (serverSession as any).userId;
-    // also support session.user?.email or id
-    if (!userId && serverSession?.user?.email) {
-      // find user id by email when NextAuth session provides only email
-      const u = await prisma.user.findUnique({ where: { email: serverSession.user.email as string } });
-      console.log('[Profile] User lookup by email:', { email: serverSession.user.email, found: !!u });
-      if (u) userId = u.id;
-    }
-  }
+  const userId = await getUserIdFromRequest(req);
   console.log('[Profile] Resolved userId:', userId);
   if (!userId) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
   const body = await req.json().catch(() => ({}));

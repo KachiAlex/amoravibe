@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { Heart, Shield, Lock } from "lucide-react";
 
@@ -128,6 +127,7 @@ export default function OnboardingPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
+        credentials: "include",
       });
       if (!res.ok) {
         const errJson = await res.json().catch(() => ({}));
@@ -135,34 +135,13 @@ export default function OnboardingPage() {
         throw new Error(errJson.error || "Signup failed");
       }
       const signupData = await res.json();
-      console.log('[Onboarding] Signup response:', JSON.stringify(signupData));
-      if (!signupData.userId) {
-        throw new Error(`Signup succeeded but no userId returned: ${JSON.stringify(signupData)}`);
-      }
       console.log('[Onboarding] Signup successful:', { userId: signupData.userId });
 
-      // Sign in immediately after signup
-      console.log('[Onboarding] Attempting sign-in after signup');
-      const signin = await signIn("credentials", { redirect: false, email, password });
-      console.log('[Onboarding] Sign-in result:', { ok: !signin?.error, error: signin?.error });
-      if ((signin as any)?.error) {
-        setError("Sign-in after signup failed. Please try signing in manually.");
-        setLoading(false);
-        return;
-      }
-
-      // Ensure legacy session cookie is set for APIs that expect `lovedate_session`
-      try {
-        await fetch('/api/auth/session-to-legacy', { method: 'POST' });
-      } catch (err) {
-        console.warn('Could not set legacy session cookie', err);
-      }
-
       // Check if session is set
-      const sessionRes = await fetch("/api/auth/session");
+      const sessionRes = await fetch("/api/auth/session", { credentials: "include" });
       if (!sessionRes.ok) {
         console.error('[Onboarding] Session check failed:', { status: sessionRes.status });
-        setError("Session could not be established. Please sign in manually.");
+        setError("Session could not be established. Please try again.");
         setLoading(false);
         return;
       }
