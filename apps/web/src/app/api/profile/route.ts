@@ -84,6 +84,13 @@ export async function PATCH(req: Request) {
   }
 
   try {
+    // First check if user exists
+    const existingUser = await prisma.user.findUnique({ where: { id: userId } });
+    if (!existingUser) {
+      console.error('[Profile] User not found:', userId);
+      return NextResponse.json({ error: 'User not found. Please sign up again.' }, { status: 404 });
+    }
+
     const updated = await prisma.user.update({ where: { id: userId }, data });
     await setSession({ userId });
     return NextResponse.json({ profile: updated });
