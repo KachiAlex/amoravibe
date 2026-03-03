@@ -116,7 +116,7 @@ export default function Header({ userName, userFirstName, userAvatar, userOrient
     <header className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8" role="banner">
       <div>
         <h1 className="text-2xl md:text-3xl font-bold">
-          Welcome back, <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">{displayName}</span> <span aria-hidden>👋</span>
+          Welcome <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">{displayName}</span> <span aria-hidden>👋</span>
         </h1>
         <p className="text-gray-500 mt-1 text-sm md:text-base">
           Quick summary of your activity{displayOrientation}
