@@ -80,28 +80,6 @@ export default function Tabs({ messages }: { messages?: Message[] }) {
 
   return (
     <div>
-      <div role="tablist" aria-label="Dashboard panels" onKeyDown={onKey} className="flex gap-4 mb-8 justify-center">
-        {tabs.map((t, i) => (
-          <button
-            key={t.id}
-            ref={(el) => { btnRefs.current[i] = el; }}
-            role="tab"
-            aria-selected={active === t.id}
-            aria-controls={`panel-${t.id}`}
-            id={`tab-${t.id}`}
-            tabIndex={active === t.id ? 0 : -1}
-            className={`px-6 py-3 rounded-full font-semibold text-lg shadow transition focus:outline-none focus:ring-2 focus:ring-fuchsia-200 ${
-              active === t.id
-                ? 'bg-gradient-to-r from-fuchsia-500 to-purple-500 text-white scale-105'
-                : 'bg-white text-gray-700 hover:bg-fuchsia-50 border border-gray-200'
-            }`}
-            onClick={() => updatePanel(t.id as PanelId)}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
-
       <div>
         <div id="panel-matches" role="tabpanel" aria-labelledby="tab-matches" hidden={active !== 'matches'}>
           {active === 'matches' && <MatchesGrid />}
