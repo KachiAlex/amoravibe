@@ -103,52 +103,49 @@ export default function Header({ userName = 'You' }: { userName?: string }) {
   };
 
   return (
-    <header className="flex items-center justify-between mb-8" role="banner">
+    <header className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8" role="banner">
       <div>
-        <h1 className="text-3xl font-bold">
+        <h1 className="text-2xl md:text-3xl font-bold">
           Welcome back, <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">{userName || 'Guest'}</span> <span aria-hidden>👋</span>
         </h1>
-        <p className="text-gray-500 mt-1">Quick summary of your activity</p>
+        <p className="text-gray-500 mt-1 text-sm md:text-base">Quick summary of your activity</p>
       </div>
-      <div className="flex items-center gap-4">
-        <button className="md:hidden p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-200" aria-label="Open menu">
-          <span aria-hidden>☰</span>
-        </button>
-        <form onSubmit={handleSearchSubmit} role="search" className="relative">
+      <div className="flex items-center gap-2 md:gap-4 flex-wrap">
+        <form onSubmit={handleSearchSubmit} role="search" className="relative flex-1 md:flex-initial">
           <input
             type="search"
             aria-label="Search profiles and interests"
-            placeholder="Search profiles, interests..."
+            placeholder="Search..."
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            className="rounded-full px-4 py-2 border border-gray-200 bg-white shadow-sm w-64 pr-10"
+            className="rounded-full px-4 py-2 border border-gray-200 bg-white shadow-sm w-full md:w-48 lg:w-64 pr-10 text-sm"
             autoComplete="off"
           />
-          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm" aria-hidden>
+          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs md:text-sm" aria-hidden>
             {searching ? '…' : '⌘K'}
           </span>
         </form>
         <button className="relative p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-200" aria-label="Notifications" onClick={() => window.dispatchEvent(new CustomEvent(TELEMETRY_EVENT, { detail: { event: 'notifications_opened' } }))}>
-          <span className="text-2xl" aria-hidden>
+          <span className="text-xl md:text-2xl" aria-hidden>
             🔔
           </span>
-          <span className="absolute -top-1 -right-1 bg-pink-600 text-white text-xs rounded-full px-1">
+          <span className="absolute -top-1 -right-1 bg-pink-600 text-white text-xs rounded-full px-1 min-w-[16px] text-center">
             {notificationCount === null ? '…' : notificationCount}
           </span>
         </button>
         <button
           onClick={handleThemeToggle}
-          className="flex items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-1 text-sm font-semibold shadow-sm hover:shadow focus:outline-none focus:ring-2 focus:ring-purple-200"
+          className="flex items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-1 text-xs md:text-sm font-semibold shadow-sm hover:shadow focus:outline-none focus:ring-2 focus:ring-purple-200"
           aria-label="Toggle theme"
         >
           <span aria-hidden>{isDark ? '🌙' : '☀️'}</span>
           <span className="hidden sm:inline">{isDark ? 'Dark' : 'Light'}</span>
         </button>
-        <div className="flex items-center gap-2 bg-white px-3 py-1 rounded-full border border-gray-100 shadow-sm" aria-label="User menu">
-          <span className="bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full px-2 py-1 font-bold">
+        <div className="hidden sm:flex items-center gap-2 bg-white px-3 py-1 rounded-full border border-gray-100 shadow-sm" aria-label="User menu">
+          <span className="bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full px-2 py-1 font-bold text-xs">
             {(userName || 'Guest').split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
           </span>
-          <span className="font-medium text-gray-900">{userName || 'Guest'}</span>
+          <span className="font-medium text-gray-900 text-sm">{userName || 'Guest'}</span>
         </div>
       </div>
     </header>

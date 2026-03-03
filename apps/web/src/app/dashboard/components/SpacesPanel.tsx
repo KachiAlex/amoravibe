@@ -462,10 +462,10 @@ export default function SpacesPanel() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto py-10">
-      <h2 className="text-3xl font-bold mb-8">Spaces & Communities</h2>
+    <div className="max-w-6xl mx-auto py-6 md:py-10">
+      <h2 className="text-2xl md:text-3xl font-bold mb-6 md:mb-8">Spaces & Communities</h2>
 
-      {error && <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-red-700">{error}</div>}
+      {error && <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-red-700 text-sm md:text-base">{error}</div>}
 
       {spacesLoading && spaces.length === 0 ? (
         <div className="text-center py-12 text-gray-500">Loading spaces…</div>
@@ -473,43 +473,43 @@ export default function SpacesPanel() {
 
       {!spacesLoading && spaces.length === 0 && !error ? (
         <div className="text-center py-12">
-          <div className="text-6xl mb-4">🌈</div>
-          <h3 className="text-2xl font-bold text-gray-900 mb-2">No Spaces Available</h3>
-          <p className="text-gray-600">Spaces will appear here once they are created.</p>
+          <div className="text-5xl md:text-6xl mb-4">🌈</div>
+          <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-2">No Spaces Available</h3>
+          <p className="text-gray-600 text-sm md:text-base">Spaces will appear here once they are created.</p>
         </div>
       ) : null}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
         {spaces.map((space) => (
           <div
             key={space.id}
-            className="bg-white rounded-3xl shadow-xl p-8 border border-gray-100 hover:shadow-2xl transition cursor-pointer group"
+            className="bg-white rounded-2xl md:rounded-3xl shadow-xl p-6 md:p-8 border border-gray-100 hover:shadow-2xl transition cursor-pointer group"
             onClick={() => handleSelectSpace(space)}
           >
             <div className="flex items-start justify-between mb-4">
-              <span className="text-5xl group-hover:scale-110 transition">{space.icon}</span>
+              <span className="text-4xl md:text-5xl group-hover:scale-110 transition">{space.icon}</span>
               {space.isMember && (
-                <span className="bg-gradient-to-r from-fuchsia-500 to-purple-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-md">
+                <span className="bg-gradient-to-r from-fuchsia-500 to-purple-500 text-white px-2 md:px-3 py-1 rounded-full text-xs font-bold shadow-md">
                   Member
                 </span>
               )}
             </div>
-            <h3 className="text-2xl font-bold mb-2">{space.name}</h3>
-            <p className="text-gray-600 mb-4 line-clamp-2">{space.description}</p>
+            <h3 className="text-xl md:text-2xl font-bold mb-2">{space.name}</h3>
+            <p className="text-gray-600 mb-4 line-clamp-2 text-sm md:text-base">{space.description}</p>
             
-            <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
+            <div className="flex items-center gap-3 md:gap-4 text-xs md:text-sm text-gray-600 mb-3 flex-wrap">
               <div className="flex items-center gap-1">
-                <span className="text-lg">🏠</span>
+                <span className="text-base md:text-lg">🏠</span>
                 <span><strong>{space.roomCount || 0}</strong> rooms</span>
               </div>
               <div className="flex items-center gap-1">
-                <span className="text-lg">👥</span>
+                <span className="text-base md:text-lg">👥</span>
                 <span><strong>{space.memberCount || 0}</strong> members</span>
               </div>
             </div>
             
             {space.onlineCount !== undefined && space.onlineCount > 0 && (
-              <div className="flex items-center gap-2 text-sm">
+              <div className="flex items-center gap-2 text-xs md:text-sm">
                 <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
                 <span className="text-emerald-600 font-semibold">{space.onlineCount} online now</span>
               </div>

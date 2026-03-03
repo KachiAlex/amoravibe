@@ -40,32 +40,53 @@ function Sidebar({ activeTab }: { activeTab?: string }) {
   return (
     <>
       {/* Mobile sidebar toggle */}
-      <button
-        className="md:hidden fixed top-4 left-4 z-50 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full p-3 shadow-lg focus:outline-none focus:ring-2 focus:ring-fuchsia-200"
-        aria-label="Open sidebar"
-        onClick={() => setOpen(true)}
-        tabIndex={0}
-        role="button"
-      >
-        <span aria-hidden>☰</span>
-      </button>
+      {!open && (
+        <button
+          className="md:hidden fixed top-4 left-4 z-50 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full p-3 shadow-lg focus:outline-none focus:ring-2 focus:ring-fuchsia-200"
+          aria-label="Open sidebar"
+          onClick={() => setOpen(true)}
+          tabIndex={0}
+          role="button"
+        >
+          <span aria-hidden>☰</span>
+        </button>
+      )}
+      
+      {/* Mobile overlay */}
+      {open && (
+        <div 
+          className="md:hidden fixed inset-0 bg-black/50 z-30 transition-opacity"
+          onClick={() => setOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+      
       {/* Sidebar */}
       <aside
-        className={`w-64 bg-white border-r border-gray-100 flex flex-col py-8 px-6 shadow-md animate-fade-in fixed md:static top-0 left-0 h-full z-40 transition-transform duration-300 ${open ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}
+        className={`w-64 bg-white border-r border-gray-100 flex flex-col py-6 md:py-8 px-4 md:px-6 shadow-md animate-fade-in fixed md:static top-0 left-0 h-full z-40 transition-transform duration-300 ${open ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}
         role="navigation"
         aria-label="Dashboard main navigation"
         tabIndex={0}
       >
-        <div className="flex items-center gap-2 mb-8">
-          <Image
-            src="/amoravibe.jpg"
-            alt="AmoraVibe"
-            width={40}
-            height={40}
-            className="rounded-full shadow-md"
-            priority
-          />
-          <span className="font-extrabold text-2xl bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent drop-shadow-lg">AmoraVibe</span>
+        <div className="flex items-center justify-between mb-6 md:mb-8">
+          <div className="flex items-center gap-2">
+            <Image
+              src="/amoravibe.jpg"
+              alt="AmoraVibe"
+              width={40}
+              height={40}
+              className="rounded-full shadow-md"
+              priority
+            />
+            <span className="font-extrabold text-xl md:text-2xl bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent drop-shadow-lg">AmoraVibe</span>
+          </div>
+          <button
+            className="md:hidden p-2 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-purple-200"
+            onClick={() => setOpen(false)}
+            aria-label="Close sidebar"
+          >
+            <span className="text-2xl" aria-hidden>×</span>
+          </button>
         </div>
         <nav className="flex-1 space-y-4" aria-label="Dashboard sections">
             {navItems.map((item) => {
