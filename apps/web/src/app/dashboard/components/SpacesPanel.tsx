@@ -55,12 +55,24 @@ export default function SpacesPanel() {
     setSpacesLoading(true);
     setError(null);
     try {
+      console.log('[SpacesPanel] Fetching spaces...');
       const res = await fetch("/api/spaces");
+      console.log('[SpacesPanel] Response status:', res.status);
+      
+      if (!res.ok) {
+        const errorData = await res.json();
+        console.error('[SpacesPanel] API error:', errorData);
+        setError(errorData.error || `Failed to load spaces (${res.status})`);
+        setSpaces([]);
+        return;
+      }
+      
       const data = await res.json();
+      console.log('[SpacesPanel] Received data:', data);
       setSpaces(data.spaces || []);
     } catch (err) {
-      console.error("Failed to fetch spaces", err);
-      setError("Failed to load spaces");
+      console.error("[SpacesPanel] Failed to fetch spaces", err);
+      setError("Failed to load spaces. Please try again.");
     } finally {
       setSpacesLoading(false);
     }
@@ -457,6 +469,14 @@ export default function SpacesPanel() {
 
       {spacesLoading && spaces.length === 0 ? (
         <div className="text-center py-12 text-gray-500">Loading spaces…</div>
+      ) : null}
+
+      {!spacesLoading && spaces.length === 0 && !error ? (
+        <div className="text-center py-12">
+          <div className="text-6xl mb-4">🌈</div>
+          <h3 className="text-2xl font-bold text-gray-900 mb-2">No Spaces Available</h3>
+          <p className="text-gray-600">Spaces will appear here once they are created.</p>
+        </div>
       ) : null}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

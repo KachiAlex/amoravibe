@@ -8,8 +8,11 @@ export async function GET(req: Request) {
   try {
     const userId = await getUserIdFromRequest(req);
     if (!userId) {
+      console.log('[Spaces] No userId found - not authenticated');
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
     }
+
+    console.log('[Spaces] Fetching spaces for user:', userId);
 
     const user = await prisma.user.findUnique({
       where: { id: userId },
@@ -18,6 +21,8 @@ export async function GET(req: Request) {
     // TODO: Add Room and SpaceMember models to schema.prisma
     // For now, return spaces with mock counts
     const spaces = await prisma.space.findMany();
+    
+    console.log('[Spaces] Found spaces:', spaces.length);
 
     // Format response with mock data
     const formattedSpaces = spaces.map((space) => {
@@ -30,8 +35,8 @@ export async function GET(req: Request) {
         id: space.id,
         name: space.name,
         description: space.description,
-        icon: '🌈', // Mock icon
-        orientation: 'general', // Mock orientation
+        icon: space.icon || '🌈',
+        orientation: space.orientation || 'general',
         roomCount,
         roomCreationLimit: 10,
         memberCount,
@@ -40,6 +45,7 @@ export async function GET(req: Request) {
       };
     });
 
+    console.log('[Spaces] Returning formatted spaces:', formattedSpaces);
     return NextResponse.json({ spaces: formattedSpaces });
   } catch (err) {
     console.error('[Spaces] Error:', err);
