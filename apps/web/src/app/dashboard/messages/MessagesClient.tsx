@@ -319,8 +319,8 @@ export function MessagesClient({
             {filtered.map((m) => {
               const isUnread = m.unread && !readMap[m.id];
               return (
+                <React.Fragment key={m.id}>
                 <Link
-                  key={m.id}
                   href={`/dashboard/messages/${m.id}`}
                   onClick={() => handleOpen(m.id)}
                   className={`group flex items-center gap-4 rounded-2xl border border-gray-100 bg-white/90 px-4 py-3 shadow-sm transition hover:-translate-y-[1px] hover:border-fuchsia-100 hover:shadow-md ${
@@ -482,6 +482,7 @@ export function MessagesClient({
                     </div>
                   </div>
                 )}
+                </React.Fragment>
               );
             })}
           </div>
