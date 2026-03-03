@@ -2,6 +2,7 @@
 import React, { useEffect, useMemo, useRef, useState, KeyboardEvent } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import type { Message } from '../types';
+import MatchesGrid from './MatchesGrid';
 import MessagesPanel from './MessagesPanel';
 import DiscoverPanel from './DiscoverPanel';
 import ProfilePanel from './ProfilePanel';
@@ -10,13 +11,14 @@ import SpacesPanel from './SpacesPanel';
 import MySpacesPanel from './MySpacesPanel';
 
 const VISIBLE_TABS = [
+  { id: 'matches', label: 'Matches' },
   { id: 'messages', label: 'Messages' },
   { id: 'discover', label: 'Discover' },
   { id: 'profile', label: 'Profile' },
   { id: 'settings', label: 'Settings' },
 ];
 
-const ALL_PANELS = ['messages', 'discover', 'spaces', 'myspaces', 'profile', 'settings'] as const;
+const ALL_PANELS = ['matches', 'messages', 'discover', 'spaces', 'myspaces', 'profile', 'settings'] as const;
 type PanelId = (typeof ALL_PANELS)[number];
 
 export default function Tabs({ messages }: { messages?: Message[] }) {
@@ -26,7 +28,7 @@ export default function Tabs({ messages }: { messages?: Message[] }) {
 
   const initialPanel = useMemo<PanelId>(() => {
     const param = (searchParams?.get('panel') || '').toLowerCase();
-    return (ALL_PANELS as readonly string[]).includes(param) ? (param as PanelId) : 'messages';
+    return (ALL_PANELS as readonly string[]).includes(param) ? (param as PanelId) : 'matches';
   }, [searchParams]);
 
   const [active, setActive] = useState<PanelId>(initialPanel);
@@ -101,6 +103,10 @@ export default function Tabs({ messages }: { messages?: Message[] }) {
       </div>
 
       <div>
+        <div id="panel-matches" role="tabpanel" aria-labelledby="tab-matches" hidden={active !== 'matches'}>
+          {active === 'matches' && <MatchesGrid />}
+        </div>
+
         <div id="panel-messages" role="tabpanel" aria-labelledby="tab-messages" hidden={active !== 'messages'}>
           {active === 'messages' && <MessagesPanel initialMessages={messages ?? []} />}
         </div>
