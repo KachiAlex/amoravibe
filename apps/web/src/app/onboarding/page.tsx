@@ -23,6 +23,7 @@ interface OnboardingData {
   interests: string;
   gender: string;
   orientation: string;
+  avatar?: string;
 }
 
 export default function OnboardingPage() {
@@ -44,6 +45,7 @@ export default function OnboardingPage() {
   const [interests, setInterests] = useState("");
   const [gender, setGender] = useState("");
   const [orientation, setOrientation] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState<string>("");
 
   // Load saved data on mount
   useEffect(() => {
@@ -86,6 +88,7 @@ export default function OnboardingPage() {
       interests,
       gender,
       orientation,
+      avatar: avatarUrl,
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   }, [step, email, password, userId, name, age, location, job, about, interests, gender, orientation]);
@@ -112,6 +115,7 @@ export default function OnboardingPage() {
         setInterests(data.interests);
         setGender(data.gender);
         setOrientation(data.orientation);
+        if (data.avatar) setAvatarUrl(data.avatar);
         setShowResumePrompt(false);
       } catch (err) {
         console.error("Failed to resume onboarding", err);
@@ -207,7 +211,7 @@ export default function OnboardingPage() {
     }
     setLoading(true);
     setError(null);
-    console.log('[Onboarding] handleProfile called', { name, age, location, job, about, interests, gender, orientation, userId });
+    console.log('[Onboarding] handleProfile called', { name, age, location, job, about, interests, gender, orientation, userId, avatarUrl });
     try {
       const profileData = {
         userId: effectiveUserId,
@@ -220,6 +224,7 @@ export default function OnboardingPage() {
         interests: interests.split(",").map((i) => i.trim()),
         gender,
         orientation,
+        avatar: avatarUrl || undefined,
         onboardingCompleted: true,
         onboardingStep: 'complete',
       };
@@ -351,6 +356,57 @@ export default function OnboardingPage() {
             {step === 2 && (
               <form onSubmit={handleProfile} className="space-y-4 bg-white/10 rounded-xl p-8 shadow-lg">
                 <h2 className="text-xl font-bold text-white mb-4">Complete Your Profile</h2>
+                <div className="flex items-center gap-4">
+                  <div className="w-16 h-16 rounded-full overflow-hidden bg-white/30 border border-white/40">
+                    {avatarUrl ? (
+                      <img src={avatarUrl} alt="avatar preview" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-white/70 text-sm">No photo</div>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-white text-sm mb-1">Profile Photo</label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        try {
+                          const signRes = await fetch('/api/uploads/sign', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ folder: 'avatars' }),
+                          });
+                          if (!signRes.ok) throw new Error('Unable to prepare upload.');
+                          const signature = await signRes.json();
+
+                          const uploadUrl = `https://api.cloudinary.com/v1_1/${signature.cloudName}/auto/upload`;
+                          const formData = new FormData();
+                          formData.append('file', file);
+                          formData.append('api_key', signature.apiKey);
+                          formData.append('timestamp', String(signature.timestamp));
+                          formData.append('signature', signature.signature);
+                          formData.append('upload_preset', signature.uploadPreset);
+                          if (signature.params?.folder) {
+                            formData.append('folder', signature.params.folder as string);
+                          }
+
+                          const uploadRes = await fetch(uploadUrl, { method: 'POST', body: formData });
+                          const uploaded = await uploadRes.json();
+                          if (!uploadRes.ok) {
+                            throw new Error(uploaded?.error?.message || 'Upload failed');
+                          }
+                          setAvatarUrl(uploaded.secure_url as string);
+                        } catch (err) {
+                          console.error('Avatar upload failed', err);
+                          setError((err as Error).message || 'Avatar upload failed');
+                        }
+                      }}
+                      className="block text-white"
+                    />
+                  </div>
+                </div>
                 <input
                   type="text"
                   className="w-full rounded-lg px-4 py-3 bg-white/80 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-400"
