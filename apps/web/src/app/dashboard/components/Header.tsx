@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import Image from 'next/image';
 import { useTheme } from '@/app/providers/ThemeProvider';
 
 const SEARCH_EVENT = 'dashboard:matches:search';
@@ -103,11 +104,21 @@ export default function Header({ userName = 'You' }: { userName?: string }) {
 
   return (
     <header className="flex items-center justify-between mb-8" role="banner">
-      <div>
-        <h1 className="text-3xl font-bold">
-          Welcome back, <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">{userName}</span> <span aria-hidden>👋</span>
-        </h1>
-        <p className="text-gray-500 mt-1">Quick summary of your activity</p>
+      <div className="flex items-center gap-4">
+        <Image
+          src="/amoravibe.jpg"
+          alt="AmoraVibe"
+          width={50}
+          height={50}
+          className="rounded-full shadow-md"
+          priority
+        />
+        <div>
+          <h1 className="text-3xl font-bold">
+            Welcome back, <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">{userName || 'Guest'}</span> <span aria-hidden>👋</span>
+          </h1>
+          <p className="text-gray-500 mt-1">Quick summary of your activity</p>
+        </div>
       </div>
       <div className="flex items-center gap-4">
         <button className="md:hidden p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-200" aria-label="Open menu">
@@ -144,8 +155,10 @@ export default function Header({ userName = 'You' }: { userName?: string }) {
           <span className="hidden sm:inline">{isDark ? 'Dark' : 'Light'}</span>
         </button>
         <div className="flex items-center gap-2 bg-white px-3 py-1 rounded-full border border-gray-100 shadow-sm" aria-label="User menu">
-          <span className="bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full px-2 py-1 font-bold">JD</span>
-          <span className="font-medium text-gray-900">{userName}</span>
+          <span className="bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full px-2 py-1 font-bold">
+            {(userName || 'Guest').split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
+          </span>
+          <span className="font-medium text-gray-900">{userName || 'Guest'}</span>
         </div>
       </div>
     </header>
