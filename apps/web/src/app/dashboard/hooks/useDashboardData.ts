@@ -60,8 +60,9 @@ export async function getDashboardData(): Promise<DashboardData> {
     return cached;
   }
 
-  const apiSnapshot = await fetchDashboardViaApi();
-  const snapshot = apiSnapshot ?? (await fetchDashboardSnapshot(userId ?? null));
+  // Avoid cross-fetch to /api/dashboard because server-side fetch does not forward user cookies by default.
+  // Fetch directly with resolved userId for correct auth context.
+  const snapshot = await fetchDashboardSnapshot(userId ?? null);
   writeCache(cacheKey, snapshot);
   return snapshot;
 }
