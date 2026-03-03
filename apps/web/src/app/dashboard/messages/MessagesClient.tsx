@@ -36,9 +36,13 @@ export function MessagesClient({
   const [readMap, setReadMap] = useState<Record<string, boolean>>({});
   const [muted, setMuted] = useState<Record<string, boolean>>({});
   const [archived, setArchived] = useState<Record<string, boolean>>({});
-  const [filter, setFilter] = useState<'all' | 'unread'>('all');
+  const [pinned, setPinned] = useState<Record<string, boolean>>({});
+  const [filter, setFilter] = useState<'all' | 'unread' | 'archived'>('all');
+  const [sortBy, setSortBy] = useState<'recent' | 'alphabetical' | 'unread'>('recent');
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
+  const [quickReplyId, setQuickReplyId] = useState<string | null>(null);
+  const [quickReplyText, setQuickReplyText] = useState('');
 
   useEffect(() => {
     setReadMap(loadReadState());
@@ -50,15 +54,42 @@ export function MessagesClient({
 
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase();
-    return messages.filter((m) => {
-      if (archived[m.id]) return false;
+    let result = messages.filter((m) => {
+      // Filter by archive status
+      if (filter === 'archived') {
+        if (!archived[m.id]) return false;
+      } else {
+        if (archived[m.id]) return false;
+      }
+      
       const isUnread = m.unread && !readMap[m.id];
       if (filter === 'unread' && !isUnread) return false;
       if (!term) return true;
       const target = `${m.from ?? ''} ${m.preview ?? ''} ${m.text ?? ''}`.toLowerCase();
       return target.includes(term);
     });
-  }, [messages, filter, search, readMap, archived]);
+
+    // Sort messages
+    result.sort((a, b) => {
+      // Pinned always first
+      const aPinned = pinned[a.id] ? 1 : 0;
+      const bPinned = pinned[b.id] ? 1 : 0;
+      if (aPinned !== bPinned) return bPinned - aPinned;
+
+      // Then apply selected sort
+      if (sortBy === 'alphabetical') {
+        return (a.from ?? '').localeCompare(b.from ?? '');
+      } else if (sortBy === 'unread') {
+        const aUnread = (a.unread && !readMap[a.id]) ? 1 : 0;
+        const bUnread = (b.unread && !readMap[b.id]) ? 1 : 0;
+        return bUnread - aUnread;
+      }
+      // Default: recent (maintain original order)
+      return 0;
+    });
+
+    return result;
+  }, [messages, filter, search, readMap, archived, pinned, sortBy]);
 
   const handleOpen = (id: string) => {
     setReadMap((prev) => {
@@ -87,6 +118,26 @@ export function MessagesClient({
   const toggleArchive = (id: string) => {
     setArchived((prev) => ({ ...prev, [id]: !prev[id] }));
   };
+
+  const togglePin = (id: string) => {
+    setPinned((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const handleQuickReply = async (id: string) => {
+    if (!quickReplyText.trim()) return;
+    
+    // TODO: Implement actual API call to send message
+    console.log(`Sending quick reply to ${id}:`, quickReplyText);
+    
+    // Reset quick reply state
+    setQuickReplyText('');
+    setQuickReplyId(null);
+    
+    // Mark as read when replying
+    handleOpen(id);
+  };
+
+  const archivedCount = useMemo(() => Object.values(archived).filter(Boolean).length, [archived]);
 
   const renderSkeleton = () => (
     <div className="space-y-3">
@@ -178,9 +229,26 @@ export function MessagesClient({
               >
                 Unread ({unreadCount})
               </button>
+              <button
+                onClick={() => setFilter('archived')}
+                className={`rounded-full px-4 py-1.5 text-sm font-semibold ${
+                  filter === 'archived' ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white' : 'text-fuchsia-700'
+                }`}
+              >
+                Archived ({archivedCount})
+              </button>
             </div>
           </div>
           <div className="flex w-full flex-col-reverse gap-2 sm:w-auto sm:flex-row sm:items-center sm:gap-3">
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as 'recent' | 'alphabetical' | 'unread')}
+              className="rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-ink-800 shadow-sm hover:border-fuchsia-200 focus:border-fuchsia-500 focus:outline-none focus:ring-2 focus:ring-fuchsia-200"
+            >
+              <option value="recent">Recent</option>
+              <option value="alphabetical">A-Z</option>
+              <option value="unread">Unread First</option>
+            </select>
             <button
               onClick={handleMarkAllRead}
               className="w-full sm:w-auto rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-ink-800 shadow-sm hover:border-fuchsia-200 hover:text-fuchsia-700"
@@ -199,9 +267,52 @@ export function MessagesClient({
         {loading ? (
           renderSkeleton()
         ) : filtered.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-gray-200 bg-white px-6 py-10 text-center text-ink-700 shadow-sm">
-            <p className="text-lg font-semibold text-ink-900">No messages to show</p>
-            <p className="mt-1 text-sm">Try adjusting filters or start a chat from your matches.</p>
+          <div className="rounded-2xl border-2 border-dashed border-gray-300 bg-gradient-to-br from-white to-purple-50 px-8 py-12 text-center shadow-sm">
+            <div className="mb-4 text-6xl">
+              {filter === 'archived' ? '📂' : search ? '🔍' : '💬'}
+            </div>
+            <h3 className="mb-2 text-2xl font-bold text-ink-900">
+              {filter === 'archived' 
+                ? 'No archived messages' 
+                : search 
+                ? `No results for "${search}"` 
+                : filter === 'unread'
+                ? 'All caught up! 🎉'
+                : 'No messages yet'}
+            </h3>
+            <p className="mb-6 max-w-md mx-auto text-ink-700">
+              {filter === 'archived'
+                ? 'Messages you archive will appear here for easy access later.'
+                : search
+                ? 'Try adjusting your search terms or browse all messages.'
+                : filter === 'unread'
+                ? "You've read all your messages. Great job staying connected!"
+                : 'Start conversations with your matches to see messages here.'}
+            </p>
+            {!search && filter !== 'archived' && filter !== 'unread' && (
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <a
+                  href="/dashboard"
+                  className="rounded-full bg-gradient-to-r from-purple-600 to-pink-600 px-6 py-3 text-sm font-semibold text-white shadow-lg transition hover:from-purple-700 hover:to-pink-700"
+                >
+                  Browse Matches
+                </a>
+                <a
+                  href="/dashboard/discover"
+                  className="rounded-full border border-gray-200 bg-white px-6 py-3 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
+                >
+                  Discover People
+                </a>
+              </div>
+            )}
+            {search && (
+              <button
+                onClick={() => setSearch('')}
+                className="rounded-full bg-gradient-to-r from-purple-600 to-pink-600 px-6 py-3 text-sm font-semibold text-white shadow-lg transition hover:from-purple-700 hover:to-pink-700"
+              >
+                Clear Search
+              </button>
+            )}
           </div>
         ) : (
           <div className="space-y-3 rounded-[18px] border border-white/70 bg-white/80 p-3 shadow-sm">
@@ -252,8 +363,21 @@ export function MessagesClient({
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
+                    {pinned[m.id] && <span className="text-sm" title="Pinned">📌</span>}
                     {isUnread && <span className="h-2.5 w-2.5 rounded-full bg-fuchsia-500" />}
                     <div className="flex items-center gap-2 opacity-0 transition group-hover:opacity-100">
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setQuickReplyId(quickReplyId === m.id ? null : m.id);
+                          setQuickReplyText('');
+                        }}
+                        title="Quick Reply"
+                        className="rounded-full border border-gray-200 px-3 py-1 text-xs font-semibold text-ink-700 hover:border-fuchsia-200 hover:text-fuchsia-700"
+                      >
+                        💬 Reply
+                      </button>
                       {isUnread && (
                         <button
                           onClick={(e) => {
@@ -270,9 +394,20 @@ export function MessagesClient({
                         onClick={(e) => {
                           e.preventDefault();
                           e.stopPropagation();
+                          togglePin(m.id);
+                        }}
+                        title={pinned[m.id] ? 'Unpin' : 'Pin'}
+                        className="rounded-full border border-gray-200 p-1.5 text-xs font-semibold text-ink-600 hover:border-fuchsia-200 hover:text-fuchsia-700"
+                      >
+                        {pinned[m.id] ? '📌' : '📍'}
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
                           toggleMute(m.id);
                         }}
-                        title="Mute"
+                        title={muted[m.id] ? 'Unmute' : 'Mute'}
                         className="rounded-full border border-gray-200 p-1.5 text-xs font-semibold text-ink-600 hover:border-fuchsia-200 hover:text-fuchsia-700"
                       >
                         {muted[m.id] ? '🔔' : '🔕'}
@@ -283,7 +418,7 @@ export function MessagesClient({
                           e.stopPropagation();
                           toggleArchive(m.id);
                         }}
-                        title="Archive"
+                        title={archived[m.id] ? 'Unarchive' : 'Archive'}
                         className="rounded-full border border-gray-200 p-1.5 text-xs font-semibold text-ink-600 hover:border-fuchsia-200 hover:text-fuchsia-700"
                       >
                         {archived[m.id] ? '📂' : '🗂'}
@@ -291,6 +426,62 @@ export function MessagesClient({
                     </div>
                   </div>
                 </Link>
+                {quickReplyId === m.id && (
+                  <div className="ml-16 mt-2 rounded-xl border border-fuchsia-200 bg-gradient-to-r from-purple-50 to-pink-50 p-3 shadow-sm">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={quickReplyText}
+                        onChange={(e) => setQuickReplyText(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault();
+                            handleQuickReply(m.id);
+                          }
+                          if (e.key === 'Escape') {
+                            setQuickReplyId(null);
+                            setQuickReplyText('');
+                          }
+                        }}
+                        placeholder={`Reply to ${m.from}...`}
+                        className="flex-1 rounded-full border border-gray-200 bg-white px-4 py-2 text-sm focus:border-fuchsia-500 focus:outline-none focus:ring-2 focus:ring-fuchsia-200"
+                        autoFocus
+                      />
+                      <button
+                        onClick={() => handleQuickReply(m.id)}
+                        disabled={!quickReplyText.trim()}
+                        className="rounded-full bg-gradient-to-r from-purple-600 to-pink-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:from-purple-700 hover:to-pink-700 disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        Send
+                      </button>
+                      <button
+                        onClick={() => {
+                          setQuickReplyId(null);
+                          setQuickReplyText('');
+                        }}
+                        className="rounded-full border border-gray-200 bg-white p-2 text-sm text-gray-600 hover:bg-gray-50"
+                        title="Cancel"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                    <div className="mt-2 flex gap-2">
+                      {['❤️', '👍', '😊', '🎉'].map((emoji) => (
+                        <button
+                          key={emoji}
+                          onClick={() => {
+                            setQuickReplyText(emoji);
+                            handleQuickReply(m.id);
+                          }}
+                          className="rounded-full border border-gray-200 bg-white px-3 py-1 text-sm transition hover:bg-gray-50"
+                          title={`Send ${emoji}`}
+                        >
+                          {emoji}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               );
             })}
           </div>
