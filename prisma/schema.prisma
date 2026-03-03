@@ -18,6 +18,7 @@ model User {
   location           String?
   job                String?
   avatar             String?
+  photos             String[]
   about              String?
   interests          String[]
   gender             String?

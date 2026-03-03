@@ -77,6 +77,10 @@ export async function PATCH(req: Request) {
   if (body.avatar !== undefined) data.avatar = body.avatar;
   if (body.about !== undefined) data.about = body.about;
   if (body.interests !== undefined) data.interests = body.interests;
+  // Photos management
+  const wantsReplacePhotos = Array.isArray(body.photos);
+  const wantsAddPhoto = typeof body.addPhoto === 'string' && body.addPhoto.length > 0;
+  const wantsRemovePhoto = typeof body.removePhoto === 'string' && body.removePhoto.length > 0;
   if (body.onboardingCompleted !== undefined) data.onboardingCompleted = Boolean(body.onboardingCompleted);
   if (body.onboardingStep !== undefined) data.onboardingStep = body.onboardingStep;
   if (body.onboardingCompleted) {
@@ -91,7 +95,24 @@ export async function PATCH(req: Request) {
       return NextResponse.json({ error: 'User not found. Please sign up again.' }, { status: 404 });
     }
 
-    const updated = await prisma.user.update({ where: { id: userId }, data });
+    // Handle photos updates transactionally
+    let updated;
+    if (wantsReplacePhotos || wantsAddPhoto || wantsRemovePhoto) {
+      const existing = await prisma.user.findUnique({ where: { id: userId }, select: { photos: true } });
+      let nextPhotos: string[] = Array.isArray(existing?.photos) ? [...existing!.photos] : [];
+      if (wantsReplacePhotos) {
+        nextPhotos = body.photos.filter((p: unknown) => typeof p === 'string' && p.length > 0);
+      }
+      if (wantsAddPhoto) {
+        if (!nextPhotos.includes(body.addPhoto)) nextPhotos.push(body.addPhoto);
+      }
+      if (wantsRemovePhoto) {
+        nextPhotos = nextPhotos.filter((p) => p !== body.removePhoto);
+      }
+      updated = await prisma.user.update({ where: { id: userId }, data: { ...data, photos: nextPhotos } });
+    } else {
+      updated = await prisma.user.update({ where: { id: userId }, data });
+    }
     await setSession({ userId });
     return NextResponse.json({ profile: updated });
   } catch (err) {
