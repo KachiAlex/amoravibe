@@ -66,8 +66,19 @@ function Sidebar({ activeTab }: { activeTab?: string }) {
             {navItems.map((item) => {
               const hrefPath = typeof item.href === 'string' ? item.href : item.href.pathname;
               const matchesPanel = item.panel ? panelParam === item.panel : false;
-              const matchesPath =
-                typeof pathname === 'string' && hrefPath ? pathname.startsWith(hrefPath) : false;
+              
+              // Exact match for /dashboard (Matches), strict prefix for others
+              let matchesPath = false;
+              if (typeof pathname === 'string' && hrefPath) {
+                if (hrefPath === '/dashboard') {
+                  // Only match /dashboard exactly when there's no panel param
+                  matchesPath = pathname === '/dashboard' && !panelParam;
+                } else {
+                  // For other routes, match if pathname starts with the href and continues with / or is exact
+                  matchesPath = pathname === hrefPath || pathname.startsWith(hrefPath + '/');
+                }
+              }
+              
               const isActive = item.panel ? matchesPanel : matchesPath;
               return (
                 <Link

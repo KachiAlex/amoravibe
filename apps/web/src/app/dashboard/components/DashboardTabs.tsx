@@ -2,6 +2,7 @@
 
 import React from "react";
 import type { DashboardData } from "../hooks/useDashboardData";
+import MatchesListClient from "./MatchesListClient";
 
 interface DashboardTabsProps {
   data: DashboardData;
@@ -36,21 +37,7 @@ export function DashboardTabs({ data }: DashboardTabsProps) {
 
           <div className="mt-10">
             <h3 className="text-xl font-semibold mb-4">Your Matches</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {(data?.matches ?? []).length > 0 ? (
-                (data?.matches ?? []).map((match: any) => (
-                  <div
-                    key={match.id}
-                    className="bg-white rounded-lg shadow p-4 hover:shadow-lg transition-shadow"
-                  >
-                    <div className="font-semibold">{match.name}</div>
-                    <div className="text-sm text-gray-600">{match.location}</div>
-                  </div>
-                ))
-              ) : (
-                <div className="text-gray-500">No matches yet</div>
-              )}
-            </div>
+            <MatchesListClient initialMatches={data?.matches ?? []} />
           </div>
         </div>
       </div>
