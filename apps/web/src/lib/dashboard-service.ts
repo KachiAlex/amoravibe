@@ -54,7 +54,10 @@ async function buildFromDatabase(userId: string) {
 }
 
 export async function fetchDashboardSnapshot(userId: string | null): Promise<DashboardData> {
+  console.log('[dashboard-service] fetchDashboardSnapshot called with userId:', userId);
+  
   if (!userId) {
+    console.log('[dashboard-service] No userId, returning Guest data');
     return {
       userName: 'Guest',
       stats: { matches: 0, chats: 0, views: 0 },
@@ -63,5 +66,8 @@ export async function fetchDashboardSnapshot(userId: string | null): Promise<Das
     };
   }
 
-  return buildFromDatabase(userId);
+  console.log('[dashboard-service] Building dashboard from database for userId:', userId);
+  const data = await buildFromDatabase(userId);
+  console.log('[dashboard-service] Dashboard data:', { userName: data.userName, statsMatches: data.stats.matches });
+  return data;
 }
