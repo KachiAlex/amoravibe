@@ -92,8 +92,6 @@ export function SignInModal({ isOpen, onClose }: SignInModalProps) {
 
         setSuccess('Welcome back! Redirecting…');
         setTimeout(() => {
-          setSuccess(null);
-          onClose();
           router.push('/dashboard');
         }, 900);
       } else {
