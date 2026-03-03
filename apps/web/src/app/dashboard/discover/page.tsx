@@ -5,13 +5,19 @@ import { DiscoverClient } from './DiscoverClient';
 import { getProfile } from '@/lib/dev-data';
 import Header from '../components/Header';
 import StatsCards from '../components/StatsCards';
+import db from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 
 export default async function DiscoverPage() {
   const session = await getSession();
-  const displayName = session?.userId ?? 'John Doe';
   const profile = session?.userId ? getProfile(session.userId) : null;
+  let displayName = 'You';
+
+  if (session?.userId) {
+    const user = await db.user.findUnique({ where: { id: session.userId } });
+    displayName = user?.displayName ?? user?.name ?? displayName;
+  }
 
   return (
     <main className="flex-1 px-4 py-6 sm:px-8 lg:px-12 xl:px-16">

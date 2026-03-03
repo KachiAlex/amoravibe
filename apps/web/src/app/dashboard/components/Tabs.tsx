@@ -1,5 +1,6 @@
 "use client"
-import React, { useEffect, useRef, useState, KeyboardEvent } from 'react';
+import React, { useEffect, useMemo, useRef, useState, KeyboardEvent } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import type { Message } from '../types';
 import MessagesPanel from './MessagesPanel';
 import DiscoverPanel from './DiscoverPanel';
@@ -8,24 +9,39 @@ import SettingsPanel from './SettingsPanel';
 import SpacesPanel from './SpacesPanel';
 import MySpacesPanel from './MySpacesPanel';
 
-const DASHBOARD_TABS = [
+const VISIBLE_TABS = [
   { id: 'messages', label: 'Messages' },
   { id: 'discover', label: 'Discover' },
-  { id: 'spaces', label: 'Spaces' },
-  { id: 'myspaces', label: 'My Spaces' },
   { id: 'profile', label: 'Profile' },
   { id: 'settings', label: 'Settings' },
 ];
 
-export default function Tabs({ messages }: { messages?: Message[] }) {
-  const tabs = DASHBOARD_TABS;
+const ALL_PANELS = ['messages', 'discover', 'spaces', 'myspaces', 'profile', 'settings'] as const;
+type PanelId = (typeof ALL_PANELS)[number];
 
-  const [active, setActive] = useState<string>(tabs[0].id);
+export default function Tabs({ messages }: { messages?: Message[] }) {
+  const tabs = VISIBLE_TABS;
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const initialPanel = useMemo<PanelId>(() => {
+    const param = (searchParams?.get('panel') || '').toLowerCase();
+    return (ALL_PANELS as readonly string[]).includes(param) ? (param as PanelId) : 'messages';
+  }, [searchParams]);
+
+  const [active, setActive] = useState<PanelId>(initialPanel);
   const btnRefs = useRef<(HTMLButtonElement | null)[]>([]) as React.MutableRefObject<(HTMLButtonElement | null)[]>;
 
   useEffect(() => {
+    const param = (searchParams?.get('panel') || '').toLowerCase();
+    if ((ALL_PANELS as readonly string[]).includes(param) && param !== active) {
+      setActive(param as PanelId);
+    }
+  }, [searchParams, active]);
+
+  useEffect(() => {
     // ensure the active tab button is focused when changed programmatically
-    const idx = DASHBOARD_TABS.findIndex((t) => t.id === active);
+    const idx = VISIBLE_TABS.findIndex((t) => t.id === active);
     btnRefs.current[idx]?.focus();
   }, [active]);
 
@@ -33,24 +49,31 @@ export default function Tabs({ messages }: { messages?: Message[] }) {
     const idx = tabs.findIndex((t) => t.id === active);
     if (e.key === 'ArrowRight') {
       e.preventDefault();
-      setActive(tabs[(idx + 1) % tabs.length].id);
+      setActive(tabs[(idx + 1) % tabs.length].id as PanelId);
       return;
     }
     if (e.key === 'ArrowLeft') {
       e.preventDefault();
-      setActive(tabs[(idx - 1 + tabs.length) % tabs.length].id);
+      setActive(tabs[(idx - 1 + tabs.length) % tabs.length].id as PanelId);
       return;
     }
     if (e.key === 'Home') {
       e.preventDefault();
-      setActive(tabs[0].id);
+      setActive(tabs[0].id as PanelId);
       return;
     }
     if (e.key === 'End') {
       e.preventDefault();
-      setActive(tabs[tabs.length - 1].id);
+      setActive(tabs[tabs.length - 1].id as PanelId);
       return;
     }
+  }
+
+  function updatePanel(id: PanelId) {
+    setActive(id);
+    const params = new URLSearchParams(searchParams?.toString() ?? '');
+    params.set('panel', id);
+    router.replace(`?${params.toString()}`, { scroll: false });
   }
 
   return (
@@ -70,7 +93,7 @@ export default function Tabs({ messages }: { messages?: Message[] }) {
                 ? 'bg-gradient-to-r from-fuchsia-500 to-purple-500 text-white scale-105'
                 : 'bg-white text-gray-700 hover:bg-fuchsia-50 border border-gray-200'
             }`}
-            onClick={() => setActive(t.id)}
+            onClick={() => updatePanel(t.id as PanelId)}
           >
             {t.label}
           </button>

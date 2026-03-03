@@ -14,6 +14,16 @@ type Match = {
   lng?: number;
 };
 
+type Profile = {
+  displayName: string;
+  bio?: string;
+  orientation?: string;
+  lat?: number;
+  lng?: number;
+  tags?: string[];
+  city?: string;
+};
+
 export type Message = {
   id: string;
   from: string;
@@ -150,7 +160,77 @@ const seedMessages: Message[] = [
   },
 ];
 
-const store: Record<string, { matches: Match[]; messages: Message[]; profile: Record<string, any>; settings: Record<string, any> }> = {};
+const store: Record<string, { matches: Match[]; messages: Message[]; profile: Profile; settings: Record<string, any> }> = {};
+
+const MAX_DISTANCE_KM = 2000;
+const LOCATION_WEIGHT = 0.5;
+const INTEREST_WEIGHT = 0.35;
+const ORIENTATION_WEIGHT = 0.15;
+
+function deg2rad(value: number) {
+  return (value * Math.PI) / 180;
+}
+
+function distanceKm(a: { lat?: number; lng?: number }, b: { lat?: number; lng?: number }) {
+  if (
+    typeof a.lat !== 'number' ||
+    typeof a.lng !== 'number' ||
+    typeof b.lat !== 'number' ||
+    typeof b.lng !== 'number'
+  ) {
+    return null;
+  }
+  const earthRadiusKm = 6371;
+  const dLat = deg2rad(b.lat - a.lat);
+  const dLng = deg2rad(b.lng - a.lng);
+  const lat1 = deg2rad(a.lat);
+  const lat2 = deg2rad(b.lat);
+
+  const haversine =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.sin(dLng / 2) * Math.sin(dLng / 2) * Math.cos(lat1) * Math.cos(lat2);
+  const c = 2 * Math.atan2(Math.sqrt(haversine), Math.sqrt(1 - haversine));
+  return earthRadiusKm * c;
+}
+
+function normalizeLocationScore(user: Profile, candidate: Match) {
+  const dist = distanceKm(user, candidate);
+  if (dist === null) {
+    return 0.6; // neutral default if we cannot compute distance
+  }
+  const clamped = Math.min(dist, MAX_DISTANCE_KM);
+  return 1 - clamped / MAX_DISTANCE_KM;
+}
+
+function normalizeInterestScore(user: Profile, candidate: Match) {
+  const userTags = user.tags ?? [];
+  const candidateTags = candidate.tags ?? [];
+  if (userTags.length === 0 || candidateTags.length === 0) {
+    return 0.4;
+  }
+  const overlap = candidateTags.filter((tag) => userTags.includes(tag)).length;
+  const denominator = Math.max(userTags.length, candidateTags.length);
+  return overlap / denominator;
+}
+
+function normalizeOrientationScore(user: Profile, candidate: Match) {
+  if (!user.orientation || !candidate.orientation) return 0.5;
+  return user.orientation.toLowerCase() === candidate.orientation.toLowerCase() ? 1 : 0;
+}
+
+function scoreCandidate(user: Profile, candidate: Match) {
+  const locationScore = normalizeLocationScore(user, candidate);
+  const interestScore = normalizeInterestScore(user, candidate);
+  const orientationScore = normalizeOrientationScore(user, candidate);
+  const composite =
+    locationScore * LOCATION_WEIGHT +
+    interestScore * INTEREST_WEIGHT +
+    orientationScore * ORIENTATION_WEIGHT;
+  return {
+    score: composite,
+    breakdown: { locationScore, interestScore, orientationScore },
+  };
+}
 
 function ensure(userId: string) {
   if (!store[userId]) {
@@ -163,6 +243,7 @@ function ensure(userId: string) {
         orientation: 'heterosexual',
         lat: 37.7749,
         lng: -122.4194,
+        city: 'San Francisco, CA',
         tags: ['Travel', 'Coffee', 'Design'],
       },
       settings: { emailNotifications: true },
@@ -171,8 +252,29 @@ function ensure(userId: string) {
   return store[userId];
 }
 
+function getOrSeedUser(userId: string) {
+  const profile = ensure(userId).profile;
+  if (!profile.lat || !profile.lng) {
+    // fallback to default SF coordinates to make distance scoring deterministic
+    profile.lat = 37.7749;
+    profile.lng = -122.4194;
+  }
+  return ensure(userId);
+}
+
 export function getMatches(userId: string) {
-  return ensure(userId).matches;
+  const { matches, profile } = ensure(userId);
+  return matches
+    .map((match) => {
+      const { score } = scoreCandidate(profile, match);
+      return {
+        ...match,
+        matchPercent: Math.max(match.matchPercent ?? 0, Math.round(score * 100)),
+        _score: score,
+      };
+    })
+    .sort((a, b) => b._score - a._score)
+    .map(({ _score, ...rest }) => rest);
 }
 
 export function getProfile(userId: string) {
@@ -221,7 +323,15 @@ export function seedUser(userId: string) {
   store[userId] = {
     matches: JSON.parse(JSON.stringify(seedMatches)),
     messages: JSON.parse(JSON.stringify(seedMessages)),
-    profile: { displayName: userId, bio: 'This is your profile.' },
+    profile: {
+      displayName: userId,
+      bio: 'This is your profile.',
+      orientation: 'heterosexual',
+      lat: 37.7749,
+      lng: -122.4194,
+      city: 'San Francisco, CA',
+      tags: ['Travel', 'Coffee', 'Design'],
+    },
     settings: { emailNotifications: true },
   };
   return store[userId];

@@ -1,13 +1,33 @@
 "use client";
 import React, { useState } from 'react';
 import { signOut } from 'next-auth/react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
-const navItems = [
+type NavItem = {
+  label: string;
+  icon: string;
+  href: string | { pathname: string; query?: Record<string, string> };
+  badge?: number;
+  panel?: string;
+};
+
+const navItems: NavItem[] = [
   { label: 'Matches', icon: '💜', href: '/dashboard' },
   { label: 'Messages', icon: '💬', href: '/dashboard/messages', badge: 2 },
   { label: 'Discover', icon: '🧭', href: '/dashboard/discover' },
+  {
+    label: 'Spaces',
+    icon: '🌍',
+    href: { pathname: '/dashboard', query: { panel: 'spaces' } },
+    panel: 'spaces',
+  },
+  {
+    label: 'My Spaces',
+    icon: '⭐',
+    href: { pathname: '/dashboard', query: { panel: 'myspaces' } },
+    panel: 'myspaces',
+  },
   { label: 'Profile', icon: '👤', href: '/dashboard/profile' },
   { label: 'Settings', icon: '⚙️', href: '/dashboard/settings' },
 ];
@@ -15,6 +35,8 @@ const navItems = [
 function Sidebar({ activeTab }: { activeTab?: string }) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const panelParam = searchParams?.get('panel')?.toLowerCase() ?? null;
   return (
     <>
       {/* Mobile sidebar toggle */}
@@ -42,10 +64,11 @@ function Sidebar({ activeTab }: { activeTab?: string }) {
         </div>
         <nav className="flex-1 space-y-4" aria-label="Dashboard sections">
             {navItems.map((item) => {
-              // consider nested routes as active (e.g. /dashboard/messages/123)
-              const isActive = activeTab
-                ? activeTab === item.href
-                : typeof pathname === 'string' && pathname.startsWith(item.href);
+              const hrefPath = typeof item.href === 'string' ? item.href : item.href.pathname;
+              const matchesPanel = item.panel ? panelParam === item.panel : false;
+              const matchesPath =
+                typeof pathname === 'string' && hrefPath ? pathname.startsWith(hrefPath) : false;
+              const isActive = item.panel ? matchesPanel : matchesPath;
               return (
                 <Link
                   key={item.label}
@@ -61,7 +84,9 @@ function Sidebar({ activeTab }: { activeTab?: string }) {
                   </span>
                   <span>{item.label}</span>
                   {item.badge && (
-                    <span className="ml-auto bg-fuchsia-500 text-white text-xs rounded-full px-2 py-0.5" aria-label="Unread messages badge" role="status">{item.badge}</span>
+                    <span className="ml-auto bg-fuchsia-500 text-white text-xs rounded-full px-2 py-0.5" aria-label="Unread messages badge" role="status">
+                      {item.badge}
+                    </span>
                   )}
                 </Link>
               );
