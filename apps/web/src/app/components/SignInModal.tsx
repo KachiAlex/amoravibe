@@ -217,6 +217,7 @@ export function SignInModal({ isOpen, onClose }: SignInModalProps) {
                     )}
 
                     <button
+                      data-testid="sign-in-submit"
                       type="submit"
                       disabled={!canSubmit}
                       className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-purple-600 to-pink-600 py-3 text-white shadow-lg transition hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-60"

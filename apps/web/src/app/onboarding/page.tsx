@@ -8,11 +8,13 @@ import { Heart, Shield, Lock } from "lucide-react";
 export const dynamic = "force-dynamic";
 
 const STORAGE_KEY = "onboarding_form_data";
+const USER_ID_STORAGE_KEY = "onboarding_user_id";
 
 interface OnboardingData {
   step: number;
   email: string;
   password: string;
+  userId: string | null;
   name: string;
   age: string;
   location: string;
@@ -48,10 +50,23 @@ export default function OnboardingPage() {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       try {
-        JSON.parse(saved);
+        const parsed: OnboardingData = JSON.parse(saved);
+        if (parsed.userId) {
+          setUserId(parsed.userId);
+        } else {
+          const storedUserId = localStorage.getItem(USER_ID_STORAGE_KEY);
+          if (storedUserId) {
+            setUserId(storedUserId);
+          }
+        }
         setShowResumePrompt(true);
       } catch (err) {
         console.error("Failed to parse saved onboarding data", err);
+      }
+    } else {
+      const storedUserId = localStorage.getItem(USER_ID_STORAGE_KEY);
+      if (storedUserId) {
+        setUserId(storedUserId);
       }
     }
   }, []);
@@ -62,6 +77,7 @@ export default function OnboardingPage() {
       step,
       email,
       password,
+      userId,
       name,
       age,
       location,
@@ -72,7 +88,7 @@ export default function OnboardingPage() {
       orientation,
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-  }, [step, email, password, name, age, location, job, about, interests, gender, orientation]);
+  }, [step, email, password, userId, name, age, location, job, about, interests, gender, orientation]);
 
   function resumeOnboarding() {
     const saved = localStorage.getItem(STORAGE_KEY);
@@ -82,6 +98,12 @@ export default function OnboardingPage() {
         setStep(data.step);
         setEmail(data.email);
         setPassword(data.password);
+        if (data.userId) {
+          setUserId(data.userId);
+        } else {
+          const storedUserId = localStorage.getItem(USER_ID_STORAGE_KEY);
+          setUserId(storedUserId);
+        }
         setName(data.name);
         setAge(data.age);
         setLocation(data.location);
@@ -100,9 +122,11 @@ export default function OnboardingPage() {
 
   function startFresh() {
     localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(USER_ID_STORAGE_KEY);
     setStep(1);
     setEmail("");
     setPassword("");
+    setUserId(null);
     setName("");
     setAge("");
     setLocation("");
@@ -116,6 +140,7 @@ export default function OnboardingPage() {
 
   function clearSavedData() {
     localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(USER_ID_STORAGE_KEY);
   }
 
   async function handleSignup(e: React.FormEvent) {
@@ -140,6 +165,7 @@ export default function OnboardingPage() {
       
       // Store userId for profile update
       setUserId(signupData.userId);
+      localStorage.setItem(USER_ID_STORAGE_KEY, signupData.userId);
 
       // Check if session is set
       const sessionRes = await fetch("/api/auth/session", { credentials: "include" });
@@ -167,12 +193,24 @@ export default function OnboardingPage() {
 
   async function handleProfile(e: React.FormEvent) {
     e.preventDefault();
+    let effectiveUserId = userId;
+    if (!effectiveUserId) {
+      effectiveUserId = localStorage.getItem(USER_ID_STORAGE_KEY);
+      if (effectiveUserId) {
+        setUserId(effectiveUserId);
+      }
+    }
+    if (!effectiveUserId) {
+      setError("We lost track of your account. Please restart onboarding.");
+      startFresh();
+      return;
+    }
     setLoading(true);
     setError(null);
     console.log('[Onboarding] handleProfile called', { name, age, location, job, about, interests, gender, orientation, userId });
     try {
       const profileData = {
-        userId,
+        userId: effectiveUserId,
         name,
         displayName: name,
         age: age ? Number(age) : undefined,
@@ -335,6 +373,7 @@ export default function OnboardingPage() {
                   required
                 />
                 <select
+                  data-testid="gender-select"
                   className="w-full rounded-lg px-4 py-3 bg-white/80 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-400"
                   value={gender}
                   onChange={e => setGender(e.target.value)}
@@ -347,6 +386,7 @@ export default function OnboardingPage() {
                   <option value="other">Other</option>
                 </select>
                 <select
+                  data-testid="orientation-select"
                   className="w-full rounded-lg px-4 py-3 bg-white/80 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-400"
                   value={orientation}
                   onChange={e => setOrientation(e.target.value)}

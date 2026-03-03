@@ -22,6 +22,8 @@ test('onboarding signup -> complete profile -> redirect to dashboard, then sign 
   await page.waitForSelector('input[placeholder="Full Name"]', { timeout: 30000 });
   await page.fill('input[placeholder="Full Name"]', 'Tester Bot');
   await page.fill('input[placeholder="Age"]', '30');
+  await page.selectOption('[data-testid="gender-select"]', 'male');
+  await page.selectOption('[data-testid="orientation-select"]', 'straight');
   await page.fill('input[placeholder="Location"]', 'Test City');
   await page.fill('input[placeholder="Job Title"]', 'Engineer');
   await page.fill('textarea[placeholder="About Me"]', 'Automated test user');
@@ -38,13 +40,13 @@ test('onboarding signup -> complete profile -> redirect to dashboard, then sign 
   // Navigate to signout endpoint (server provides sign out route)
   await page.goto(`${BASE}/api/auth/signout`);
 
-  // Now navigate to sign-in page and sign in
-  await page.goto(`${BASE}/auth/signin`);
+  // Now open the sign-in modal via query param redirect
+  await page.goto(`${BASE}/?openSignIn=1`);
   await page.fill('input[type="email"]', email);
   await page.fill('input[type="password"]', password);
   await Promise.all([
     page.waitForURL(/dashboard/, { timeout: 30000 }),
-    page.click('text=Sign In')
+    page.click('[data-testid="sign-in-submit"]')
   ]);
 
   await expect(page).toHaveURL(/dashboard/);

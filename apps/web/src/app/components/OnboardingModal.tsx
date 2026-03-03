@@ -36,7 +36,6 @@ import type {
   VerificationIntent,
 } from '@lovedate/api';
 import { useOnboarding } from '@/lib/onboarding-context';
-import { lovedateApi } from '@/lib/api';
 
 const TOTAL_STEPS = 6;
 
@@ -476,58 +475,60 @@ export function OnboardingModal({ isOpen, onClose }: OnboardingModalProps) {
         return;
       }
 
-      const payload = {
-        legalName: formData.firstName,
-        legalLastName: formData.lastName || undefined,
-        displayName: formData.displayName || formData.firstName,
-        dateOfBirth: formData.dateOfBirth,
-        email: formData.email || undefined,
-        phone: formData.phone || undefined,
-        password: formData.password,
-        gender: formData.gender as any,
-        orientation: formData.orientation as any,
-        orientationPreferences: formData.orientationPreferences,
-        discoverySpace: formData.discoverySpace as any,
-        matchPreferences: formData.matchPreferences,
-        city: formData.city,
-        cityPlaceId: formData.cityPlaceId ?? undefined,
-        cityCountry: formData.cityCountry ?? undefined,
-        cityCountryCode: formData.cityCountryCode ?? undefined,
-        cityRegion: formData.cityRegion ?? undefined,
-        cityRegionCode: formData.cityRegionCode ?? undefined,
-        cityTimezone: formData.cityTimezone ?? undefined,
-        cityLat: formData.cityLat ?? undefined,
-        cityLng: formData.cityLng ?? undefined,
-        locationAccuracyMeters: formData.locationAccuracyMeters ?? undefined,
-        locationUpdatedAt: formData.locationUpdatedAt ?? undefined,
-        bio: formData.bio || undefined,
-        photos: formData.photos.filter((url) => url.trim().length > 0),
-        verificationIntent: formData.verificationIntent,
-      };
+      const signupRes = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+        }),
+      });
+      if (!signupRes.ok) {
+        const errJson = await signupRes.json().catch(() => ({}));
+        throw new Error(errJson.error || 'Signup failed');
+      }
+      const signupData = await signupRes.json();
+      const userId = signupData?.userId as string | undefined;
+      if (!userId) {
+        throw new Error('Signup did not return a user ID');
+      }
+      const displayName = formData.displayName || formData.firstName;
 
-      const result = await lovedateApi.submitOnboarding(payload as any);
-
-      const userId = result.user.id;
-      const displayName = result.user.displayName;
+      const profileRes = await fetch('/api/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          userId,
+          name: [formData.firstName, formData.lastName].filter(Boolean).join(' ').trim() || undefined,
+          displayName,
+          location: formData.city,
+          job: undefined,
+          about: formData.bio,
+          gender: formData.gender,
+          orientation: formData.orientation,
+          interests: formData.interests,
+          onboardingCompleted: true,
+          onboardingStep: 'complete',
+        }),
+      });
+      if (!profileRes.ok) {
+        const errJson = await profileRes.json().catch(() => ({}));
+        throw new Error(errJson.error || 'Profile update failed');
+      }
 
       try {
-        await fetch('/api/profile', {
-          method: 'PATCH',
+        await fetch('/api/spaces/join', {
+          method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
           body: JSON.stringify({
-            name: [formData.firstName, formData.lastName].filter(Boolean).join(' ').trim() || undefined,
-            displayName: displayName ?? formData.displayName ?? formData.firstName,
-            location: formData.city,
-            job: undefined,
-            about: formData.bio,
-            interests: formData.interests,
-            onboardingCompleted: true,
-            onboardingStep: 'complete',
+            orientation: formData.orientation === 'lgbtq' ? 'lgbtq' : 'straight',
           }),
         });
       } catch (err) {
-        console.warn('Failed to persist onboarding completion profile fields', err);
+        console.warn('Failed to auto-join space from onboarding modal', err);
       }
 
       // Persist a lightweight local copy so UI flows can use it
@@ -558,7 +559,7 @@ export function OnboardingModal({ isOpen, onClose }: OnboardingModalProps) {
       setTimeout(() => {
         setSuccess(null);
         onClose();
-        void router.push(result.nextRoute ?? `/dashboard?userId=${encodeURIComponent(userId)}`);
+        void router.push(`/dashboard?userId=${encodeURIComponent(userId)}`);
       }, 1200);
     } catch (err) {
       console.error('Onboarding submit error', err);
