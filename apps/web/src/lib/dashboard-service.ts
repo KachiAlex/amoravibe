@@ -3,7 +3,16 @@ import db from '@/lib/db';
 
 async function buildFromDatabase(userId: string) {
   const [user, matches, messages, stats] = await Promise.all([
-    db.user.findUnique({ where: { id: userId } }),
+    db.user.findUnique({ 
+      where: { id: userId },
+      select: {
+        id: true,
+        displayName: true,
+        name: true,
+        avatar: true,
+        orientation: true,
+      }
+    }),
     db.match.findMany({
       where: {
         OR: [{ requesterId: userId }, { targetUserId: userId }],
@@ -45,8 +54,15 @@ async function buildFromDatabase(userId: string) {
     unread: !message.read,
   }));
 
+  // Extract first name from displayName or name
+  const fullName = user?.displayName ?? user?.name ?? 'You';
+  const firstName = fullName.split(' ')[0];
+
   return {
-    userName: user?.displayName ?? user?.name ?? 'You',
+    userName: fullName,
+    userFirstName: firstName,
+    userAvatar: user?.avatar ?? null,
+    userOrientation: user?.orientation ?? null,
     stats: { matches: stats, chats: messages.length, views: 0 },
     matches: formattedMatches,
     messages: formattedMessages,
@@ -60,6 +76,9 @@ export async function fetchDashboardSnapshot(userId: string | null): Promise<Das
     console.log('[dashboard-service] No userId, returning Guest data');
     return {
       userName: 'Guest',
+      userFirstName: 'Guest',
+      userAvatar: null,
+      userOrientation: null,
       stats: { matches: 0, chats: 0, views: 0 },
       matches: [],
       messages: [],

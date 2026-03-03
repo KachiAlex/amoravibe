@@ -22,6 +22,9 @@ export type Message = {
 
 export type DashboardData = {
   userName: string;
+  userFirstName: string;
+  userAvatar: string | null;
+  userOrientation: string | null;
   stats: { matches: number; chats: number; views: number };
   matches: Match[];
   messages: Message[];

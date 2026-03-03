@@ -17,7 +17,12 @@ export default async function DashboardPage() {
           <div className="py-6 md:py-10">
             {/* Welcome Headline */}
             <div className="max-w-6xl mx-auto px-4 md:px-8">
-              <Header userName={data?.userName} />
+              <Header 
+                userName={data?.userName} 
+                userFirstName={data?.userFirstName}
+                userAvatar={data?.userAvatar}
+                userOrientation={data?.userOrientation}
+              />
             </div>
             
             {/* Stats Cards */}
