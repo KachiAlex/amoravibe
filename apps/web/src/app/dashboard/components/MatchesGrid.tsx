@@ -225,7 +225,8 @@ const MatchCard = React.memo(function MatchCard({ match, onAction }: MatchCardPr
         width={640}
         height={288}
         className="w-full h-72 object-cover"
-        unoptimized
+        quality={95}
+        priority={false}
       />
       <div className="p-6 flex-1 flex flex-col">
         <div className="font-bold text-2xl mb-1">{match.name}{(match as any).age ? `, ${(match as any).age}` : ''}</div>

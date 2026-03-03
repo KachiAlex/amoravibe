@@ -43,7 +43,7 @@ const seedMatches: Match[] = [
   {
     id: '1',
     name: 'Sarah Johnson',
-    avatar: 'https://randomuser.me/api/portraits/women/44.jpg',
+    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=800&q=90',
     photos: ['https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=1000&q=80'],
     tagline: 'Loves coffee and sunsets',
     role: 'UX Designer',
@@ -57,7 +57,7 @@ const seedMatches: Match[] = [
   {
     id: '2',
     name: 'Michael Chen',
-    avatar: 'https://randomuser.me/api/portraits/men/32.jpg',
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=800&q=90',
     photos: ['https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=1000&q=80'],
     tagline: 'Tech geek who loves hiking and good food',
     role: 'Software Engineer',
@@ -71,7 +71,7 @@ const seedMatches: Match[] = [
   {
     id: '3',
     name: 'Emma Rodriguez',
-    avatar: 'https://randomuser.me/api/portraits/women/68.jpg',
+    avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=800&q=90',
     photos: ['https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=1000&q=80'],
     tagline: 'Fitness enthusiast and brunch expert',
     role: 'Marketing Manager',
@@ -85,7 +85,7 @@ const seedMatches: Match[] = [
   {
     id: '4',
     name: 'James Wilson',
-    avatar: 'https://randomuser.me/api/portraits/men/61.jpg',
+    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=800&q=90',
     photos: ['https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=1000&q=80'],
     tagline: 'Capturing moments and exploring new places',
     role: 'Photographer',
@@ -99,7 +99,7 @@ const seedMatches: Match[] = [
   {
     id: '5',
     name: 'Aisha Bello',
-    avatar: 'https://randomuser.me/api/portraits/women/12.jpg',
+    avatar: 'https://images.unsplash.com/photo-1531123897727-8f129e1688ce?auto=format&fit=crop&w=800&q=90',
     photos: ['https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=1000&q=80'],
     tagline: 'Book club host',
     role: 'Product Manager',
@@ -116,9 +116,9 @@ const seedMessages: Message[] = [
   {
     id: 'm1',
     from: 'Sarah Johnson',
-    avatar: 'https://randomuser.me/api/portraits/women/44.jpg',
-    preview: 'That sounds amazing! I’d love to...',
-    text: 'That sounds amazing! I’d love to grab coffee and catch the sunset this week. Are you free Thursday?',
+    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=400&q=90',
+    preview: 'That sounds amazing! I\'d love to...',
+    text: 'That sounds amazing! I\'d love to grab coffee and catch the sunset this week. Are you free Thursday?',
     time: '2m',
     unread: true,
     online: true,
@@ -127,7 +127,7 @@ const seedMessages: Message[] = [
   {
     id: 'm2',
     from: 'Michael Chen',
-    avatar: 'https://randomuser.me/api/portraits/men/32.jpg',
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=90',
     preview: 'See you tomorrow! 😊',
     text: 'See you tomorrow at the art walk! Looking forward to it 😊',
     time: '1h',
@@ -138,9 +138,9 @@ const seedMessages: Message[] = [
   {
     id: 'm3',
     from: 'Emma Rodriguez',
-    avatar: 'https://randomuser.me/api/portraits/women/68.jpg',
+    avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=400&q=90',
     preview: 'Brunch plans?',
-    text: 'Brunch plans this weekend? There’s a new spot I want to try.',
+    text: 'Brunch plans this weekend? There\'s a new spot I want to try.',
     time: '3h',
     unread: true,
     online: false,
@@ -149,7 +149,7 @@ const seedMessages: Message[] = [
   {
     id: 'm4',
     from: 'James Wilson',
-    avatar: 'https://randomuser.me/api/portraits/men/61.jpg',
+    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=90',
     preview: 'Check out this photo',
     text: 'Check out this photo from my last trip—think you’d like this hike!',
     time: '1d',
