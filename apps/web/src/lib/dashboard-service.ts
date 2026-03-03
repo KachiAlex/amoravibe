@@ -1,12 +1,25 @@
 import type { DashboardData, Match as DashboardMatch, Message as DashboardMessage } from '@/app/dashboard/types';
 import db from '@/lib/db';
 
+function deriveNameFromEmail(email?: string | null): { full: string; first: string } {
+  if (!email) return { full: 'User', first: 'User' };
+  const local = (email.split('@')[0] ?? '').trim();
+  if (!local) return { full: 'User', first: 'User' };
+  const parts = local.split(/[._-]+/).filter(Boolean);
+  const cap = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1).toLowerCase() : s);
+  const words = parts.map(cap).filter(Boolean);
+  const full = words.join(' ') || 'User';
+  const first = words[0] || 'User';
+  return { full, first };
+}
+
 async function buildFromDatabase(userId: string) {
   const [user, matches, messages, stats] = await Promise.all([
     db.user.findUnique({ 
       where: { id: userId },
       select: {
         id: true,
+        email: true,
         displayName: true,
         name: true,
         avatar: true,
@@ -54,9 +67,11 @@ async function buildFromDatabase(userId: string) {
     unread: !message.read,
   }));
 
-  // Extract first name from displayName or name
-  const fullName = user?.displayName ?? user?.name ?? 'You';
-  const firstName = fullName.split(' ')[0];
+  // Extract names with robust fallback to email local-part
+  const providedFull = (user?.displayName && user.displayName.trim()) || (user?.name && user.name.trim()) || '';
+  const { full: derivedFull, first: derivedFirst } = deriveNameFromEmail(user?.email ?? undefined);
+  const fullName = providedFull || derivedFull;
+  const firstName = (fullName.split(' ')[0] || derivedFirst);
 
   return {
     userName: fullName,
