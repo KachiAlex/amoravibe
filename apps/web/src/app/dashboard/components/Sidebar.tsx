@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { usePathname, useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 
 type NavItem = {
   label: string;
@@ -56,9 +57,14 @@ function Sidebar({ activeTab }: { activeTab?: string }) {
         tabIndex={0}
       >
         <div className="flex items-center gap-2 mb-8">
-          <span className="text-3xl drop-shadow" aria-hidden>
-            💜
-          </span>
+          <Image
+            src="/amoravibe.jpg"
+            alt="AmoraVibe"
+            width={40}
+            height={40}
+            className="rounded-full shadow-md"
+            priority
+          />
           <span className="font-extrabold text-2xl bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent drop-shadow-lg">AmoraVibe</span>
         </div>
         <nav className="flex-1 space-y-4" aria-label="Dashboard sections">

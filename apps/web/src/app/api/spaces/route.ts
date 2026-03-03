@@ -16,11 +16,35 @@ export async function GET(req: Request) {
 
     const user = await prisma.user.findUnique({
       where: { id: userId },
+      select: { id: true, orientation: true },
     });
 
-    // TODO: Add Room and SpaceMember models to schema.prisma
-    // For now, return spaces with mock counts
-    const spaces = await prisma.space.findMany();
+    if (!user) {
+      console.log('[Spaces] User not found');
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    console.log('[Spaces] User orientation:', user.orientation);
+
+    // Filter spaces based on user orientation
+    // Map user orientation to space orientation
+    let spaceOrientation: string;
+    if (user.orientation?.toLowerCase() === 'heterosexual' || user.orientation?.toLowerCase() === 'straight') {
+      spaceOrientation = 'straight';
+    } else if (user.orientation?.toLowerCase() === 'homosexual' || user.orientation?.toLowerCase() === 'lgbtq' || user.orientation?.toLowerCase() === 'lgbtq+') {
+      spaceOrientation = 'lgbtq';
+    } else {
+      // Default to straight if orientation is not set
+      spaceOrientation = 'straight';
+    }
+
+    console.log('[Spaces] Filtering for space orientation:', spaceOrientation);
+
+    const spaces = await prisma.space.findMany({
+      where: {
+        orientation: spaceOrientation,
+      },
+    });
     
     console.log('[Spaces] Found spaces:', spaces.length);
 
@@ -41,7 +65,7 @@ export async function GET(req: Request) {
         roomCreationLimit: 10,
         memberCount,
         onlineCount,
-        isMember: Math.random() > 0.5, // Mock membership
+        isMember: true, // User can only see their own space
       };
     });
 

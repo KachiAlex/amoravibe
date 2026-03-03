@@ -104,21 +104,11 @@ export default function Header({ userName = 'You' }: { userName?: string }) {
 
   return (
     <header className="flex items-center justify-between mb-8" role="banner">
-      <div className="flex items-center gap-4">
-        <Image
-          src="/amoravibe.jpg"
-          alt="AmoraVibe"
-          width={50}
-          height={50}
-          className="rounded-full shadow-md"
-          priority
-        />
-        <div>
-          <h1 className="text-3xl font-bold">
-            Welcome back, <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">{userName || 'Guest'}</span> <span aria-hidden>👋</span>
-          </h1>
-          <p className="text-gray-500 mt-1">Quick summary of your activity</p>
-        </div>
+      <div>
+        <h1 className="text-3xl font-bold">
+          Welcome back, <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">{userName || 'Guest'}</span> <span aria-hidden>👋</span>
+        </h1>
+        <p className="text-gray-500 mt-1">Quick summary of your activity</p>
       </div>
       <div className="flex items-center gap-4">
         <button className="md:hidden p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-200" aria-label="Open menu">
