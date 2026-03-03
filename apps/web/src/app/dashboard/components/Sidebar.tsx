@@ -1,7 +1,6 @@
 "use client";
 import React, { useState } from 'react';
-import { signOut } from 'next-auth/react';
-import { usePathname, useSearchParams } from 'next/navigation';
+import { usePathname, useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 type NavItem = {
@@ -105,7 +104,10 @@ function Sidebar({ activeTab }: { activeTab?: string }) {
         </nav>
         <div className="mt-8 flex flex-col items-center">
           <button
-            onClick={() => signOut({ callbackUrl: "/auth/signout" })}
+            onClick={async () => {
+              document.cookie = 'auth-token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+              window.location.href = '/';
+            }}
             className="w-full rounded-lg bg-gradient-to-r from-pink-600 to-purple-600 px-6 py-2 font-semibold text-white shadow-lg transition hover:shadow-xl hover:scale-105"
           >
             Sign Out

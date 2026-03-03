@@ -59,14 +59,12 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // Protect dashboard routes: require session token OR lightweight onboarding session cookie
+  // Protect dashboard routes: require JWT auth token OR lightweight onboarding session cookie
   if (pathname.startsWith('/dashboard')) {
-    const token =
-      request.cookies.get('next-auth.session-token') ||
-      request.cookies.get('__Secure-next-auth.session-token');
+    const authToken = request.cookies.get('auth-token');
     const onboardingSession = request.cookies.get('lovedate_session');
 
-    if (!token && !onboardingSession) {
+    if (!authToken && !onboardingSession) {
       const signInUrl = new URL('/', request.url);
       signInUrl.searchParams.set('openSignIn', '1');
       signInUrl.searchParams.set('from', pathname);
