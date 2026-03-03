@@ -91,9 +91,7 @@ export function SignInModal({ isOpen, onClose }: SignInModalProps) {
         }
 
         setSuccess('Welcome back! Redirecting…');
-        setTimeout(() => {
-          router.push('/dashboard');
-        }, 900);
+        router.push('/dashboard');
       } else {
         // Phone mode not supported with JWT auth
         setError('Phone sign-in is not currently supported');
