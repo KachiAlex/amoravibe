@@ -8,8 +8,10 @@ export async function GET(req: Request) {
   const url = new URL(req.url);
   const limit = Math.min(parseInt(url.searchParams.get('limit') || '10', 10), 50);
   const cursor = url.searchParams.get('cursor');
-  const ageMin = url.searchParams.get('ageMin') ? parseInt(url.searchParams.get('ageMin')) : undefined;
-  const ageMax = url.searchParams.get('ageMax') ? parseInt(url.searchParams.get('ageMax')) : undefined;
+  const ageMinParam = url.searchParams.get('ageMin');
+  const ageMaxParam = url.searchParams.get('ageMax');
+  const ageMin = ageMinParam ? parseInt(ageMinParam, 10) : undefined;
+  const ageMax = ageMaxParam ? parseInt(ageMaxParam, 10) : undefined;
   const location = url.searchParams.get('location');
   const interests = url.searchParams.get('interests')?.split(',').map(s => s.trim()).filter(Boolean);
 
@@ -32,6 +34,7 @@ export async function GET(req: Request) {
       job: true,
       location: true,
       avatar: true,
+      photos: true,
       about: true,
       interests: true,
     },
@@ -39,7 +42,7 @@ export async function GET(req: Request) {
   let nextCursor = null;
   if (users.length > limit) {
     const last = users.pop();
-    nextCursor = last.id;
+    nextCursor = last ? last.id : null;
   }
   return NextResponse.json({ profiles: users, nextCursor });
 }

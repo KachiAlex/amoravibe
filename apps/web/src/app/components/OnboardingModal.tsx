@@ -508,6 +508,7 @@ export function OnboardingModal({ isOpen, onClose }: OnboardingModalProps) {
           about: formData.bio,
           gender: formData.gender,
           orientation: formData.orientation,
+          lookingFor: formData.lookingFor,
           interests: formData.interests,
           onboardingCompleted: true,
           onboardingStep: 'complete',

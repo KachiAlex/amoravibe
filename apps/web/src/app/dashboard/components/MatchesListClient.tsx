@@ -10,16 +10,19 @@ type Match = {
   location?: string;
   avatar?: string;
   bio?: string;
+  tagline?: string;
   interests?: string[];
   matchPercent?: number;
   isNew?: boolean;
   accepted?: boolean;
+  gender?: string;
 };
 
 const DEFAULT_MATCHES: Match[] = [
   {
     id: 'seed-sarah',
     name: 'Sarah Johnson',
+    gender: 'female',
     age: 28,
     jobTitle: 'UX Designer',
     location: 'San Francisco, CA',
@@ -32,6 +35,7 @@ const DEFAULT_MATCHES: Match[] = [
   {
     id: 'seed-michael',
     name: 'Michael Chen',
+    gender: 'male',
     age: 31,
     jobTitle: 'Software Engineer',
     location: 'Los Angeles, CA',
@@ -44,6 +48,7 @@ const DEFAULT_MATCHES: Match[] = [
   {
     id: 'seed-emma',
     name: 'Emma Rodriguez',
+    gender: 'female',
     age: 29,
     jobTitle: 'Marketing Lead',
     location: 'New York, NY',
@@ -55,6 +60,7 @@ const DEFAULT_MATCHES: Match[] = [
   {
     id: 'seed-james',
     name: 'James Wilson',
+    gender: 'male',
     age: 33,
     jobTitle: 'Photographer',
     location: 'Chicago, IL',
@@ -66,6 +72,7 @@ const DEFAULT_MATCHES: Match[] = [
   {
     id: 'seed-aisha',
     name: 'Aisha Bello',
+    gender: 'female',
     age: 30,
     jobTitle: 'Product Manager',
     location: 'Austin, TX',
@@ -77,6 +84,7 @@ const DEFAULT_MATCHES: Match[] = [
   {
     id: 'seed-luca',
     name: 'Luca Romano',
+    gender: 'male',
     age: 34,
     jobTitle: 'Architect',
     location: 'Seattle, WA',

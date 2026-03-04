@@ -20,6 +20,7 @@ model User {
   avatar               String?
   about                String?
   interests            String[]
+  lookingFor           String?
   role                 String              @default("user")
   isVerified           Boolean             @default(false)
   banned               Boolean             @default(false)

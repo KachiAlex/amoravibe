@@ -80,13 +80,28 @@ export async function GET(req: Request) {
   }
 
   // Load user to respect orientation preference
-  const currentUser = await db.user.findUnique({
+  // Load user (full object to avoid select typing issues) to respect orientation/intent
+  const currentUser = (await db.user.findUnique({
     where: { id: userId },
-    select: { orientation: true, gender: true },
-  });
+  })) as any;
 
   const orientation = currentUser?.orientation?.toLowerCase();
   const wantsWomenOnly = orientation === 'straight';
+  const currentIntent = currentUser?.lookingFor?.toLowerCase() ?? null;
+
+  const seriousnessScore = (intent: string | null) => {
+    const map: Record<string, number> = {
+      casual: 1,
+      friendship: 1,
+      friends: 1,
+      relationship: 2,
+      serious: 2,
+      marriage: 3,
+      longterm: 3,
+    };
+    if (!intent) return 0;
+    return map[intent] ?? 0;
+  };
 
   const matches = await db.match.findMany({
     where: {
@@ -111,6 +126,7 @@ export async function GET(req: Request) {
         tagline: other.about ?? undefined,
         role: other.job ?? undefined,
         city: other.location ?? undefined,
+        lookingFor: other.lookingFor ?? undefined,
         tags: other.interests ?? [],
         matchPercent: match.compatibilityScore ?? 0,
         status: match.status,
@@ -122,6 +138,17 @@ export async function GET(req: Request) {
     .filter((m) => {
       if (!wantsWomenOnly) return true;
       return (m.gender ?? '').toLowerCase() === 'female';
+    })
+    // Enforce intent compatibility: avoid mismatches (e.g., casual vs marriage)
+    .filter((m) => {
+      if (!currentIntent) return true;
+      const userScore = seriousnessScore(currentIntent);
+      const otherScore = seriousnessScore((m as any).lookingFor ?? null);
+      if (userScore === 0 || otherScore === 0) return true;
+      // Allow if both are similar level, or both within casual/friendship
+      // Reject if one is casual/friendship and the other is relationship/marriage level
+      const diff = Math.abs(userScore - otherScore);
+      return diff <= 1;
     });
 
   return NextResponse.json(payload);

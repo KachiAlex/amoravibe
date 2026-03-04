@@ -24,7 +24,7 @@ function createElementFactory(tag: string) {
 
 // Cache created factories to ensure stable component identity across renders
 const motionCache: Map<string, React.ComponentType<any>> = new Map();
-const motion = new Proxy(
+const motion: any = new Proxy(
   {},
   {
     get: (_target, prop: string) => {
