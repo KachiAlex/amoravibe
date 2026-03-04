@@ -9,122 +9,116 @@ datasource db {
 }
 
 model User {
-  id                 String              @id @default(uuid())
-  email              String              @unique
-  hashedPassword     String?
-  displayName        String?
-  name               String?
-  age                Int?
-  location           String?
-  job                String?
-  avatar             String?
-  photos             String[]           @default([])
-  about              String?
-  interests          String[]
-  gender             String?
-  orientation        String?
-  onboardingCompleted Boolean             @default(false)
-  onboardingStep      String?
-  profileCompletedAt  DateTime?
-  role               String              @default("user")
-  isVerified         Boolean             @default(false)
-  banned             Boolean             @default(false)
-  createdAt          DateTime            @default(now())
-  matchesInitiated   Match[]             @relation("UserMatches")
-  matchesReceived    Match[]             @relation("TargetMatches")
-  matchActions       MatchAction[]
-  matchActionsTarget MatchAction[]      @relation("MatchActionTarget")
-  conversationStates ConversationState[]
+  id                   String              @id @default(uuid())
+  email                String              @unique
+  hashedPassword       String?
+  displayName          String?
+  name                 String?
+  age                  Int?
+  location             String?
+  job                  String?
+  avatar               String?
+  about                String?
+  interests            String[]
+  role                 String              @default("user")
+  isVerified           Boolean             @default(false)
+  banned               Boolean             @default(false)
+  createdAt            DateTime            @default(now())
+  onboardingCompleted  Boolean             @default(false)
+  onboardingStep       String?
+  profileCompletedAt   DateTime?
+  gender               String?
+  orientation          String?
+  photos               String[]            @default([])
   conversationsAsOther ConversationState[] @relation("ConversationStateOther")
-  messagesSent       Message[]           @relation("MessagesFrom")
-  messagesReceived   Message[]           @relation("MessagesTo")
-  spaceMembers       SpaceMember[]
-  roomsCreated       Room[]              @relation("RoomCreator")
-  roomMembers        RoomMember[]
-  roomMessages       RoomMessage[]
+  conversationStates   ConversationState[]
+  matchesInitiated     Match[]             @relation("UserMatches")
+  matchesReceived      Match[]             @relation("TargetMatches")
+  matchActions         MatchAction[]
+  matchActionsTarget   MatchAction[]       @relation("MatchActionTarget")
+  messagesSent         Message[]           @relation("MessagesFrom")
+  messagesReceived     Message[]           @relation("MessagesTo")
+  roomsCreated         Room[]              @relation("RoomCreator")
+  roomMembers          RoomMember[]
+  roomMessages         RoomMessage[]
+  spaceMembers         SpaceMember[]
 }
 
 model Match {
-  id                  String        @id @default(uuid())
-  requester           User          @relation("UserMatches", fields: [requesterId], references: [id])
-  requesterId         String
-  target              User          @relation("TargetMatches", fields: [targetUserId], references: [id])
-  targetUserId        String
-  status              MatchStatus   @default(PENDING)
-  compatibilityScore  Int?
-  tagsOverlap         Int?          @default(0)
-  isHighlighted       Boolean       @default(false)
-  createdAt           DateTime      @default(now())
-  updatedAt           DateTime      @default(now()) @updatedAt
-  actions             MatchAction[]
+  id                 String        @id @default(uuid())
+  createdAt          DateTime      @default(now())
+  compatibilityScore Int?
+  isHighlighted      Boolean       @default(false)
+  requesterId        String
+  status             MatchStatus   @default(PENDING)
+  tagsOverlap        Int?          @default(0)
+  targetUserId       String
+  updatedAt          DateTime      @default(now()) @updatedAt
+  requester          User          @relation("UserMatches", fields: [requesterId], references: [id])
+  target             User          @relation("TargetMatches", fields: [targetUserId], references: [id])
+  actions            MatchAction[]
 
   @@index([requesterId, targetUserId], map: "idx_match_participants")
 }
 
 model MatchAction {
-  id         String           @id @default(uuid())
-  match      Match?           @relation(fields: [matchId], references: [id])
-  matchId    String?
-  actor      User             @relation(fields: [actorId], references: [id])
-  actorId    String
-  target     User             @relation("MatchActionTarget", fields: [targetUserId], references: [id])
+  id           String          @id @default(uuid())
+  matchId      String?
+  actorId      String
   targetUserId String
-  action     MatchActionType
-  createdAt  DateTime         @default(now())
+  action       MatchActionType
+  createdAt    DateTime        @default(now())
+  actor        User            @relation(fields: [actorId], references: [id])
+  match        Match?          @relation(fields: [matchId], references: [id])
+  target       User            @relation("MatchActionTarget", fields: [targetUserId], references: [id])
 
   @@index([actorId, targetUserId], map: "idx_match_action_actor_target")
 }
 
 model Message {
   id        String   @id @default(uuid())
-  from      User     @relation("MessagesFrom", fields: [fromId], references: [id])
   fromId    String
-  to        User     @relation("MessagesTo", fields: [toId], references: [id])
   toId      String
   text      String
   createdAt DateTime @default(now())
   read      Boolean  @default(false)
+  from      User     @relation("MessagesFrom", fields: [fromId], references: [id])
+  to        User     @relation("MessagesTo", fields: [toId], references: [id])
 }
 
 model ConversationState {
-  id           String   @id @default(uuid())
-  user         User     @relation(fields: [userId], references: [id])
-  userId       String
-  otherUser    User     @relation("ConversationStateOther", fields: [otherUserId], references: [id])
-  otherUserId  String
-  muted        Boolean  @default(false)
-  archived     Boolean  @default(false)
-  lastReadAt   DateTime?
-  updatedAt    DateTime @default(now()) @updatedAt
+  id          String    @id @default(uuid())
+  userId      String
+  otherUserId String
+  muted       Boolean   @default(false)
+  archived    Boolean   @default(false)
+  lastReadAt  DateTime?
+  updatedAt   DateTime  @default(now()) @updatedAt
+  otherUser   User      @relation("ConversationStateOther", fields: [otherUserId], references: [id])
+  user        User      @relation(fields: [userId], references: [id])
 
   @@unique([userId, otherUserId], map: "uniq_conversation_states_user_other")
 }
 
-enum MatchStatus {
-  PENDING
-  CONNECTED
-  PASSED
-}
-
 model Space {
-  id                    String          @id @default(uuid())
-  name                  String          @unique
-  description           String?
-  icon                  String?
-  orientation           String          // "straight" or "lgbtq"
-  createdAt             DateTime        @default(now())
-  members               SpaceMember[]
-  rooms                 Room[]
-  roomCreationLimit     Int             @default(10)
+  id                String        @id @default(uuid())
+  name              String        @unique
+  description       String?
+  createdAt         DateTime      @default(now())
+  icon              String?
+  orientation       String
+  roomCreationLimit Int           @default(10)
+  rooms             Room[]
+  members           SpaceMember[]
 }
 
 model SpaceMember {
-  id        String   @id @default(uuid())
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId    String
-  space     Space    @relation(fields: [spaceId], references: [id], onDelete: Cascade)
-  spaceId   String
-  joinedAt  DateTime @default(now())
+  id       String   @id @default(uuid())
+  userId   String
+  spaceId  String
+  joinedAt DateTime @default(now())
+  space    Space    @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, spaceId], map: "uniq_space_member")
 }
@@ -133,13 +127,13 @@ model Room {
   id          String        @id @default(uuid())
   name        String
   description String?
-  space       Space         @relation(fields: [spaceId], references: [id], onDelete: Cascade)
   spaceId     String
-  creator     User          @relation("RoomCreator", fields: [creatorId], references: [id], onDelete: Cascade)
   creatorId   String
   isPublic    Boolean       @default(true)
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @default(now()) @updatedAt
+  creator     User          @relation("RoomCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+  space       Space         @relation(fields: [spaceId], references: [id], onDelete: Cascade)
   members     RoomMember[]
   messages    RoomMessage[]
 
@@ -148,12 +142,12 @@ model Room {
 }
 
 model RoomMember {
-  id        String   @id @default(uuid())
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId    String
-  room      Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
-  roomId    String
-  joinedAt  DateTime @default(now())
+  id       String   @id @default(uuid())
+  userId   String
+  roomId   String
+  joinedAt DateTime @default(now())
+  room     Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, roomId], map: "uniq_room_member")
   @@index([roomId], map: "idx_room_member_room")
@@ -161,21 +155,15 @@ model RoomMember {
 
 model RoomMessage {
   id        String   @id @default(uuid())
-  room      Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
   roomId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    String
   text      String
   createdAt DateTime @default(now())
+  room      Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([roomId], map: "idx_room_message_room")
   @@index([userId], map: "idx_room_message_user")
-}
-
-enum MatchActionType {
-  LIKE
-  PASS
-  BLOCK
 }
 
 model Audit {
@@ -186,4 +174,16 @@ model Audit {
   targetId  String?
   message   String?
   details   String?
+}
+
+enum MatchStatus {
+  PENDING
+  CONNECTED
+  PASSED
+}
+
+enum MatchActionType {
+  LIKE
+  PASS
+  BLOCK
 }
