@@ -4,6 +4,7 @@ import db from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 
+// Fallback matches (dev only) limited to women to respect heterosexual preference
 const FALLBACK_MATCHES = [
   {
     id: 'seed-sarah',
@@ -18,18 +19,6 @@ const FALLBACK_MATCHES = [
     isHighlighted: false,
   },
   {
-    id: 'seed-michael',
-    name: 'Michael Chen',
-    matchPercent: 92,
-    avatar: 'https://randomuser.me/api/portraits/men/32.jpg',
-    tagline: 'Full-stack maker who spends weekends hiking and discovering food trucks.',
-    role: 'Software Engineer',
-    location: 'Los Angeles, CA',
-    tags: ['Hiking', 'Foodie', 'Photography'],
-    status: 'CONNECTED',
-    isHighlighted: true,
-  },
-  {
     id: 'seed-emma',
     name: 'Emma Rodriguez',
     matchPercent: 90,
@@ -42,18 +31,6 @@ const FALLBACK_MATCHES = [
     isHighlighted: false,
   },
   {
-    id: 'seed-james',
-    name: 'James Wilson',
-    matchPercent: 88,
-    avatar: 'https://randomuser.me/api/portraits/men/61.jpg',
-    tagline: 'Capturing candid moments and scouting new rooftop spots.',
-    role: 'Photographer',
-    location: 'Chicago, IL',
-    tags: ['Photography', 'Live Music'],
-    status: 'CONNECTED',
-    isHighlighted: false,
-  },
-  {
     id: 'seed-aisha',
     name: 'Aisha Bello',
     matchPercent: 87,
@@ -62,6 +39,30 @@ const FALLBACK_MATCHES = [
     role: 'Product Manager',
     location: 'Austin, TX',
     tags: ['Books', 'Podcasts', 'Latte Art'],
+    status: 'CONNECTED',
+    isHighlighted: false,
+  },
+  {
+    id: 'seed-lucy',
+    name: 'Lucy Park',
+    matchPercent: 89,
+    avatar: 'https://randomuser.me/api/portraits/women/82.jpg',
+    tagline: 'Data storyteller who loves sunrise runs and ramen hunts.',
+    role: 'Data Analyst',
+    location: 'Boston, MA',
+    tags: ['Running', 'Foodie', 'Data Viz'],
+    status: 'CONNECTED',
+    isHighlighted: true,
+  },
+  {
+    id: 'seed-hannah',
+    name: 'Hannah Lee',
+    matchPercent: 91,
+    avatar: 'https://randomuser.me/api/portraits/women/15.jpg',
+    tagline: 'Coffee roaster, bookworm, and weekend ceramic artist.',
+    role: 'Product Researcher',
+    location: 'Portland, OR',
+    tags: ['Coffee', 'Books', 'Art'],
     status: 'CONNECTED',
     isHighlighted: false,
   },
