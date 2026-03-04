@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getSession as getLegacySession, setSession } from '@/lib/session';
 import prisma from '@/lib/db';
 import { verifyToken } from '@/lib/jwt';
+import { generateMatchesForUser } from '@/lib/matchmaker';
 
 export const dynamic = 'force-dynamic';
 
@@ -114,6 +115,11 @@ export async function PATCH(req: Request) {
       updated = await prisma.user.update({ where: { id: userId }, data });
     }
     await setSession({ userId });
+
+    if (body.onboardingCompleted) {
+      await generateMatchesForUser(userId);
+    }
+
     return NextResponse.json({ profile: updated });
   } catch (err) {
     console.error('[Profile] Update failed for userId=', userId, err);
