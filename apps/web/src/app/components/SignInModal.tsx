@@ -105,6 +105,15 @@ export function SignInModal({ isOpen, onClose }: SignInModalProps) {
     }
   };
 
+  useEffect(() => {
+    if (success) {
+      const timeout = setTimeout(() => {
+        onClose();
+      }, 300);
+      return () => clearTimeout(timeout);
+    }
+  }, [success, onClose]);
+
   return (
     <AnimatePresence>
       {showToast && error && (
