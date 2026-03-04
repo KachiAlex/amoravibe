@@ -79,6 +79,15 @@ export async function GET(req: Request) {
     return NextResponse.json(FALLBACK_MATCHES, { status: 200 });
   }
 
+  // Load user to respect orientation preference
+  const currentUser = await db.user.findUnique({
+    where: { id: userId },
+    select: { orientation: true, gender: true },
+  });
+
+  const orientation = currentUser?.orientation?.toLowerCase();
+  const wantsWomenOnly = orientation === 'straight';
+
   const matches = await db.match.findMany({
     where: {
       status: 'CONNECTED',
@@ -92,21 +101,28 @@ export async function GET(req: Request) {
     take: Number.isFinite(limit) ? (limit > 0 ? limit : 12) : 12,
   });
 
-  const payload = matches.map((match: any) => {
-    const other = match.requesterId === userId ? match.target : match.requester;
-    return {
-      id: match.id,
-      name: other.displayName ?? other.name ?? 'Match',
-      avatar: other.avatar ?? '',
-      tagline: other.about ?? undefined,
-      role: other.job ?? undefined,
-      city: other.location ?? undefined,
-      tags: other.interests ?? [],
-      matchPercent: match.compatibilityScore ?? 0,
-      status: match.status,
-      highlighted: match.isHighlighted,
-    };
-  });
+  const payload = matches
+    .map((match: any) => {
+      const other = match.requesterId === userId ? match.target : match.requester;
+      return {
+        id: match.id,
+        name: other.displayName ?? other.name ?? 'Match',
+        avatar: other.avatar ?? '',
+        tagline: other.about ?? undefined,
+        role: other.job ?? undefined,
+        city: other.location ?? undefined,
+        tags: other.interests ?? [],
+        matchPercent: match.compatibilityScore ?? 0,
+        status: match.status,
+        highlighted: match.isHighlighted,
+        gender: other.gender ?? undefined,
+      };
+    })
+    // Enforce orientation preference: for straight users, only show female profiles
+    .filter((m) => {
+      if (!wantsWomenOnly) return true;
+      return (m.gender ?? '').toLowerCase() === 'female';
+    });
 
   return NextResponse.json(payload);
 }
