@@ -390,6 +390,44 @@ async function main() {
   }
 
   console.log(`✅ Seeded ${USERS.length} users`);
+
+  await ensureGeneralRoom(straightSpace.id, 'straight', straightSpace.name);
+  await ensureGeneralRoom(lgbtqSpace.id, 'lgbtq', lgbtqSpace.name);
+}
+
+async function ensureGeneralRoom(spaceId: string, orientation: string, spaceName: string) {
+  const existing = await prisma.room.findFirst({
+    where: { spaceId, isGeneral: true },
+  });
+  if (existing) {
+    return existing;
+  }
+  const creator = await prisma.user.findFirst({
+    where: { orientation },
+    select: { id: true },
+  });
+  if (!creator) {
+    console.warn(`⚠️ Unable to seed general room for ${spaceName} — no user with orientation ${orientation}`);
+    return null;
+  }
+  const room = await prisma.room.create({
+    data: {
+      name: 'General Chat',
+      description: `Open chat for everyone in ${spaceName}. Share updates, wins, and check-ins.`,
+      spaceId,
+      creatorId: creator.id,
+      isGeneral: true,
+      isPublic: true,
+    },
+  });
+  await prisma.roomMember.create({
+    data: {
+      roomId: room.id,
+      userId: creator.id,
+    },
+  });
+  console.log(`✅ Seeded general room for ${spaceName}`);
+  return room;
 }
 
 main()

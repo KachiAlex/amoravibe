@@ -31,7 +31,12 @@ type Room = {
   description?: string;
   spaceId: string;
   creatorId: string;
-  createdAt: string;
+  creator: {
+    displayName: string;
+  };
+  createdAt: Date;
+  isGeneral?: boolean;
+  members: any[];
 };
 
 export default function SpacesPanel() {
