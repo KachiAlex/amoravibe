@@ -84,11 +84,6 @@ const DISCOVERY_OPTIONS: { label: string; value: DiscoverySpace; helper: string 
     value: 'lgbtq',
     helper: 'Queer-forward spotlighting.',
   },
-  {
-    label: 'Dual space',
-    value: 'both',
-    helper: 'Blend both lanes (bi / pan / queer).',
-  },
 ];
 
 const MATCH_OPTIONS: { label: string; value: MatchPreference; helper: string }[] = [
