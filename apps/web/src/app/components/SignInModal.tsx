@@ -83,15 +83,17 @@ export function SignInModal({ isOpen, onClose }: SignInModalProps) {
           credentials: 'include',
         });
 
-        if (!res.ok) {
-          const data = await res.json().catch(() => ({}));
+        const payload = await res.json().catch(() => null);
+
+        if (!res.ok || !payload) {
+          const data = payload ?? {};
           setError(data.error || 'Sign in failed');
           setShowToast(true);
           return;
         }
 
         setSuccess('Welcome back! Redirecting…');
-        router.push('/dashboard');
+        router.push(payload.role === 'admin' ? '/admin' : '/dashboard');
       } else {
         // Phone mode not supported with JWT auth
         setError('Phone sign-in is not currently supported');

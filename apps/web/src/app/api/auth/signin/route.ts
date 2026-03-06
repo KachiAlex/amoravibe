@@ -46,7 +46,7 @@ export async function POST(req: Request) {
 
     // Set token in httpOnly cookie
     const response = NextResponse.json(
-      { userId: user.id, email: user.email },
+      { userId: user.id, email: user.email, role: user.role },
       { status: 200 }
     );
 
