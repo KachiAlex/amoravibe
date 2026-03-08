@@ -1,19 +1,26 @@
-export type AdminMetricsSnapshot = {
-  totalUsers: number;
-  activeUsers: number;
-  signupsThisWeek: number;
-  bannedUsers: number;
-};
+import prisma from '@/lib/db';
 
-/**
- * Placeholder metrics loader. In production this will call the trust service.
- * For now we keep the function async so callers can await it uniformly.
- */
-export async function getAdminMetrics(): Promise<AdminMetricsSnapshot> {
+export interface AdminMetricSnapshot {
+  totalMembers: number;
+  activeDay: number;
+  newSignups: number;
+  flaggedAccounts: number;
+}
+
+export async function getAdminMetrics(): Promise<AdminMetricSnapshot> {
+  const dayWindow = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+  const [totalMembers, newSignups, activeDay, flaggedAccounts] = await Promise.all([
+    prisma.user.count(),
+    prisma.user.count({ where: { createdAt: { gte: dayWindow } } }),
+    prisma.match.count({ where: { updatedAt: { gte: dayWindow } } }),
+    prisma.user.count({ where: { banned: true } }),
+  ]);
+
   return {
-    totalUsers: 1200,
-    activeUsers: 350,
-    signupsThisWeek: 24,
-    bannedUsers: 12,
+    totalMembers,
+    activeDay,
+    newSignups,
+    flaggedAccounts,
   };
 }

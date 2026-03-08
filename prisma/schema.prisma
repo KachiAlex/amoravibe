@@ -20,7 +20,6 @@ model User {
   avatar               String?
   about                String?
   interests            String[]
-  lookingFor           String?
   role                 String              @default("user")
   isVerified           Boolean             @default(false)
   banned               Boolean             @default(false)
@@ -31,6 +30,7 @@ model User {
   gender               String?
   orientation          String?
   photos               String[]            @default([])
+  lookingFor           String?
   conversationsAsOther ConversationState[] @relation("ConversationStateOther")
   conversationStates   ConversationState[]
   matchesInitiated     Match[]             @relation("UserMatches")
@@ -131,9 +131,9 @@ model Room {
   spaceId     String
   creatorId   String
   isPublic    Boolean       @default(true)
-  isGeneral   Boolean       @default(false)
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @default(now()) @updatedAt
+  isGeneral   Boolean       @default(false)
   creator     User          @relation("RoomCreator", fields: [creatorId], references: [id], onDelete: Cascade)
   space       Space         @relation(fields: [spaceId], references: [id], onDelete: Cascade)
   members     RoomMember[]

@@ -1,62 +1,71 @@
-export type AdminUser = {
-  id: string;
-  email: string;
-  displayName: string;
-  isVerified?: boolean;
-  banned?: boolean;
-};
+import prisma from '@/lib/db';
 
-const seed: AdminUser[] = [
-  { id: 'local-guest', email: 'guest@local', displayName: 'Local Guest' },
-  { id: 'admin@amoravibe.com', email: 'admin@amoravibe.com', displayName: 'Site Admin' },
-  { id: 'bob@example.com', email: 'bob@example.com', displayName: 'Bob' },
-];
+export type AdminUserStatus = 'all' | 'active' | 'banned';
 
-let usersMap: Record<string, AdminUser> = {};
-
-function hydrateSeed() {
-  usersMap = {};
-  for (const u of seed) {
-    usersMap[u.id] = { ...u };
-  }
+export interface AdminUserQuery {
+  page?: number;
+  limit?: number;
+  search?: string;
+  role?: string;
+  status?: AdminUserStatus;
 }
 
-hydrateSeed();
+const DEFAULT_LIMIT = 25;
+const MAX_LIMIT = 100;
 
-export function resetAdminUsers(overrides?: Record<string, Partial<AdminUser>>) {
-  hydrateSeed();
-  if (overrides) {
-    for (const [id, patch] of Object.entries(overrides)) {
-      if (usersMap[id]) {
-        usersMap[id] = { ...usersMap[id], ...patch };
-      }
-    }
-  }
-}
+export async function queryAdminUsers(params: AdminUserQuery = {}) {
+  const page = Math.max(1, Math.floor(params.page ?? 1));
+  const limit = Math.min(MAX_LIMIT, Math.max(1, Math.floor(params.limit ?? DEFAULT_LIMIT)));
+  const skip = (page - 1) * limit;
+  const search = params.search?.trim();
+  const role = params.role?.trim();
+  const status = params.status ?? 'all';
 
-export function listUsers({ search, limit }: { search?: string; limit?: number } = {}) {
-  let users = Object.values(usersMap);
+  const where: Record<string, unknown> = {};
+
   if (search) {
-    const ql = search.toLowerCase();
-    users = users.filter((u) => (u.email || '').toLowerCase().includes(ql) || (u.displayName || '').toLowerCase().includes(ql));
+    where.OR = [
+      { email: { contains: search, mode: 'insensitive' } },
+      { displayName: { contains: search, mode: 'insensitive' } },
+      { name: { contains: search, mode: 'insensitive' } },
+    ];
   }
-  return { total: users.length, users: users.slice(0, limit || 20) };
-}
 
-export function getUser(id: string) {
-  return usersMap[id] ? { ...usersMap[id] } : null;
-}
+  if (role) {
+    where.role = role;
+  }
 
-export function verifyUser(id: string) {
-  const u = usersMap[id];
-  if (!u) return null;
-  u.isVerified = true;
-  return { ...u };
-}
+  if (status === 'active') {
+    where.banned = false;
+  } else if (status === 'banned') {
+    where.banned = true;
+  }
 
-export function banUser(id: string, ban = true) {
-  const u = usersMap[id];
-  if (!u) return null;
-  u.banned = !!ban;
-  return { ...u };
+  const [total, users] = await Promise.all([
+    prisma.user.count({ where }),
+    prisma.user.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      skip,
+      take: limit,
+      select: {
+        id: true,
+        email: true,
+        displayName: true,
+        role: true,
+        banned: true,
+        createdAt: true,
+        onboardingCompleted: true,
+        location: true,
+      },
+    }),
+  ]);
+
+  return {
+    users,
+    total,
+    page,
+    limit,
+    totalPages: Math.max(1, Math.ceil(total / limit)),
+  };
 }

@@ -58,6 +58,14 @@ export async function POST(req: Request) {
       path: '/',
     });
 
+    response.cookies.set('lovedate_session', JSON.stringify({ userId: user.id }), {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 30 * 24 * 60 * 60, // 30 days
+      path: '/',
+    });
+
     return response;
   } catch (error: any) {
     console.error('[SignIn] Error:', error?.message);

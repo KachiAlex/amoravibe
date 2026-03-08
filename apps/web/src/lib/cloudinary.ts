@@ -8,14 +8,32 @@ export type CloudinaryConfig = {
 };
 
 function readEnv(): CloudinaryConfig {
+  // Support both plain and NEXT_PUBLIC_ prefixed env vars for flexibility
+  const get = (key: string) =>
+    (process.env[key] ?? process.env[`NEXT_PUBLIC_${key}`] ?? '').trim();
+
   const cfg = {
-    cloudName: process.env.CLOUDINARY_CLOUD_NAME ?? '',
-    apiKey: process.env.CLOUDINARY_API_KEY ?? '',
-    apiSecret: process.env.CLOUDINARY_API_SECRET ?? '',
-    uploadPreset: process.env.CLOUDINARY_UPLOAD_PRESET ?? '',
+    cloudName: get('CLOUDINARY_CLOUD_NAME'),
+    apiKey: get('CLOUDINARY_API_KEY'),
+    apiSecret: get('CLOUDINARY_API_SECRET'),
+    // Trim spaces that may be present in the preset name and remove internal whitespace
+    uploadPreset: get('CLOUDINARY_UPLOAD_PRESET').replace(/\s+/g, ''),
   } as const;
 
-  if (!cfg.cloudName || !cfg.apiKey || !cfg.apiSecret || !cfg.uploadPreset) {
+  // Debug log – show which vars are set (mask secret)
+  console.log('[cloudinary] env vars:', {
+    cloudName: cfg.cloudName ? '✅' : '❌',
+    apiKey: cfg.apiKey ? '✅' : '❌',
+    apiSecret: cfg.apiSecret ? '✅' : '❌', // do not print actual secret
+    uploadPreset: cfg.uploadPreset ? '✅' : '❌',
+  });
+
+  // Identify missing variables for clearer error messages
+  const missing = Object.entries(cfg)
+    .filter(([, v]) => !v)
+    .map(([k]) => k);
+  if (missing.length) {
+    console.error('[cloudinary] Missing environment variables:', missing.join(', '));
     throw new Error('Cloudinary environment variables are missing.');
   }
 
@@ -43,10 +61,17 @@ export function buildUploadSignature(extra: Record<string, string | number> = {}
   ensureConfigured();
   const cfg = getCloudinaryConfig();
   const timestamp = Math.round(Date.now() / 1000);
+  // Remove undefined or null values from extra params
+  const cleanedExtra: Record<string, string | number> = {};
+  for (const [key, value] of Object.entries(extra)) {
+    if (value !== undefined && value !== null) {
+      cleanedExtra[key] = value as string | number;
+    }
+  }
   const paramsToSign: Record<string, string | number> = {
     timestamp,
     upload_preset: cfg.uploadPreset,
-    ...extra,
+    ...cleanedExtra,
   };
 
   const signature = cloudinary.utils.api_sign_request(paramsToSign, cfg.apiSecret);
