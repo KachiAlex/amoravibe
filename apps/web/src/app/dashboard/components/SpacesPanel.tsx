@@ -31,18 +31,28 @@ type Room = {
   description?: string;
   spaceId: string;
   creatorId: string;
-  creator: {
-    displayName: string;
-  };
-  createdAt: Date;
+  creatorName: string;
+  createdAt: string;
+  isMember: boolean;
   isGeneral?: boolean;
-  members: any[];
+};
+
+type RoomMessage = {
+  id: string;
+  text: string;
+  createdAt: string;
+  user: {
+    id: string;
+    displayName: string;
+    avatar?: string;
+  };
 };
 
 export default function SpacesPanel() {
   const [spaces, setSpaces] = useState<Space[]>([]);
   const [selectedSpace, setSelectedSpace] = useState<Space | null>(null);
   const [rooms, setRooms] = useState<Room[]>([]);
+  const [generalRoom, setGeneralRoom] = useState<Room | null>(null);
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(false);
   const [showCreateRoomForm, setShowCreateRoomForm] = useState(false);
@@ -53,16 +63,13 @@ export default function SpacesPanel() {
   const [memberSearch, setMemberSearch] = useState('');
   const [memberFilter, setMemberFilter] = useState<'all' | 'online'>('all');
   const [roomSearch, setRoomSearch] = useState('');
-  const [messages, setMessages] = useState<{id:string;author:string;text:string}[]>([]);
+  const [generalMessages, setGeneralMessages] = useState<RoomMessage[]>([]);
+  const [chatInput, setChatInput] = useState('');
+  const [chatLoading, setChatLoading] = useState(false);
+  const [sendingMessage, setSendingMessage] = useState(false);
+  const [chatError, setChatError] = useState<string | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
-
-  const handleSendMessage = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!chatInput.trim()) return;
-    const newMsg = { id: Date.now().toString(), author: 'You', text: chatInput.trim() };
-    setMessages((prev) => [...prev, newMsg]);
-    setChatInput('');
-  };
+  const chatViewportRef = useRef<HTMLDivElement | null>(null);
 
   const fetchSpaces = useCallback(async () => {
     setSpacesLoading(true);
@@ -91,6 +98,7 @@ export default function SpacesPanel() {
     }
   }, []);
 
+  // Fetch spaces on component mount
   useEffect(() => {
     fetchSpaces();
     return () => {
@@ -99,6 +107,14 @@ export default function SpacesPanel() {
       }
     };
   }, [fetchSpaces]);
+
+  // Reset chat when switching spaces
+  useEffect(() => {
+    setGeneralMessages([]);
+    setChatInput('');
+    setGeneralRoom(null);
+    setChatError(null);
+  }, [selectedSpace]);
 
   const fetchRooms = useCallback(async (spaceId: string) => {
     if (abortControllerRef.current) {
@@ -114,7 +130,10 @@ export default function SpacesPanel() {
         signal: abortControllerRef.current.signal
       });
       const data = await res.json();
-      setRooms(data.rooms || []);
+      const fetchedRooms: Room[] = data.rooms || [];
+      setRooms(fetchedRooms);
+      const general = fetchedRooms.find((room) => room.isGeneral);
+      setGeneralRoom(general || null);
     } catch (err) {
       if ((err as Error).name !== 'AbortError') {
         console.error("Failed to fetch rooms", err);
@@ -124,6 +143,53 @@ export default function SpacesPanel() {
       setLoading(false);
     }
   }, []);
+
+  const fetchGeneralMessages = useCallback(async (roomId: string, silent = false) => {
+    if (!roomId) return;
+    if (!silent) setChatLoading(true);
+    try {
+      const res = await fetch(`/api/rooms/${roomId}/messages`, {
+        credentials: 'include',
+      });
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || 'Failed to load chat');
+      }
+      const data = await res.json();
+      setGeneralMessages(data.messages || []);
+      setChatError(null);
+    } catch (err) {
+      console.error('[SpacesPanel] Failed to fetch general chat', err);
+      setChatError('Failed to load chat messages. Please try again.');
+    } finally {
+      if (!silent) setChatLoading(false);
+    }
+  }, []);
+
+  const handleSendGeneralMessage = useCallback(async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!generalRoom || !chatInput.trim()) return;
+    setSendingMessage(true);
+    try {
+      const res = await fetch(`/api/rooms/${generalRoom.id}/messages`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ text: chatInput }),
+      });
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || 'Failed to send message');
+      }
+      setChatInput('');
+      await fetchGeneralMessages(generalRoom.id, true);
+    } catch (err) {
+      console.error('[SpacesPanel] Failed to send chat message', err);
+      setChatError('Unable to send message. Please try again.');
+    } finally {
+      setSendingMessage(false);
+    }
+  }, [generalRoom, chatInput, fetchGeneralMessages]);
 
   const fetchMembers = useCallback(async (spaceId: string) => {
     try {
@@ -141,7 +207,7 @@ export default function SpacesPanel() {
     setSelectedSpace(space);
     setShowCreateRoomForm(false);
     setError(null);
-    setActiveTab('rooms');
+    setActiveTab('chat');
     fetchRooms(space.id);
     fetchMembers(space.id);
   }, [fetchRooms, fetchMembers]);
@@ -155,6 +221,20 @@ export default function SpacesPanel() {
       r.description?.toLowerCase().includes(search)
     );
   }, [rooms, roomSearch]);
+
+  const breakoutRooms = React.useMemo(() => rooms.filter((room) => !room.isGeneral), [rooms]);
+
+  useEffect(() => {
+    if (!generalRoom?.id || activeTab !== 'chat') return;
+    fetchGeneralMessages(generalRoom.id);
+    const refreshInterval = setInterval(() => fetchGeneralMessages(generalRoom.id, true), 10000);
+    return () => clearInterval(refreshInterval);
+  }, [generalRoom?.id, activeTab, fetchGeneralMessages]);
+
+  useEffect(() => {
+    if (!chatViewportRef.current) return;
+    chatViewportRef.current.scrollTop = chatViewportRef.current.scrollHeight;
+  }, [generalMessages]);
 
   const filteredMembers = React.useMemo(() => {
     let filtered = members;
@@ -459,35 +539,132 @@ export default function SpacesPanel() {
         )}
 
         {activeTab === 'chat' && (
-          <div className="space-y-4">
-            <div className="max-h-64 overflow-y-auto border border-gray-200 rounded p-2 bg-white">
-              {messages.length === 0 ? (
-                <p className="text-gray-500 text-center">No messages yet. Start the conversation!</p>
+          <div className="grid gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(220px,1fr)]">
+            <div className="bg-white rounded-3xl border border-gray-100 shadow-xl p-4 md:p-6 flex flex-col min-h-[480px]">
+              <div className="flex items-start justify-between mb-4">
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-gray-400 font-semibold">General Chat</p>
+                  <h3 className="text-xl font-bold text-gray-900">{generalRoom?.name || 'Community Hangout'}</h3>
+                  <p className="text-sm text-gray-500">Everyone in this space hangs out here.</p>
+                </div>
+                {generalRoom && (
+                  <span className="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-600">
+                    Live
+                  </span>
+                )}
+              </div>
+
+              {chatError && (
+                <div className="mb-3 text-sm text-red-600 bg-red-50 border border-red-100 rounded-xl px-3 py-2">
+                  {chatError}
+                </div>
+              )}
+
+              {!generalRoom ? (
+                <div className="flex-1 flex items-center justify-center text-center text-gray-500 text-sm">
+                  This space hasn’t spawned its general room yet. Try refreshing or creating a room.
+                </div>
               ) : (
-                messages.map((msg) => (
-                  <div key={msg.id} className="flex gap-2 mb-2">
-                    <span className="font-semibold">{msg.author}:</span>
-                    <span>{msg.text}</span>
+                <>
+                  <div
+                    ref={chatViewportRef}
+                    className="flex-1 overflow-y-auto rounded-2xl border border-gray-100 bg-gradient-to-b from-gray-50/60 to-white px-3 py-4 space-y-4"
+                  >
+                    {chatLoading && generalMessages.length === 0 ? (
+                      <div className="text-center text-gray-500 text-sm">Loading conversation…</div>
+                    ) : generalMessages.length === 0 ? (
+                      <div className="text-center text-gray-500 text-sm">No messages yet. Say hi to everyone!</div>
+                    ) : (
+                      generalMessages.map((msg) => (
+                        <div key={msg.id} className="flex gap-3 items-start">
+                          <div className="h-10 w-10 rounded-full bg-gradient-to-br from-fuchsia-100 to-purple-100 flex items-center justify-center text-sm font-bold text-fuchsia-700 overflow-hidden">
+                            {msg.user.avatar ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img src={msg.user.avatar} alt={msg.user.displayName} className="h-10 w-10 object-cover" />
+                            ) : (
+                              msg.user.displayName[0]?.toUpperCase()
+                            )}
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 text-sm">
+                              <span className="font-semibold text-gray-900">{msg.user.displayName}</span>
+                              <span className="text-xs text-gray-400">{new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                            )
+                            </div>
+                            <p className="text-gray-800 text-sm leading-relaxed">{msg.text}</p>
+                          </div>
+                        </div>
+                      ))
+                    )}
                   </div>
-                ))
+
+                  <form onSubmit={handleSendGeneralMessage} className="mt-4 flex flex-col gap-2">
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={chatInput}
+                        onChange={(e) => setChatInput(e.target.value)}
+                        placeholder="Share an update with everyone…"
+                        className="flex-1 rounded-2xl border-2 border-gray-200 px-4 py-3 text-sm focus:border-fuchsia-500 focus:outline-none"
+                        disabled={sendingMessage}
+                      />
+                      <button
+                        type="submit"
+                        className="rounded-2xl bg-gradient-to-r from-fuchsia-500 to-purple-500 text-white px-5 py-3 font-semibold disabled:opacity-60"
+                        disabled={sendingMessage || !chatInput.trim()}
+                      >
+                        {sendingMessage ? 'Sending…' : 'Send'}
+                      </button>
+                    </div>
+                    <p className="text-xs text-gray-400 text-right">Messages are visible to all members of this space.</p>
+                  </form>
+                </>
               )}
             </div>
-            <form onSubmit={handleSendMessage} className="flex gap-2">
-              <input
-                type="text"
-                value={chatInput}
-                onChange={(e) => setChatInput(e.target.value)}
-                placeholder="Type a message..."
-                className="flex-1 rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:border-fuchsia-500"
-              />
-              <button
-                type="submit"
-                className="rounded-full bg-fuchsia-500 text-white px-4 py-2 disabled:opacity-50"
-                disabled={loading}
-              >
-                Send
-              </button>
-            </form>
+
+            <div className="bg-white rounded-3xl border border-gray-100 shadow-xl p-4 md:p-6 space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-gray-400 font-semibold">Breakout rooms</p>
+                  <h4 className="text-lg font-bold text-gray-900">Focused conversations</h4>
+                </div>
+                {selectedSpace?.isMember && (
+                  <button
+                    onClick={() => {
+                      setActiveTab('rooms');
+                      setShowCreateRoomForm(true);
+                    }}
+                    className="text-xs font-semibold text-fuchsia-600 hover:text-fuchsia-800"
+                  >
+                    + Create
+                  </button>
+                )}
+              </div>
+
+              {breakoutRooms.length === 0 ? (
+                <p className="text-sm text-gray-500">No breakout rooms yet. Spin one up for deep dives.</p>
+              ) : (
+                <div className="space-y-3">
+                  {breakoutRooms.slice(0, 4).map((room) => (
+                    <div key={room.id} className="border border-gray-100 rounded-2xl px-4 py-3">
+                      <p className="text-sm font-semibold text-gray-900 mb-1">{room.name}</p>
+                      {room.description && <p className="text-xs text-gray-500 line-clamp-2">{room.description}</p>}
+                      <button className="mt-3 w-full rounded-full border border-fuchsia-100 text-fuchsia-600 text-sm font-semibold py-2 hover:bg-fuchsia-50 transition">
+                        Enter room
+                      </button>
+                    </div>
+                  ))}
+                  {breakoutRooms.length > 4 && (
+                    <button
+                      onClick={() => setActiveTab('rooms')}
+                      className="w-full text-xs font-semibold text-gray-500 hover:text-gray-700"
+                    >
+                      View all rooms
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>
