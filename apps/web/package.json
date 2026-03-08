@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 5001",
-    "build": "prisma generate --schema=../../prisma/schema.prisma && next build",
+    "build": "node ../../scripts/run-prisma-from-root.mjs generate && next build",
     "sentry:release": "npx sentry-cli releases new $npm_package_version && npx sentry-cli releases files $npm_package_version upload-sourcemaps .next --rewrite",
     "start": "next start",
     "start:playwright": "cross-env PORT=4000 next start",
@@ -15,14 +15,13 @@
     "check:duplicate-api-routes": "node scripts/check-duplicate-api-routes.js",
     "prelint": "npm run check:duplicate-api-routes",
     "lint": "eslint --ext .ts,.tsx,.js,.jsx --max-warnings=0 .",
-    "prisma:generate": "prisma generate --schema=../../prisma/schema.prisma",
-    "prisma:migrate:dev": "prisma migrate dev --schema=../../prisma/schema.prisma --name init",
-    "postinstall": "prisma generate --schema=../../prisma/schema.prisma"
+    "prisma:generate": "node ../../scripts/run-prisma-from-root.mjs generate",
+    "prisma:migrate:dev": "node ../../scripts/run-prisma-from-root.mjs migrate dev --name init",
+    "postinstall": "node ../../scripts/run-prisma-from-root.mjs generate"
   },
   "dependencies": {
     "@lovedate/api": "file:../../packages/api",
     "@lovedate/ui": "file:../../packages/ui",
-    "@prisma/adapter-better-sqlite3": "^7.4.2",
     "@prisma/adapter-pg": "^7.4.2",
     "@prisma/client": "^7.4.2",
     "@sentry/node": "^8.12.0",
@@ -30,7 +29,6 @@
     "@upstash/redis": "^1.36.1",
     "baseline-browser-mapping": "^2.10.0",
     "bcryptjs": "^3.0.3",
-    "better-sqlite3": "^9.6.0",
     "browserslist": "^4.28.1",
     "caniuse-lite": "^1.0.30001774",
     "cloudinary": "^1.41.0",
