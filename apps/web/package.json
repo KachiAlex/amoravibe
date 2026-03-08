@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 4000",
+    "dev": "next dev -p 5001",
     "build": "prisma generate --schema=../../prisma/schema.prisma && next build",
     "sentry:release": "npx sentry-cli releases new $npm_package_version && npx sentry-cli releases files $npm_package_version upload-sourcemaps .next --rewrite",
     "start": "next start",
@@ -22,12 +22,15 @@
   "dependencies": {
     "@lovedate/api": "file:../../packages/api",
     "@lovedate/ui": "file:../../packages/ui",
-    "@prisma/client": "5.22.0",
+    "@prisma/adapter-better-sqlite3": "^7.4.2",
+    "@prisma/adapter-pg": "^7.4.2",
+    "@prisma/client": "^7.4.2",
     "@sentry/node": "^8.12.0",
     "@upstash/ratelimit": "^2.0.8",
     "@upstash/redis": "^1.36.1",
     "baseline-browser-mapping": "^2.10.0",
     "bcryptjs": "^3.0.3",
+    "better-sqlite3": "^9.6.0",
     "browserslist": "^4.28.1",
     "caniuse-lite": "^1.0.30001774",
     "cloudinary": "^1.41.0",
@@ -55,7 +58,7 @@
     "eslint": "^8.57.0",
     "eslint-config-next": "14.2.7",
     "postcss": "^8.5.6",
-    "prisma": "5.22.0",
+    "prisma": "^7.4.2",
     "tailwindcss": "^4.2.1",
     "typescript": "^5"
   }

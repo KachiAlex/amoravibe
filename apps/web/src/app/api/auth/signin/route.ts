@@ -18,16 +18,29 @@ export async function POST(req: Request) {
     }
 
     // Find user by email
-    const user = await prisma.user.findUnique({
+    let user = await prisma.user.findUnique({
       where: { email: email.toLowerCase() },
     });
 
-    if (!user || !user.hashedPassword) {
-      return NextResponse.json(
-        { error: 'Invalid email or password' },
-        { status: 401 }
-      );
+    // If user does not exist (dev mode), create a temporary account using provided password
+    if (!user) {
+      // Only allow auto-creation in development environment
+      if (process.env.NODE_ENV !== 'development') {
+        return NextResponse.json(
+          { error: 'Invalid email or password' },
+          { status: 401 }
+        );
+      }
+      const hashed = await import('bcryptjs').then(m => m.hash(password, 10));
+      user = await prisma.user.create({
+        data: {
+          email: email.toLowerCase(),
+          hashedPassword: hashed,
+          role: 'user',
+        },
+      });
     }
+
 
     // Verify password
     const isValid = await compare(password, user.hashedPassword);

@@ -1,8 +1,12 @@
+export const runtime = 'nodejs';
+
 import { NextResponse } from 'next/server';
-import { buildUploadSignature } from '@/lib/cloudinary';
+import { buildUploadSignature, getCloudinaryConfig } from '@/lib/cloudinary';
 
 export async function POST(request: Request) {
   try {
+    // Validate config up front so we can return a clearer error when env vars are missing
+    const cfg = getCloudinaryConfig();
     const body = await request.json().catch(() => ({}));
     console.log('[uploads/sign] received body:', body);
     const folder = typeof body.folder === 'string' ? body.folder : undefined;
@@ -23,13 +27,13 @@ export async function POST(request: Request) {
     return NextResponse.json({
       signature: signature.signature,
       timestamp: signature.timestamp,
-      cloudName: signature.cloudName,
-      apiKey: signature.apiKey,
-      uploadPreset: signature.uploadPreset,
+      cloudName: cfg.cloudName,
+      apiKey: cfg.apiKey,
+      uploadPreset: cfg.uploadPreset,
       params: signature.paramsToSign,
     });
   } catch (error) {
     console.error('[uploads/sign] failed', error);
-    return NextResponse.json({ error: 'Unable to generate upload signature' }, { status: 500 });
+    return NextResponse.json({ error: 'Unable to generate upload signature. Check Cloudinary env vars.' }, { status: 500 });
   }
 }

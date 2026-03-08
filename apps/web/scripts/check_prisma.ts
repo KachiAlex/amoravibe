@@ -1,7 +1,7 @@
-import { PrismaClient } from '@prisma/client';
+import { createPgPrismaClient } from './utils/createPgPrismaClient';
 
 async function main() {
-  const prisma = new PrismaClient();
+  const prisma = createPgPrismaClient();
   console.log('prisma instance created');
   // Check if 'space' delegate exists
   console.log('has space:', typeof (prisma as any).space);

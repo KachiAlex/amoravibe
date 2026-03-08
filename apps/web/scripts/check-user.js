@@ -1,5 +1,18 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
+require('dotenv/config');
 const { PrismaClient } = require('../../../prisma/node_modules/.prisma/client');
+const { PrismaPg } = require('@prisma/adapter-pg');
+
+function createPrisma() {
+  const connectionString = process.env.DATABASE_URL;
+  if (!connectionString) {
+    console.error('DATABASE_URL is required to run this script.');
+    process.exit(1);
+  }
+
+  const adapter = new PrismaPg({ connectionString });
+  return new PrismaClient({ adapter });
+}
 
 async function main() {
   const email = process.argv[2];
@@ -8,7 +21,7 @@ async function main() {
     process.exit(1);
   }
 
-  const prisma = new PrismaClient();
+  const prisma = createPrisma();
   try {
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {

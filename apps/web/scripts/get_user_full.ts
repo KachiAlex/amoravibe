@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { createPgPrismaClient } from './utils/createPgPrismaClient';
 
 async function main() {
   const email = process.argv[2];
@@ -6,7 +6,7 @@ async function main() {
     console.error('Usage: tsx scripts/get_user_full.ts <email>');
     process.exit(1);
   }
-  const prisma = new PrismaClient();
+  const prisma = createPgPrismaClient();
   const user = await prisma.user.findUnique({ where: { email } });
   if (!user) {
     console.log('User not found');

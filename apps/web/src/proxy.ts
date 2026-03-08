@@ -4,7 +4,7 @@ import { resolveTrustApiBase } from '@/lib/trust-upstream';
 
 const upstreamBase = resolveTrustApiBase();
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
   // Handle /api/trust/* requests
