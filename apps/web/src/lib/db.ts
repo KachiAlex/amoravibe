@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import { getPgAdapter } from '@/lib/prisma-adapter';
 
 let prisma: PrismaClient | null = null;
 let connectionAttempts = 0;
@@ -9,6 +10,7 @@ function getPrisma() {
 
 	try {
 		prisma = new PrismaClient({
+			adapter: getPgAdapter(),
 			log: process.env.NODE_ENV === 'development' ? ['warn', 'error'] : ['error'],
 		});
 
