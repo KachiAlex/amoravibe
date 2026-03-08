@@ -12,16 +12,6 @@ function getPrisma() {
 			log: process.env.NODE_ENV === 'development' ? ['warn', 'error'] : ['error'],
 		});
 
-		// Handle connection errors gracefully
-		prisma.$on('error', (e) => {
-			console.error('[Prisma] Database error:', e.message);
-			// Reset connection on error to allow reconnection
-			if (e.message.includes('Can\'t reach database server')) {
-				prisma = null;
-				connectionAttempts = 0;
-			}
-		});
-
 		connectionAttempts = 0;
 		return prisma;
 	} catch (err) {

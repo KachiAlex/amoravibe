@@ -1,25 +1,21 @@
-import type { AuditEntry } from '@/pages/api/trust/admin/auditStore';
+import prisma from '@/lib/db';
+
+type AuditEntry = {
+  actorId: string;
+  action: string;
+  targetId?: string | null;
+  message?: string | null;
+  details?: unknown;
+  timestamp: Date;
+};
 
 // Lightweight persistence adaptor: prefers Prisma (if available) and falls back to in-memory mock store.
-export async function withPrisma<T>(fn: (prisma: any) => Promise<T>): Promise<T | null> {
+export async function withPrisma<T>(fn: (client: typeof prisma) => Promise<T>): Promise<T | null> {
   try {
-    // Try to load the generated Prisma client. If it isn't installed (e.g. local mock env),
-    // swallow the error and fall back to in-memory persistence.
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const PrismaClientModule = require('@prisma/client');
-
-    const { PrismaClient } = PrismaClientModule;
-    const prisma = new PrismaClient();
-    try {
-      const r = await fn(prisma);
-      await prisma.$disconnect();
-      return r;
-    } catch (err) {
-      await prisma.$disconnect();
-      throw err;
-    }
+    const result = await fn(prisma);
+    return result;
   } catch (err) {
-    // Prisma not available or error - indicate by returning null
+    console.warn('[persistence] Prisma unavailable, falling back to mock store', err);
     return null;
   }
 }
