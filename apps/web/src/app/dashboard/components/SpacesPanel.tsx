@@ -49,12 +49,20 @@ export default function SpacesPanel() {
   const [roomFormData, setRoomFormData] = useState({ name: '', description: '' });
   const [spacesLoading, setSpacesLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'rooms' | 'members' | 'events'>('rooms');
+  const [activeTab, setActiveTab] = useState<'rooms' | 'members' | 'events' | 'chat'>('rooms');
   const [memberSearch, setMemberSearch] = useState('');
   const [memberFilter, setMemberFilter] = useState<'all' | 'online'>('all');
   const [roomSearch, setRoomSearch] = useState('');
-  
-  const abortControllerRef = useRef<AbortController>();
+  const [messages, setMessages] = useState<{id:string;author:string;text:string}[]>([]);
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  const handleSendMessage = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!chatInput.trim()) return;
+    const newMsg = { id: Date.now().toString(), author: 'You', text: chatInput.trim() };
+    setMessages((prev) => [...prev, newMsg]);
+    setChatInput('');
+  };
 
   const fetchSpaces = useCallback(async () => {
     setSpacesLoading(true);
@@ -261,14 +269,14 @@ export default function SpacesPanel() {
               👥 Members
             </button>
             <button
-              onClick={() => setActiveTab('events')}
+              onClick={() => setActiveTab('chat')}
               className={`flex-1 rounded-full px-4 py-2 text-sm font-semibold transition ${
-                activeTab === 'events'
+                activeTab === 'chat'
                   ? 'bg-white text-fuchsia-700 shadow-sm'
                   : 'text-gray-600 hover:text-gray-900'
               }`}
             >
-              📅 Events
+              💬 Chat
             </button>
           </div>
         </div>
@@ -450,16 +458,36 @@ export default function SpacesPanel() {
           </>
         )}
 
-        {activeTab === 'events' && (
-          <div className="text-center py-12">
-            <div className="text-6xl mb-4">📅</div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-2">Events Coming Soon</h3>
-            <p className="text-gray-600 mb-6">
-              Create and join meetups, virtual hangouts, and community events.
-            </p>
-            <button className="bg-gradient-to-r from-fuchsia-500 to-purple-500 text-white px-6 py-3 rounded-full font-semibold shadow-lg hover:shadow-xl transition">
-              Create Event
-            </button>
+        {activeTab === 'chat' && (
+          <div className="space-y-4">
+            <div className="max-h-64 overflow-y-auto border border-gray-200 rounded p-2 bg-white">
+              {messages.length === 0 ? (
+                <p className="text-gray-500 text-center">No messages yet. Start the conversation!</p>
+              ) : (
+                messages.map((msg) => (
+                  <div key={msg.id} className="flex gap-2 mb-2">
+                    <span className="font-semibold">{msg.author}:</span>
+                    <span>{msg.text}</span>
+                  </div>
+                ))
+              )}
+            </div>
+            <form onSubmit={handleSendMessage} className="flex gap-2">
+              <input
+                type="text"
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                placeholder="Type a message..."
+                className="flex-1 rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:border-fuchsia-500"
+              />
+              <button
+                type="submit"
+                className="rounded-full bg-fuchsia-500 text-white px-4 py-2 disabled:opacity-50"
+                disabled={loading}
+              >
+                Send
+              </button>
+            </form>
           </div>
         )}
       </div>
