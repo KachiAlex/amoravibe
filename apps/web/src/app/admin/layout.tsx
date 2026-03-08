@@ -6,6 +6,7 @@ const NAV_LINKS = [
   { href: '/admin', label: 'Overview' },
   { href: '/admin/users', label: 'Users' },
   { href: '/admin/reports', label: 'Reports' },
+  { href: '/admin/spaces', label: 'Spaces' },
   { href: '/admin/system', label: 'System' },
 ];
 
