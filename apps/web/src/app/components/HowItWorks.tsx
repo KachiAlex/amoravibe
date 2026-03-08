@@ -36,57 +36,42 @@ const steps = [
 
 export function HowItWorks() {
   return (
-    <section id="how-it-works" className="py-20 bg-white relative overflow-hidden">
-      {/* Background decoration */}
-      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600"></div>
-
+    <section id="how-it-works" className="aurora-section py-24 text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            How It{' '}
-            <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-              Works
-            </span>
-          </h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Four simple steps to finding your perfect match
+        <div className="text-center mb-16 space-y-4">
+          <span className="section-badge mx-auto text-white/80">How it works</span>
+          <h2 className="text-3xl md:text-5xl font-display gradient-heading">Four cinematic steps</h2>
+          <p className="text-lg text-white/75 max-w-3xl mx-auto">
+            A guided journey that mirrors the hero experience—immersive, safe, and impossibly smooth.
           </p>
         </div>
 
         {/* Steps Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 relative">
-          {/* Connecting line - desktop only */}
-          <div className="hidden lg:block absolute top-16 left-0 right-0 h-0.5 bg-gradient-to-r from-purple-200 via-pink-200 to-red-200 -z-10"></div>
-
           {steps.map((step, index) => {
             const Icon = step.icon;
             return (
               <div key={index} className="relative text-center">
                 {/* Number badge */}
-                <div
-                  className={`absolute -top-4 right-4 w-12 h-12 rounded-full bg-gradient-to-br ${step.color} flex items-center justify-center text-white font-bold text-sm shadow-lg z-10 hover:scale-110 transition-transform`}
-                >
-                  {step.number}
+                <div className="absolute -top-4 right-4">
+                  <div className="frosted-pill text-sm font-semibold text-white/90 shadow-lg shadow-black/30">
+                    {step.number}
+                  </div>
                 </div>
 
                 {/* Card */}
-                <div className="bg-gradient-to-br from-gray-50 to-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300 relative overflow-hidden group h-full">
-                  {/* Icon background glow */}
-                  <div
-                    className={`absolute inset-0 bg-gradient-to-br ${step.color} opacity-0 group-hover:opacity-5 transition-opacity duration-300`}
-                  ></div>
-
+                <div className="glass-panel h-full p-8 transition hover:-translate-y-1 hover:shadow-[0_25px_80px_rgba(0,0,0,0.35)]">
                   {/* Icon */}
                   <div
-                    className={`w-16 h-16 mx-auto mb-6 rounded-2xl bg-gradient-to-br ${step.color} flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}
+                    className={`w-16 h-16 mx-auto mb-6 rounded-2xl bg-gradient-to-br ${step.color} flex items-center justify-center shadow-lg shadow-black/30`}
                   >
-                    <Icon className="w-8 h-8 text-white" />
+                    <Icon className="w-8 h-8 text-white" aria-hidden />
                   </div>
 
                   {/* Content */}
-                  <h3 className="text-xl font-bold mb-3 text-gray-900">{step.title}</h3>
-                  <p className="text-gray-600">{step.description}</p>
+                  <h3 className="text-xl font-bold mb-3 text-white">{step.title}</h3>
+                  <p className="text-white/70">{step.description}</p>
                 </div>
               </div>
             );

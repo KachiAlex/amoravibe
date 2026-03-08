@@ -58,18 +58,14 @@ const plans = [
 
 export function Pricing() {
   return (
-    <section id="pricing" className="py-20 bg-gradient-to-b from-gray-50 to-white">
+    <section id="pricing" className="aurora-section py-24 text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Choose Your{' '}
-            <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-              Perfect Plan
-            </span>
-          </h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Start free and upgrade anytime to unlock premium features
+        <div className="text-center mb-16 space-y-4">
+          <span className="section-badge mx-auto text-white/80">Membership</span>
+          <h2 className="text-3xl md:text-5xl font-display gradient-heading">Choose your perfect plan</h2>
+          <p className="text-lg text-white/75 max-w-2xl mx-auto">
+            Start free and upgrade anytime to unlock concierge-grade features and priority intros.
           </p>
         </div>
 
@@ -81,7 +77,7 @@ export function Pricing() {
               {plan.popular && (
                 <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
                   <div
-                    className={`bg-gradient-to-r ${plan.color} text-white px-4 py-1.5 rounded-full text-sm font-medium flex items-center gap-1 shadow-lg`}
+                    className={`frosted-pill text-sm font-semibold text-white px-4 py-1.5`}
                   >
                     <Sparkles className="w-4 h-4" />
                     Most Popular
@@ -90,23 +86,23 @@ export function Pricing() {
               )}
 
               <div
-                className={`bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 h-full flex flex-col ${
-                  plan.popular ? 'ring-2 ring-purple-600 ring-offset-4' : ''
+                className={`glass-panel overflow-hidden transition-all duration-300 h-full flex flex-col ${
+                  plan.popular ? 'glass-panel--accent' : ''
                 }`}
               >
                 {/* Plan Header */}
                 <div
-                  className={`p-8 rounded-t-2xl ${plan.popular ? 'bg-gradient-to-br from-purple-50 to-pink-50' : ''}`}
+                  className={`p-8 rounded-t-2xl ${plan.popular ? 'bg-white/5' : 'bg-white/[0.03]'}`}
                 >
-                  <h3 className="text-2xl font-bold mb-2 text-gray-900">{plan.name}</h3>
-                  <p className="text-gray-600 text-sm mb-4">{plan.description}</p>
+                  <h3 className="text-2xl font-bold mb-2 text-white">{plan.name}</h3>
+                  <p className="text-white/70 text-sm mb-4">{plan.description}</p>
                   <div className="flex items-end gap-2">
                     <span
                       className={`text-4xl font-bold bg-gradient-to-r ${plan.color} bg-clip-text text-transparent`}
                     >
                       {plan.price}
                     </span>
-                    <span className="text-gray-600 text-sm mb-2">/{plan.period}</span>
+                    <span className="text-white/70 text-sm mb-2">/{plan.period}</span>
                   </div>
                 </div>
 
@@ -120,7 +116,7 @@ export function Pricing() {
                         >
                           <Check className="w-3 h-3 text-white stroke-[3]" />
                         </div>
-                        <span className="text-gray-700">{feature}</span>
+                        <span className="text-white/75">{feature}</span>
                       </li>
                     ))}
                   </ul>
@@ -129,10 +125,10 @@ export function Pricing() {
                 {/* CTA Button */}
                 <div className="p-8 pt-0">
                   <OpenOnboardingButton
-                    className={`w-full inline-block py-3 px-6 rounded-full font-medium transition-all text-center ${
+                    className={`w-full inline-flex items-center justify-center py-3 px-6 rounded-full font-semibold transition-all text-center ${
                       plan.popular
-                        ? 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white'
-                        : 'bg-white border-2 border-gray-300 hover:border-gray-400 text-gray-900'
+                        ? 'iridescent-button'
+                        : 'frosted-pill border-white/40 text-white'
                     }`}
                   >
                     {plan.name === 'Free' ? 'Get Started Free' : `Choose ${plan.name}`}
@@ -144,9 +140,9 @@ export function Pricing() {
         </div>
 
         {/* Money Back Guarantee */}
-        <div className="text-center mt-12">
-          <p className="text-gray-600">
-            <span className="font-semibold">30-day money-back guarantee</span> • Cancel anytime • No
+        <div className="text-center mt-12 text-white/70">
+          <p>
+            <span className="font-semibold text-white">30-day money-back guarantee</span> • Cancel anytime • No
             hidden fees
           </p>
         </div>

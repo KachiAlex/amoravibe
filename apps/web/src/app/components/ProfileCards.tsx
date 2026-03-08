@@ -45,18 +45,14 @@ const profiles = [
 
 export function ProfileCards() {
   return (
-    <section className="py-20 bg-gradient-to-b from-white to-gray-50">
+    <section className="aurora-section py-24 text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Meet{' '}
-            <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-              Amazing People
-            </span>
-          </h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Connect with singles who share your interests and values
+        <div className="text-center mb-16 space-y-4">
+          <span className="section-badge mx-auto text-white/80">Spotlight</span>
+          <h2 className="text-3xl md:text-5xl font-display gradient-heading">Meet amazing people</h2>
+          <p className="text-lg text-white/75 max-w-2xl mx-auto">
+            Connect with singles who share your rituals, values, and pace—curated directly from the hero grid.
           </p>
         </div>
 
@@ -64,7 +60,7 @@ export function ProfileCards() {
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {profiles.map((profile, index) => (
             <div key={index} className="group">
-              <div className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300">
+              <div className="glass-panel overflow-hidden transition-all duration-300">
                 {/* Image Container */}
                 <div className="relative aspect-[3/4] overflow-hidden">
                   <Image
@@ -98,8 +94,8 @@ export function ProfileCards() {
                   </div>
 
                   {/* Like Button */}
-                  <button className="absolute bottom-5 right-5 w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:scale-110">
-                    <Heart className="w-6 h-6 text-pink-500 group-hover:fill-pink-500 transition-colors" />
+                  <button className="absolute bottom-5 right-5 w-12 h-12 bg-white/90 rounded-full flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition duration-300 hover:scale-110">
+                    <Heart className="w-6 h-6 text-rose-500 group-hover:fill-rose-500 transition-colors" aria-hidden />
                   </button>
                 </div>
 
@@ -109,7 +105,7 @@ export function ProfileCards() {
                     {profile.interests.map((interest, idx) => (
                       <span
                         key={idx}
-                        className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium"
+                        className="px-3 py-1 bg-white/10 text-white/80 rounded-full text-xs font-medium"
                       >
                         {interest}
                       </span>
@@ -123,9 +119,7 @@ export function ProfileCards() {
 
         {/* View More Button */}
         <div className="text-center mt-12">
-          <button className="px-8 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-full font-medium transition-all duration-300 hover:shadow-lg">
-            View More Profiles
-          </button>
+          <button className="iridescent-button font-semibold">View More Profiles</button>
         </div>
       </div>
     </section>

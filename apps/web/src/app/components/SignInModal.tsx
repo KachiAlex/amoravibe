@@ -1,6 +1,7 @@
 'use client';
 
-import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import type { FormEvent, MouseEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { getAuthErrorMessage } from '@/lib/auth-errors';
 import { AnimatePresence, motion } from '@/lib/motion-shim';
@@ -141,7 +142,7 @@ export function SignInModal({ isOpen, onClose }: SignInModalProps) {
                 exit={{ opacity: 0, scale: 0.95, y: 20 }}
                 transition={{ type: 'spring', duration: 0.4 }}
                 className="relative w-full max-w-md"
-                onClick={(event) => event.stopPropagation()}
+                onClick={(event: MouseEvent<HTMLDivElement>) => event.stopPropagation()}
               >
                 <button
                   type="button"
@@ -154,13 +155,10 @@ export function SignInModal({ isOpen, onClose }: SignInModalProps) {
 
                 <div className="rounded-3xl bg-white p-8 shadow-2xl border border-gray-100">
                   <div className="mb-6 text-center">
-                    <p className="text-xs uppercase tracking-[0.4em] text-ink-600">Lovedate</p>
+                    <p className="text-xs uppercase tracking-[0.4em] text-ink-600">Amoravibe</p>
                     <h2 className="mt-3 font-display text-3xl bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
                       Sign in to continue
                     </h2>
-                    <p className="mt-2 text-sm bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent font-semibold">
-                      Secure access to your trust dashboard.
-                    </p>
                   </div>
 
                   <form onSubmit={handleSubmit} className="space-y-5">

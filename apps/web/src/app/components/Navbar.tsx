@@ -2,7 +2,6 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { OpenOnboardingButton } from '@/app/onboarding/OpenOnboardingButton';
 import { useState } from 'react';
 import { Menu, X } from 'lucide-react';
 import { useOnboardingModal } from '@/app/providers/OnboardingModalProvider';
@@ -21,7 +20,7 @@ export function Navbar() {
   const { openModal: openSignInModal } = useSignInModal();
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-lg border-b border-gray-200">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-midnight-900/70 backdrop-blur-2xl border-b border-white/10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
@@ -34,7 +33,7 @@ export function Navbar() {
               priority
               className="w-12 h-12 rounded-full object-cover shadow-sm"
             />
-            <span className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+            <span className="text-2xl font-bold gradient-heading">
               AmoraVibe
             </span>
           </Link>
@@ -45,36 +44,33 @@ export function Navbar() {
               <a
                 key={link.href}
                 href={link.href}
-                className="text-gray-700 hover:text-purple-600 transition-colors"
+                className="text-white/70 hover:text-white transition-colors"
               >
                 {link.label}
               </a>
             ))}
           </div>
 
-          {/* Desktop CTA Buttons */}
-          <div className="hidden md:flex items-center gap-4">
+          {/* Desktop CTA */}
+          <div className="hidden md:flex items-center">
             <button
               type="button"
               onClick={openSignInModal}
-              className="text-gray-700 hover:text-purple-600 transition-colors"
+              className="iridescent-button px-6 py-2 text-base"
             >
               Sign In
             </button>
-            <OpenOnboardingButton className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-6 py-2 rounded-full font-medium transition-all">
-              Get Started
-            </OpenOnboardingButton>
           </div>
 
           {/* Mobile Menu Button */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
+            className="md:hidden p-2 rounded-lg hover:bg-white/10 transition-colors"
           >
             {mobileMenuOpen ? (
-              <X className="w-6 h-6 text-gray-700" />
+              <X className="w-6 h-6 text-white" />
             ) : (
-              <Menu className="w-6 h-6 text-gray-700" />
+              <Menu className="w-6 h-6 text-white" />
             )}
           </button>
         </div>
@@ -82,35 +78,29 @@ export function Navbar() {
 
       {/* Mobile Menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden bg-white border-t border-gray-200">
+        <div className="md:hidden bg-midnight-900/90 border-t border-white/10 backdrop-blur-xl">
           <div className="px-4 py-4 space-y-3">
             {navLinks.map((link) => (
               <a
                 key={link.href}
                 href={link.href}
-                className="block py-2 text-gray-700 hover:text-purple-600 transition-colors"
+                className="block py-2 text-white/70 hover:text-white transition-colors"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 {link.label}
               </a>
             ))}
-            <div className="pt-2 space-y-2">
+            <div className="pt-2">
               <button
                 type="button"
                 onClick={() => {
                   openSignInModal();
                   setMobileMenuOpen(false);
                 }}
-                className="block w-full py-2 text-left text-gray-700 hover:text-purple-600 transition-colors"
+                className="block w-full iridescent-button text-center"
               >
                 Sign In
               </button>
-              <OpenOnboardingButton
-                onClick={() => setMobileMenuOpen(false)}
-                className="block w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-6 py-2 rounded-full font-medium transition-all text-center"
-              >
-                Get Started
-              </OpenOnboardingButton>
             </div>
           </div>
         </div>
