@@ -2,6 +2,19 @@
   "name": "@lovedate/api",
   "version": "0.0.0-stub",
   "private": true,
+  "description": "Shared API types and interfaces for Lovedate applications",
   "main": "dist/index.js",
-  "types": "dist/index.d.ts"
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "echo 'API package is pre-built'"
+  }
 }

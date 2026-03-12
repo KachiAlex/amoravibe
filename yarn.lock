@@ -2636,15 +2636,15 @@ __metadata:
 
 "@lovedate/api@file:../../packages/api::locator=mobile%40workspace%3Aapps%2Fmobile":
   version: 0.0.0-stub
-  resolution: "@lovedate/api@file:../../packages/api#../../packages/api::hash=c191bd&locator=mobile%40workspace%3Aapps%2Fmobile"
-  checksum: 10c0/63e3b5f22602444a3b1cb26caab94865c00d8c0d59fa027d7c21a61b7ac681a66cad104acf1f6cabb51afb7eced99ed05daa3ca22db66c84e9bf68928dd10920
+  resolution: "@lovedate/api@file:../../packages/api#../../packages/api::hash=799195&locator=mobile%40workspace%3Aapps%2Fmobile"
+  checksum: 10c0/7163055da621f82fc5c0dc4a91ef27cd297b5b9ef9f73c1a49266d92bf94af7ba8e6b8aef116ba5b82f97357c16dbb0c5f1b96291d9f3581a8766792b26e2e5c
   languageName: node
   linkType: hard
 
 "@lovedate/api@file:../../packages/api::locator=web%40workspace%3Aapps%2Fweb":
   version: 0.0.0-stub
-  resolution: "@lovedate/api@file:../../packages/api#../../packages/api::hash=c191bd&locator=web%40workspace%3Aapps%2Fweb"
-  checksum: 10c0/63e3b5f22602444a3b1cb26caab94865c00d8c0d59fa027d7c21a61b7ac681a66cad104acf1f6cabb51afb7eced99ed05daa3ca22db66c84e9bf68928dd10920
+  resolution: "@lovedate/api@file:../../packages/api#../../packages/api::hash=799195&locator=web%40workspace%3Aapps%2Fweb"
+  checksum: 10c0/7163055da621f82fc5c0dc4a91ef27cd297b5b9ef9f73c1a49266d92bf94af7ba8e6b8aef116ba5b82f97357c16dbb0c5f1b96291d9f3581a8766792b26e2e5c
   languageName: node
   linkType: hard
 
@@ -2664,7 +2664,7 @@ __metadata:
 
 "@lovedate/ui@file:../../packages/ui::locator=web%40workspace%3Aapps%2Fweb":
   version: 0.1.0
-  resolution: "@lovedate/ui@file:../../packages/ui#../../packages/ui::hash=99c6f9&locator=web%40workspace%3Aapps%2Fweb"
+  resolution: "@lovedate/ui@file:../../packages/ui#../../packages/ui::hash=a06d08&locator=web%40workspace%3Aapps%2Fweb"
   dependencies:
     "@radix-ui/react-slot": "npm:^1.0.2"
   peerDependencies:
@@ -2673,7 +2673,7 @@ __metadata:
   peerDependenciesMeta:
     react-dom:
       optional: true
-  checksum: 10c0/d5a5844aadce54283f8d441ea9c37c85ede6781c65242e645a3a9833e79bf70ee3ad1e265ee08f2f2e0fd50f15eb36ddeb4f0741091631b1d2f4fef018728d95
+  checksum: 10c0/ff334491bdb9ced03d1f249dc9c2d54231621713de6a031550a686ae57b8e7a04b481c1db39ca03284a89aa9cc6dea100f998630f53cbd2c72fa893935e664ff
   languageName: node
   linkType: hard
 

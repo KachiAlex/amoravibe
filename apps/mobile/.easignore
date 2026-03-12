@@ -1,0 +1,41 @@
+# Node modules will be reinstalled by EAS Build
+node_modules/
+
+# Build artifacts
+*.tgz
+.expo/
+.expo-shared/
+dist/
+build/
+
+# OS and IDE files
+.DS_Store
+.env.local
+.env.*.local
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+*.iml
+
+# Git
+.git/
+.gitignore
+
+# Package lock files (let EAS use its own resolution)
+yarn.lock
+package-lock.json
+
+# Test files and coverage
+__tests__/
+*.test.ts
+*.test.tsx
+coverage/
+
+# TypeScript
+*.tsbuildinfo
+
+# Temporary files
+.turbo/
+.next/

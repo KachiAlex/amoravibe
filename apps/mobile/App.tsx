@@ -11,6 +11,7 @@ import { colors as uiColors } from '@lovedate/ui';
 import type { TrustPreviewResponse } from '@lovedate/api';
 import { OnboardingScreen } from './src/screens/OnboardingScreen';
 import { TrustCenterScreen } from './src/screens/TrustCenterScreen';
+import { LoginScreen } from './src/screens/LoginScreen';
 import { lovedateApi } from './src/config/api';
 
 const palette = {
@@ -79,6 +80,7 @@ const trustStats = [
 ];
 
 type RootStackParamList = {
+  Login: undefined;
   Landing: undefined;
   Onboarding: undefined;
   TrustCenter: undefined;
@@ -217,7 +219,8 @@ function LandingScreen({ navigation }: { navigation: NavigationProp<RootStackPar
 export default function App() {
   return (
     <NavigationContainer theme={NavigationDefaultTheme}>
-      <Stack.Navigator initialRouteName="Landing" screenOptions={{ headerShown: false }}>
+      <Stack.Navigator initialRouteName="Login" screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="Landing" component={LandingScreen} />
         <Stack.Screen name="Onboarding" component={OnboardingScreen} />
         <Stack.Screen name="TrustCenter" component={TrustCenterScreen} />
