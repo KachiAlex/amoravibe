@@ -7,8 +7,9 @@ export const dynamic = 'force-dynamic';
 // Store active connections for broadcasting
 const activeConnections = new Map<string, Set<ReadableStreamDefaultController>>();
 
-export async function GET(req: Request, { params }: { params: { roomId: string } }) {
+export async function GET(req: Request, { params: paramsPromise }: { params: Promise<{ roomId: string }> }) {
   try {
+    const params = await paramsPromise;
     const userId = await getUserIdFromRequest(req);
     if (!userId) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });

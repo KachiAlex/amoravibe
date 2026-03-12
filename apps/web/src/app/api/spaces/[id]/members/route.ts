@@ -19,8 +19,9 @@ export const dynamic = 'force-dynamic';
 //   lastActive  DateTime?
 //   bio         String?
 
-export async function GET(req: Request, { params }: { params: { id: string } }) {
+export async function GET(req: Request, { params: paramsPromise }: { params: Promise<{ id: string }> }) {
   try {
+    const params = await paramsPromise;
     const userId = await getUserIdFromRequest(req);
     if (!userId) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
