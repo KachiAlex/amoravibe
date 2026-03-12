@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { colors as uiColors } from '@lovedate/ui';
 import {
   SafeAreaView,
   ScrollView,
@@ -11,13 +10,40 @@ import {
   Pressable,
   Alert,
 } from 'react-native';
-import type { TrustPreviewResponse } from '@lovedate/api';
 import { lovedateApi } from '../config/api';
 
-const palette = uiColors;
+// Local type definitions
+type TrustPreviewResponse = {
+  snapshotLabel: string;
+  stats: {
+    verificationPassRate: number;
+    riskHealth: 'stable' | 'warning' | 'critical';
+    exportSlaHours: number;
+  };
+  journey: Array<{
+    title: string;
+    description: string;
+    tag: string;
+  }>;
+  highlights: Array<{
+    title: string;
+    body: string;
+    badge: string;
+  }>;
+};
+
+// Color palette (hardcoded from @lovedate/ui)
+const palette = {
+  ink900: '#1a202c',
+  ink700: '#374151',
+  sand100: '#faf8f6',
+  rose500: '#f43f5e',
+  rose300: '#fb7185',
+  sea400: '#06b6d4',
+};
 
 const fallbackPreview: TrustPreviewResponse = {
-  snapshotLabel: 'Lovedate · Phase 5',
+  snapshotLabel: 'Amoravibe · Live',
   stats: {
     verificationPassRate: 92,
     riskHealth: 'stable',
@@ -25,25 +51,21 @@ const fallbackPreview: TrustPreviewResponse = {
   },
   journey: [
     {
-      id: 'orientation',
       title: 'Orientation',
       description: 'Preference mapping, discovery space selection, disclosures.',
       tag: 'Profile',
     },
     {
-      id: 'verification',
       title: 'Verification',
       description: 'Government ID + selfie match in 2 minutes.',
       tag: 'Required',
     },
     {
-      id: 'device_trust',
       title: 'Device trust',
       description: 'Register trusted devices + biometrics.',
       tag: 'Security',
     },
     {
-      id: 'transparency',
       title: 'Transparency',
       description: 'Review moderation actions + analytics signals.',
       tag: 'Trust',

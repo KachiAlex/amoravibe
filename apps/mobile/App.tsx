@@ -7,11 +7,30 @@ import {
 import type { NavigationProp } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { ActivityIndicator, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
-import type { TrustPreviewResponse } from '@lovedate/api';
 import { OnboardingScreen } from './src/screens/OnboardingScreen';
 import { TrustCenterScreen } from './src/screens/TrustCenterScreen';
 import { LoginScreen } from './src/screens/LoginScreen';
 import { lovedateApi } from './src/config/api';
+
+// Local type definitions (replacing @lovedate/api imports)
+type TrustPreviewResponse = {
+  snapshotLabel: string;
+  stats: {
+    verificationPassRate: number;
+    riskHealth: 'stable' | 'warning' | 'critical';
+    exportSlaHours: number;
+  };
+  journey: Array<{
+    title: string;
+    description: string;
+    tag: string;
+  }>;
+  highlights: Array<{
+    title: string;
+    body: string;
+    badge: string;
+  }>;
+};
 
 const palette = {
   ink900: '#1a202c',
