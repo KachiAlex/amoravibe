@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import Image from "next/image";
 import { useRoomMessagesStream } from "@/hooks/useRoomMessagesStream";
 
@@ -52,39 +52,45 @@ export default function MySpacesPanel() {
     fetchJoinedSpaces();
   }, []);
 
+  // Memoize SSE callbacks to prevent hook dependency issues
+  const handleSSEMessage = useCallback((message, isInitial) => {
+    // Skip initial catch-up messages if we already have them
+    if (isInitial) return;
+    
+    setMessages(prev => {
+      // Create Set of server message IDs to filter out duplicates
+      const serverIds = new Set(prev.filter(m => !m.localId).map(m => m.id));
+      
+      // If message already exists, skip it
+      if (serverIds.has(message.id)) return prev;
+      
+      // Add new message
+      return [...prev, { ...message, status: 'sent' }];
+    });
+    
+    setConnectionStatus('connected');
+    setLastSyncTime(Date.now());
+  }, []);
+
+  const handleSSEConnected = useCallback(() => {
+    setConnectionStatus('connected');
+    console.log('[SSE] Room stream connected');
+  }, []);
+
+  const handleSSEError = useCallback((error) => {
+    console.error('[SSE] Stream error:', error);
+    setConnectionStatus('disconnected');
+    // Polling fallback will handle reconnection
+  }, []);
+
   // Set up SSE for real-time messages with polling fallback
   const sseStatus = useRoomMessagesStream({
     roomId: selectedRoom?.id || '',
     lastSync: new Date(lastSyncTime),
     enabled: !!selectedRoom?.id,
-    onMessage: (message, isInitial) => {
-      // Skip initial catch-up messages if we already have them
-      if (isInitial) return;
-      
-      setMessages(prev => {
-        // Create Set of server message IDs to filter out duplicates
-        const serverIds = new Set(prev.filter(m => !m.localId).map(m => m.id));
-        
-        // If message already exists, skip it
-        if (serverIds.has(message.id)) return prev;
-        
-        // Add new message
-        return [...prev, { ...message, status: 'sent' }];
-      });
-      
-      setConnectionStatus('connected');
-      setLastSyncTime(Date.now());
-    },
-    onConnected: () => {
-      setConnectionStatus('connected');
-      console.log('[SSE] Room stream connected');
-    },
-    onError: (error) => {
-      console.error('[SSE] Stream error:', error);
-      setConnectionStatus('disconnected');
-      // Polling fallback will handle reconnection
-    },
-  });
+    onMessage: handleSSEMessage,
+    onConnected: handleSSEConnected,
+    onError: handleSSEError,
 
   // Initial load and polling fallback
   useEffect(() => {
