@@ -1,0 +1,7 @@
+/* Non-Critical CSS - Load after critical CSS for above-the-fold */
+/* This includes all Tailwind utilities, components, and non-essential styles */
+
+@import "tailwindcss";
+
+/* Additional non-critical custom styles can go here */
+/* Examples: animations, hover states, advanced layouts */

@@ -1,5 +1,40 @@
 @import "tailwindcss";
 
+/* Mobile-first base styles */
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Fluid typography utilities */
+.text-fluid-xs { font-size: clamp(0.75rem, 1.5vw, 0.875rem); line-height: 1.5; }
+.text-fluid-sm { font-size: clamp(0.875rem, 1.75vw, 1rem); line-height: 1.6; }
+.text-fluid-base { font-size: clamp(1rem, 2vw, 1.125rem); line-height: 1.7; }
+.text-fluid-lg { font-size: clamp(1.125rem, 2.25vw, 1.375rem); line-height: 1.8; }
+.text-fluid-xl { font-size: clamp(1.25rem, 2.5vw, 1.5rem); line-height: 1.8; }
+.text-fluid-2xl { font-size: clamp(1.5rem, 3vw, 1.875rem); line-height: 2rem; }
+.text-fluid-3xl { font-size: clamp(1.875rem, 4vw, 2.25rem); line-height: 2.25rem; }
+.text-fluid-4xl { font-size: clamp(2.25rem, 5vw, 3rem); line-height: 2.5rem; }
+
+/* Accessible focus and touch targets */
+button, a, input, select, textarea {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: 2px solid var(--brand-violet-500);
+  outline-offset: 2px;
+}
+
 /* Button and menu item hover/active effects */
 .btn,
 .menu-item {

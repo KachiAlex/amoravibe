@@ -113,32 +113,32 @@ export default function Header({ userName, userFirstName, userAvatar, userOrient
   const displayOrientation = userOrientation ? ` • ${userOrientation}` : '';
 
   return (
-    <header className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8" role="banner">
-      <div>
-        <h1 className="text-2xl md:text-3xl font-bold">
+    <header className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 md:gap-4 mb-6 md:mb-8" role="banner">
+      <div className="min-w-0">
+        <h1 className="text-xl md:text-2xl lg:text-3xl font-bold line-clamp-2">
           Welcome <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">{displayName}</span> <span aria-hidden>👋</span>
         </h1>
-        <p className="text-gray-500 mt-1 text-sm md:text-base">
+        <p className="text-gray-500 mt-1 text-xs md:text-sm lg:text-base line-clamp-1">
           Quick summary of your activity{displayOrientation}
         </p>
       </div>
-      <div className="flex items-center gap-2 md:gap-4 flex-wrap">
-        <form onSubmit={handleSearchSubmit} role="search" className="relative flex-1 md:flex-initial">
+      <div className="flex items-center gap-2 md:gap-3 flex-wrap flex-shrink-0">
+        <form onSubmit={handleSearchSubmit} role="search" className="relative w-full md:w-auto">
           <input
             type="search"
             aria-label="Search profiles and interests"
             placeholder="Search..."
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            className="rounded-full px-4 py-2 border border-gray-200 bg-white shadow-sm w-full md:w-48 lg:w-64 pr-10 text-sm"
+            className="rounded-full px-3 md:px-4 py-2 border border-gray-200 bg-white shadow-sm w-full md:w-40 lg:w-56 pr-10 text-xs md:text-sm min-h-12"
             autoComplete="off"
           />
-          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs md:text-sm" aria-hidden>
+          <span className="absolute right-2 md:right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs md:text-sm" aria-hidden>
             {searching ? '…' : '⌘K'}
           </span>
         </form>
-        <button className="relative p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-200" aria-label="Notifications" onClick={() => window.dispatchEvent(new CustomEvent(TELEMETRY_EVENT, { detail: { event: 'notifications_opened' } }))}>
-          <span className="text-xl md:text-2xl" aria-hidden>
+        <button className="relative p-2 md:p-2.5 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-purple-200 min-h-12 min-w-12 flex items-center justify-center flex-shrink-0" aria-label="Notifications" onClick={() => window.dispatchEvent(new CustomEvent(TELEMETRY_EVENT, { detail: { event: 'notifications_opened' } }))}>
+          <span className="text-lg md:text-xl" aria-hidden>
             🔔
           </span>
           <span className="absolute -top-1 -right-1 bg-pink-600 text-white text-xs rounded-full px-1 min-w-[16px] text-center">
@@ -147,7 +147,7 @@ export default function Header({ userName, userFirstName, userAvatar, userOrient
         </button>
         <button
           onClick={handleThemeToggle}
-          className="flex items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-1 text-xs md:text-sm font-semibold shadow-sm hover:shadow focus:outline-none focus:ring-2 focus:ring-purple-200"
+          className="flex items-center gap-2 rounded-full border border-gray-200 bg-white px-2 md:px-3 py-1 text-xs md:text-sm font-semibold shadow-sm hover:shadow focus:outline-none focus:ring-2 focus:ring-purple-200 min-h-12"
           aria-label="Toggle theme"
         >
           <span aria-hidden>{isDark ? '🌙' : '☀️'}</span>

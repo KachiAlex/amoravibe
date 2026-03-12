@@ -69,6 +69,10 @@ export function ProfileCards() {
                     width={300}
                     height={400}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    quality={80}
+                    priority={index < 4}
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                    loading={index < 4 ? "eager" : "lazy"}
                   />
 
                   {/* Gradient Overlay */}

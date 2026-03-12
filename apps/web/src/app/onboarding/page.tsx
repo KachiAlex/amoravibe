@@ -32,6 +32,9 @@ export default function OnboardingPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showResumePrompt, setShowResumePrompt] = useState(false);
+  
+  // Mobile-first design: track viewport
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
   // Step 1: Signup
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -269,55 +272,55 @@ export default function OnboardingPage() {
         <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-purple-600/20 blur-3xl" />
         <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-pink-600/20 blur-3xl" />
       </div>
-      <div className="relative z-10 flex min-h-screen flex-col items-center justify-center px-4 py-12">
-        <div className="mx-auto max-w-2xl text-center">
-          <div className="mb-8 flex justify-center">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-purple-600 to-pink-600">
-              <Heart className="h-8 w-8 text-white" />
+      <div className="relative z-10 flex min-h-screen flex-col items-center justify-center px-3 md:px-4 py-8 md:py-12">
+        <div className="mx-auto w-full max-w-2xl text-center">
+          <div className="mb-6 md:mb-8 flex justify-center">
+            <div className="flex h-14 md:h-16 w-14 md:w-16 items-center justify-center rounded-full bg-gradient-to-br from-purple-600 to-pink-600">
+              <Heart className="h-7 md:h-8 w-7 md:w-8 text-white" />
             </div>
           </div>
-          <h1 className="mb-4 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-4xl font-bold text-transparent md:text-5xl">
+          <h1 className="mb-3 md:mb-4 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-2xl md:text-4xl lg:text-5xl font-bold text-transparent">
             Welcome to AmoraVibe
           </h1>
-          <p className="mb-8 text-lg text-gray-300">
+          <p className="mb-6 md:mb-8 text-base md:text-lg text-gray-300 px-2">
             The dating platform built on trust, safety, and authentic connection.
           </p>
-          <div className="mb-12 grid gap-6 md:grid-cols-3">
-            <div className="rounded-lg border border-purple-500/20 bg-purple-900/10 p-6 backdrop-blur-sm">
-              <Shield className="mb-3 h-8 w-8 text-purple-400 mx-auto" />
-              <h3 className="mb-2 font-semibold text-white">Trust First</h3>
-              <p className="text-sm text-gray-400">
+          <div className="mb-8 md:mb-12 grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-3">
+            <div className="rounded-lg border border-purple-500/20 bg-purple-900/10 p-4 md:p-6 backdrop-blur-sm">
+              <Shield className="mb-2 md:mb-3 h-7 md:h-8 w-7 md:w-8 text-purple-400 mx-auto" />
+              <h3 className="mb-1 md:mb-2 font-semibold text-sm md:text-base text-white">Trust First</h3>
+              <p className="text-xs md:text-sm text-gray-400 line-clamp-2">
                 Biometric verification and safety checks protect every member
               </p>
             </div>
-            <div className="rounded-lg border border-purple-500/20 bg-purple-900/10 p-6 backdrop-blur-sm">
-              <Heart className="mb-3 h-8 w-8 text-pink-400 mx-auto" />
-              <h3 className="mb-2 font-semibold text-white">Authentic</h3>
-              <p className="text-sm text-gray-400">
+            <div className="rounded-lg border border-purple-500/20 bg-purple-900/10 p-4 md:p-6 backdrop-blur-sm">
+              <Heart className="mb-2 md:mb-3 h-7 md:h-8 w-7 md:w-8 text-pink-400 mx-auto" />
+              <h3 className="mb-1 md:mb-2 font-semibold text-sm md:text-base text-white">Authentic</h3>
+              <p className="text-xs md:text-sm text-gray-400 line-clamp-2">
                 Real people, real connections, and genuine intentions
               </p>
             </div>
-            <div className="rounded-lg border border-purple-500/20 bg-purple-900/10 p-6 backdrop-blur-sm">
-              <Lock className="mb-3 h-8 w-8 text-blue-400 mx-auto" />
-              <h3 className="mb-2 font-semibold text-white">Private</h3>
-              <p className="text-sm text-gray-400">Your data stays encrypted and in your control</p>
+            <div className="rounded-lg border border-purple-500/20 bg-purple-900/10 p-4 md:p-6 backdrop-blur-sm">
+              <Lock className="mb-2 md:mb-3 h-7 md:h-8 w-7 md:w-8 text-blue-400 mx-auto" />
+              <h3 className="mb-1 md:mb-2 font-semibold text-sm md:text-base text-white">Private</h3>
+              <p className="text-xs md:text-sm text-gray-400 line-clamp-1">Your data stays encrypted</p>
             </div>
           </div>
           <div className="mb-8 space-y-4">
             {showResumePrompt && (
-              <div className="bg-blue-900/30 border border-blue-500/50 rounded-xl p-6 mb-6">
-                <h3 className="text-lg font-semibold text-blue-300 mb-3">Resume Your Onboarding?</h3>
-                <p className="text-gray-300 mb-4">We found your previous progress. Would you like to continue where you left off?</p>
-                <div className="flex gap-3">
+              <div className="bg-blue-900/30 border border-blue-500/50 rounded-xl p-4 md:p-6 mb-6">
+                <h3 className="text-base md:text-lg font-semibold text-blue-300 mb-2 md:mb-3">Resume Your Onboarding?</h3>
+                <p className="text-xs md:text-sm text-gray-300 mb-3 md:mb-4">We found your previous progress. Would you like to continue where you left off?</p>
+                <div className="flex gap-3 flex-col md:flex-row">
                   <button
                     onClick={resumeOnboarding}
-                    className="flex-1 rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white transition hover:bg-blue-700"
+                    className="flex-1 rounded-lg bg-blue-600 px-4 py-3 md:py-2 font-semibold text-white transition hover:bg-blue-700 min-h-12"
                   >
                     Resume
                   </button>
                   <button
                     onClick={startFresh}
-                    className="flex-1 rounded-lg border border-gray-400 px-4 py-2 font-semibold text-gray-300 transition hover:border-gray-200 hover:text-white"
+                    className="flex-1 rounded-lg border border-gray-400 px-4 py-3 md:py-2 font-semibold text-gray-300 transition hover:border-gray-200 hover:text-white min-h-12"
                   >
                     Start Fresh
                   </button>
@@ -325,11 +328,11 @@ export default function OnboardingPage() {
               </div>
             )}
             {step === 1 && (
-              <form onSubmit={handleSignup} className="space-y-4 bg-white/10 rounded-xl p-8 shadow-lg">
-                <h2 className="text-xl font-bold text-white mb-4">Sign Up</h2>
+              <form onSubmit={handleSignup} className="space-y-3 md:space-y-4 bg-white/10 rounded-xl p-5 md:p-8 shadow-lg">
+                <h2 className="text-lg md:text-xl font-bold text-white mb-3 md:mb-4">Sign Up</h2>
                 <input
                   type="email"
-                  className="w-full rounded-lg px-4 py-3 bg-white/80 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-400"
+                  className="w-full rounded-lg px-3 md:px-4 py-3 md:py-3 bg-white/80 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-400 text-sm md:text-base min-h-12"
                   placeholder="Email"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
@@ -337,7 +340,7 @@ export default function OnboardingPage() {
                 />
                 <input
                   type="password"
-                  className="w-full rounded-lg px-4 py-3 bg-white/80 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-400"
+                  className="w-full rounded-lg px-3 md:px-4 py-3 md:py-3 bg-white/80 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-400 text-sm md:text-base min-h-12"
                   placeholder="Password"
                   value={password}
                   onChange={e => setPassword(e.target.value)}

@@ -98,7 +98,16 @@ export function Hero() {
                 }}
               >
                 <div className="relative h-48 sm:h-60 lg:h-72">
-                  <Image src={profile.image} alt={profile.name} fill className="object-cover" sizes="(max-width: 768px) 8rem, 16rem" />
+                  <Image 
+                    src={profile.image} 
+                    alt={profile.name} 
+                    fill 
+                    className="object-cover" 
+                    sizes="(max-width: 768px) 8rem, 16rem"
+                    quality={80}
+                    priority={false}
+                    loading="lazy"
+                  />
                   <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/60 to-transparent">
                     <p className="text-sm font-semibold text-white">{profile.name}</p>
                     <p className="text-xs text-white/80">{profile.city}</p>

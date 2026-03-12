@@ -1,0 +1,480 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - navigation [ref=e3]:
+      - generic [ref=e5]:
+        - link "AmoraVibe logo AmoraVibe" [ref=e6] [cursor=pointer]:
+          - /url: /
+          - img "AmoraVibe logo" [ref=e7]
+          - generic [ref=e8]: AmoraVibe
+        - generic [ref=e9]:
+          - link "Features" [ref=e10] [cursor=pointer]:
+            - /url: "#features"
+          - link "How It Works" [ref=e11] [cursor=pointer]:
+            - /url: "#how-it-works"
+          - link "Success Stories" [ref=e12] [cursor=pointer]:
+            - /url: "#success"
+          - link "Pricing" [ref=e13] [cursor=pointer]:
+            - /url: "#pricing"
+        - button "Sign In" [ref=e15]
+    - main [ref=e16]:
+      - generic [ref=e17]:
+        - generic [ref=e21]:
+          - generic [ref=e23]:
+            - img "Sofia · 26" [ref=e24]
+            - generic [ref=e25]:
+              - paragraph [ref=e26]: Sofia · 26
+              - paragraph [ref=e27]: Barcelona
+          - generic [ref=e29]:
+            - img "Noah · 28" [ref=e30]
+            - generic [ref=e31]:
+              - paragraph [ref=e32]: Noah · 28
+              - paragraph [ref=e33]: New York
+          - generic [ref=e35]:
+            - img "Adara · 24" [ref=e36]
+            - generic [ref=e37]:
+              - paragraph [ref=e38]: Adara · 24
+              - paragraph [ref=e39]: Lagos
+          - generic [ref=e41]:
+            - img "Hiro · 30" [ref=e42]
+            - generic [ref=e43]:
+              - paragraph [ref=e44]: Hiro · 30
+              - paragraph [ref=e45]: Tokyo
+          - generic [ref=e47]:
+            - img "Lina · 27" [ref=e48]
+            - generic [ref=e49]:
+              - paragraph [ref=e50]: Lina · 27
+              - paragraph [ref=e51]: Seoul
+          - generic [ref=e53]:
+            - img "Mateo · 29" [ref=e54]
+            - generic [ref=e55]:
+              - paragraph [ref=e56]: Mateo · 29
+              - paragraph [ref=e57]: Buenos Aires
+        - generic [ref=e60]:
+          - generic [ref=e61]:
+            - img [ref=e62]
+            - text: Love stories across every race & identity
+          - heading "A world of faces, one place to find your person" [level=1] [ref=e64]
+          - generic [ref=e65]:
+            - button "Start matching now" [ref=e66]:
+              - text: Start matching now
+              - img [ref=e67]
+            - link "See how Amoravibe works" [ref=e69] [cursor=pointer]:
+              - /url: "#how-it-works"
+          - generic [ref=e70]:
+            - generic [ref=e71]:
+              - paragraph [ref=e72]: 2M+
+              - paragraph [ref=e73]: Active Users
+            - generic [ref=e74]:
+              - paragraph [ref=e75]: 500K+
+              - paragraph [ref=e76]: Daily Intros
+            - generic [ref=e77]:
+              - paragraph [ref=e78]: 1,200+
+              - paragraph [ref=e79]: Cities Online
+      - generic [ref=e81]:
+        - generic [ref=e82]:
+          - generic [ref=e83]:
+            - generic [ref=e84]:
+              - generic [ref=e85]: Guided onboarding
+              - heading "Safety-first matchmaking ritual" [level=2] [ref=e86]
+              - paragraph [ref=e87]: AmoraVibe blends biometric proof, behavior modeling, and human concierges so every member arrives calm, honest, and inspired. Complete onboarding once, then revisit your Trust Center anytime.
+            - button "Start onboarding" [ref=e88]
+          - generic [ref=e89]:
+            - generic [ref=e91]:
+              - img [ref=e93]
+              - paragraph [ref=e96]: Zero-stress identity checks handled with concierge support.
+            - generic [ref=e98]:
+              - img [ref=e100]
+              - paragraph [ref=e103]: Values, boundaries, and intentions captured with cinematic care.
+            - generic [ref=e105]:
+              - img [ref=e107]
+              - paragraph [ref=e110]: Trust Center access to pause, purge, or reverify whenever you need.
+        - generic [ref=e112]:
+          - generic [ref=e113]:
+            - generic [ref=e114]:
+              - img [ref=e116]
+              - generic [ref=e119]: Phase 01
+              - generic [ref=e120]: ~02 mins
+            - heading "Identity ritual" [level=3] [ref=e121]
+            - paragraph [ref=e122]: Government ID and liveness selfies verified with concierge assistance.
+          - generic [ref=e123]:
+            - generic [ref=e124]:
+              - img [ref=e126]
+              - generic [ref=e128]: Phase 02
+              - generic [ref=e129]: ~03 mins
+            - heading "Values inventory" [level=3] [ref=e130]
+            - paragraph [ref=e131]: Pronouns, intentions, and boundaries captured with compassionate prompts.
+          - generic [ref=e132]:
+            - generic [ref=e133]:
+              - img [ref=e135]
+              - generic [ref=e137]: Phase 03
+              - generic [ref=e138]: ~02 mins
+            - heading "Device aura" [level=3] [ref=e139]
+            - paragraph [ref=e140]: Trusted devices and behavioral fingerprints registered to block impersonation.
+          - generic [ref=e141]:
+            - generic [ref=e142]:
+              - img [ref=e144]
+              - generic [ref=e153]: Phase 04
+              - generic [ref=e154]: ~01 min
+            - heading "Trust review" [level=3] [ref=e155]
+            - paragraph [ref=e156]: Preview your Trust Center report before you meet anyone new.
+      - generic [ref=e158]:
+        - generic [ref=e159]:
+          - generic [ref=e160]: Core capabilities
+          - heading "Why Choose AmoraVibe" [level=2] [ref=e161]
+          - paragraph [ref=e162]: Experience a cinematic matchmaking ritual engineered for trust, intention, and serendipity across every culture.
+        - generic [ref=e163]:
+          - generic [ref=e165]:
+            - generic [ref=e167]: ✨
+            - generic [ref=e168]:
+              - heading "Smart Matching" [level=3] [ref=e169]
+              - paragraph [ref=e170]: Our AI-powered algorithm finds compatible matches based on your interests and values.
+          - generic [ref=e172]:
+            - generic [ref=e174]: 🛡️
+            - generic [ref=e175]:
+              - heading "Safe & Secure" [level=3] [ref=e176]
+              - paragraph [ref=e177]: Advanced verification and privacy controls keep your information safe and secure.
+          - generic [ref=e179]:
+            - generic [ref=e181]: 💬
+            - generic [ref=e182]:
+              - heading "Real-time Chat" [level=3] [ref=e183]
+              - paragraph [ref=e184]: Connect instantly with matches through our seamless messaging platform.
+          - generic [ref=e186]:
+            - generic [ref=e188]: ❤️
+            - generic [ref=e189]:
+              - heading "Meaningful Connections" [level=3] [ref=e190]
+              - paragraph [ref=e191]: Build genuine relationships with people who share your vision for the future.
+          - generic [ref=e193]:
+            - generic [ref=e195]: 👥
+            - generic [ref=e196]:
+              - heading "Active Community" [level=3] [ref=e197]
+              - paragraph [ref=e198]: Join millions of singles actively looking for their perfect match every day.
+          - generic [ref=e200]:
+            - generic [ref=e202]: ⚡
+            - generic [ref=e203]:
+              - heading "Quick Setup" [level=3] [ref=e204]
+              - paragraph [ref=e205]: Create your profile in minutes and start connecting with potential matches instantly.
+      - generic [ref=e207]:
+        - generic [ref=e208]:
+          - generic [ref=e209]: How it works
+          - heading "Four cinematic steps" [level=2] [ref=e210]
+          - paragraph [ref=e211]: A guided journey that mirrors the hero experience—immersive, safe, and impossibly smooth.
+        - generic [ref=e212]:
+          - generic [ref=e213]:
+            - generic [ref=e215]: "01"
+            - generic [ref=e216]:
+              - img [ref=e218]
+              - heading "Create Your Profile" [level=3] [ref=e221]
+              - paragraph [ref=e222]: Sign up in minutes and tell us about yourself, your interests, and what you're looking for.
+          - generic [ref=e223]:
+            - generic [ref=e225]: "02"
+            - generic [ref=e226]:
+              - img [ref=e228]
+              - heading "Discover Matches" [level=3] [ref=e231]
+              - paragraph [ref=e232]: Browse through compatible profiles curated by our smart matching algorithm.
+          - generic [ref=e233]:
+            - generic [ref=e235]: "03"
+            - generic [ref=e236]:
+              - img [ref=e238]
+              - heading "Start Connecting" [level=3] [ref=e240]
+              - paragraph [ref=e241]: Send a like or message to someone who catches your eye and begin a conversation.
+          - generic [ref=e242]:
+            - generic [ref=e244]: "04"
+            - generic [ref=e245]:
+              - img [ref=e247]
+              - heading "Find Love" [level=3] [ref=e249]
+              - paragraph [ref=e250]: Meet in person, build meaningful connections, and start your love story.
+      - generic [ref=e252]:
+        - generic [ref=e253]:
+          - generic [ref=e254]: Spotlight
+          - heading "Meet amazing people" [level=2] [ref=e255]
+          - paragraph [ref=e256]: Connect with singles who share your rituals, values, and pace—curated directly from the hero grid.
+        - generic [ref=e257]:
+          - generic [ref=e259]:
+            - generic [ref=e260]:
+              - img "Sarah Johnson" [ref=e261]
+              - generic [ref=e263]:
+                - img [ref=e264]
+                - text: 95%
+              - generic [ref=e266]:
+                - heading "Sarah Johnson, 28" [level=3] [ref=e267]
+                - generic [ref=e268]:
+                  - img [ref=e269]
+                  - text: New York, NY
+              - button [ref=e272]:
+                - img [ref=e273]
+            - generic [ref=e276]:
+              - generic [ref=e277]: Photography
+              - generic [ref=e278]: Travel
+              - generic [ref=e279]: Coffee
+          - generic [ref=e281]:
+            - generic [ref=e282]:
+              - img "Michael Chen" [ref=e283]
+              - generic [ref=e285]:
+                - img [ref=e286]
+                - text: 92%
+              - generic [ref=e288]:
+                - heading "Michael Chen, 31" [level=3] [ref=e289]
+                - generic [ref=e290]:
+                  - img [ref=e291]
+                  - text: San Francisco, CA
+              - button [ref=e294]:
+                - img [ref=e295]
+            - generic [ref=e298]:
+              - generic [ref=e299]: Hiking
+              - generic [ref=e300]: Cooking
+              - generic [ref=e301]: Music
+          - generic [ref=e303]:
+            - generic [ref=e304]:
+              - img "Emma Davis" [ref=e305]
+              - generic [ref=e307]:
+                - img [ref=e308]
+                - text: 89%
+              - generic [ref=e310]:
+                - heading "Emma Davis, 26" [level=3] [ref=e311]
+                - generic [ref=e312]:
+                  - img [ref=e313]
+                  - text: Austin, TX
+              - button [ref=e316]:
+                - img [ref=e317]
+            - generic [ref=e320]:
+              - generic [ref=e321]: Yoga
+              - generic [ref=e322]: Reading
+              - generic [ref=e323]: Art
+          - generic [ref=e325]:
+            - generic [ref=e326]:
+              - img "James Wilson" [ref=e327]
+              - generic [ref=e329]:
+                - img [ref=e330]
+                - text: 94%
+              - generic [ref=e332]:
+                - heading "James Wilson, 29" [level=3] [ref=e333]
+                - generic [ref=e334]:
+                  - img [ref=e335]
+                  - text: Seattle, WA
+              - button [ref=e338]:
+                - img [ref=e339]
+            - generic [ref=e342]:
+              - generic [ref=e343]: Tech
+              - generic [ref=e344]: Gaming
+              - generic [ref=e345]: Fitness
+        - button "View More Profiles" [active] [ref=e347]
+      - generic [ref=e349]:
+        - generic [ref=e350]:
+          - generic [ref=e351]:
+            - img [ref=e352]
+            - text: Success stories
+          - heading "Real love stories" [level=2] [ref=e354]
+          - paragraph [ref=e355]: Join thousands of couples who trusted AmoraVibe to choreograph their meet-cute.
+        - generic [ref=e356]:
+          - generic [ref=e358]:
+            - generic [ref=e359]:
+              - img "Emma & David" [ref=e360]
+              - img [ref=e363]
+            - generic [ref=e366]:
+              - paragraph [ref=e367]: “We matched on AmoraVibe 8 months ago and got engaged last week! The platform's algorithm really understood what we were looking for.”
+              - generic [ref=e368]:
+                - img [ref=e370]
+                - generic [ref=e372]:
+                  - generic [ref=e373]: Emma & David
+                  - generic [ref=e374]: Chicago, IL
+          - generic [ref=e376]:
+            - generic [ref=e377]:
+              - img "Marcus & Lisa" [ref=e378]
+              - img [ref=e381]
+            - generic [ref=e384]:
+              - paragraph [ref=e385]: “After years of unsuccessful dating, AmoraVibe helped me find my soulmate. We've been together for a year and couldn't be happier!”
+              - generic [ref=e386]:
+                - img [ref=e388]
+                - generic [ref=e390]:
+                  - generic [ref=e391]: Marcus & Lisa
+                  - generic [ref=e392]: Los Angeles, CA
+          - generic [ref=e394]:
+            - generic [ref=e395]:
+              - img "Alex & Jordan" [ref=e396]
+              - img [ref=e399]
+            - generic [ref=e402]:
+              - paragraph [ref=e403]: “The best decision I ever made was joining AmoraVibe. Met my partner within the first month, and we're planning our future together!”
+              - generic [ref=e404]:
+                - img [ref=e406]
+                - generic [ref=e408]:
+                  - generic [ref=e409]: Alex & Jordan
+                  - generic [ref=e410]: Miami, FL
+        - generic [ref=e411]:
+          - heading "Join Our Success Stories" [level=3] [ref=e412]
+          - generic [ref=e413]:
+            - generic [ref=e414]:
+              - generic [ref=e415]: 500K+
+              - generic [ref=e416]: Successful Matches
+            - generic [ref=e417]:
+              - generic [ref=e418]: 98%
+              - generic [ref=e419]: Satisfaction Rate
+            - generic [ref=e420]:
+              - generic [ref=e421]: 150+
+              - generic [ref=e422]: Countries
+            - generic [ref=e423]:
+              - generic [ref=e424]: 2M+
+              - generic [ref=e425]: Active Users
+      - generic [ref=e427]:
+        - generic [ref=e428]:
+          - generic [ref=e429]: Membership
+          - heading "Choose your perfect plan" [level=2] [ref=e430]
+          - paragraph [ref=e431]: Start free and upgrade anytime to unlock concierge-grade features and priority intros.
+        - generic [ref=e432]:
+          - generic [ref=e434]:
+            - generic [ref=e435]:
+              - heading "Free" [level=3] [ref=e436]
+              - paragraph [ref=e437]: Perfect for getting started
+              - generic [ref=e438]:
+                - generic [ref=e439]: $0
+                - generic [ref=e440]: /forever
+            - list [ref=e442]:
+              - listitem [ref=e443]:
+                - img [ref=e445]
+                - generic [ref=e447]: Create a profile
+              - listitem [ref=e448]:
+                - img [ref=e450]
+                - generic [ref=e452]: Browse matches
+              - listitem [ref=e453]:
+                - img [ref=e455]
+                - generic [ref=e457]: Send 5 likes per day
+              - listitem [ref=e458]:
+                - img [ref=e460]
+                - generic [ref=e462]: Basic matching algorithm
+              - listitem [ref=e463]:
+                - img [ref=e465]
+                - generic [ref=e467]: Standard support
+            - button "Get Started Free" [ref=e469]
+          - generic [ref=e470]:
+            - generic [ref=e472]:
+              - img [ref=e473]
+              - text: Most Popular
+            - generic [ref=e475]:
+              - generic [ref=e476]:
+                - heading "Premium" [level=3] [ref=e477]
+                - paragraph [ref=e478]: Most popular for serious daters
+                - generic [ref=e479]:
+                  - generic [ref=e480]: $19.99
+                  - generic [ref=e481]: /per month
+              - list [ref=e483]:
+                - listitem [ref=e484]:
+                  - img [ref=e486]
+                  - generic [ref=e488]: Everything in Free
+                - listitem [ref=e489]:
+                  - img [ref=e491]
+                  - generic [ref=e493]: Unlimited likes
+                - listitem [ref=e494]:
+                  - img [ref=e496]
+                  - generic [ref=e498]: See who liked you
+                - listitem [ref=e499]:
+                  - img [ref=e501]
+                  - generic [ref=e503]: Advanced filters
+                - listitem [ref=e504]:
+                  - img [ref=e506]
+                  - generic [ref=e508]: Priority support
+                - listitem [ref=e509]:
+                  - img [ref=e511]
+                  - generic [ref=e513]: Read receipts
+                - listitem [ref=e514]:
+                  - img [ref=e516]
+                  - generic [ref=e518]: Boost your profile
+              - button "Choose Premium" [ref=e520]
+          - generic [ref=e522]:
+            - generic [ref=e523]:
+              - heading "Elite" [level=3] [ref=e524]
+              - paragraph [ref=e525]: For those seeking the best experience
+              - generic [ref=e526]:
+                - generic [ref=e527]: $39.99
+                - generic [ref=e528]: /per month
+            - list [ref=e530]:
+              - listitem [ref=e531]:
+                - img [ref=e533]
+                - generic [ref=e535]: Everything in Premium
+              - listitem [ref=e536]:
+                - img [ref=e538]
+                - generic [ref=e540]: Profile verification badge
+              - listitem [ref=e541]:
+                - img [ref=e543]
+                - generic [ref=e545]: Exclusive matches
+              - listitem [ref=e546]:
+                - img [ref=e548]
+                - generic [ref=e550]: Personal matchmaker
+              - listitem [ref=e551]:
+                - img [ref=e553]
+                - generic [ref=e555]: Video chat access
+              - listitem [ref=e556]:
+                - img [ref=e558]
+                - generic [ref=e560]: VIP support 24/7
+              - listitem [ref=e561]:
+                - img [ref=e563]
+                - generic [ref=e565]: Monthly profile reviews
+              - listitem [ref=e566]:
+                - img [ref=e568]
+                - generic [ref=e570]: Event invitations
+            - button "Choose Elite" [ref=e572]
+        - paragraph [ref=e574]: 30-day money-back guarantee • Cancel anytime • No hidden fees
+      - generic [ref=e576]:
+        - generic [ref=e577]: ✨ Start Your Journey Today
+        - heading "Ready to Find Your Perfect Match?" [level=2] [ref=e578]
+        - paragraph [ref=e579]: Join over 2 million singles who've found love on AmoraVibe. Your story could be next!
+        - generic [ref=e580]:
+          - button "Get Started Free" [ref=e581]
+          - link "Learn More" [ref=e582] [cursor=pointer]:
+            - /url: "#how-it-works"
+        - generic [ref=e583]:
+          - generic [ref=e584]:
+            - generic [ref=e585]: ✓
+            - generic [ref=e586]: No credit card required
+          - generic [ref=e587]:
+            - generic [ref=e588]: ✓
+            - generic [ref=e589]: Free forever plan
+          - generic [ref=e590]:
+            - generic [ref=e591]: ✓
+            - generic [ref=e592]: Cancel anytime
+    - contentinfo [ref=e593]:
+      - generic [ref=e594]:
+        - generic [ref=e595]:
+          - generic [ref=e596]:
+            - generic [ref=e598]: ♥
+            - paragraph [ref=e599]: AmoraVibe
+          - paragraph [ref=e600]: Find your perfect match and start your love story today.
+        - navigation [ref=e601]:
+          - link "Features" [ref=e602] [cursor=pointer]:
+            - /url: "#features"
+          - link "How It Works" [ref=e603] [cursor=pointer]:
+            - /url: "#how-it-works"
+          - link "Success Stories" [ref=e604] [cursor=pointer]:
+            - /url: "#success-stories"
+          - link "Pricing" [ref=e605] [cursor=pointer]:
+            - /url: "#pricing"
+      - paragraph [ref=e606]: © 2026 AmoraVibe. All rights reserved.
+  - button "Open Next.js Dev Tools" [ref=e612] [cursor=pointer]:
+    - img [ref=e613]
+  - alert [ref=e616]
+  - generic [ref=e620]:
+    - button "Close sign-in modal" [ref=e621]:
+      - img [ref=e622]
+    - generic [ref=e625]:
+      - generic [ref=e626]:
+        - paragraph [ref=e627]: Amoravibe
+        - heading "Sign in to continue" [level=2] [ref=e628]
+      - generic [ref=e629]:
+        - generic [ref=e630]:
+          - button "Email" [ref=e631]
+          - button "Phone" [ref=e632]
+        - generic [ref=e633]:
+          - text: Email address
+          - generic [ref=e634]:
+            - img [ref=e635]
+            - textbox "Email address" [ref=e638]:
+              - /placeholder: you@example.com
+        - generic [ref=e639]:
+          - text: Password
+          - generic [ref=e640]:
+            - img [ref=e641]
+            - textbox "Password" [ref=e644]:
+              - /placeholder: At least 8 characters
+        - button "Sign in" [disabled] [ref=e645]
+```

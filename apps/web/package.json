@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev -p 5001",
     "build": "node ../../scripts/run-prisma-from-root.mjs generate && next build",
+    "build:analyze": "ANALYZE=true next build",
     "sentry:release": "npx sentry-cli releases new $npm_package_version && npx sentry-cli releases files $npm_package_version upload-sourcemaps .next --rewrite",
     "start": "next start",
     "start:playwright": "cross-env PORT=4000 next start",
@@ -17,7 +18,8 @@
     "lint": "eslint --ext .ts,.tsx,.js,.jsx --max-warnings=0 .",
     "prisma:generate": "node ../../scripts/run-prisma-from-root.mjs generate",
     "prisma:migrate:dev": "node ../../scripts/run-prisma-from-root.mjs migrate dev --name init",
-    "postinstall": "node ../../scripts/run-prisma-from-root.mjs generate"
+    "postinstall": "node ../../scripts/run-prisma-from-root.mjs generate",
+    "perf:lighthouse": "lighthouse http://localhost:3000 --output=html --output-path=./lighthouse-report.html && echo 'Report saved to lighthouse-report.html'"
   },
   "dependencies": {
     "@lovedate/api": "file:../../packages/api",

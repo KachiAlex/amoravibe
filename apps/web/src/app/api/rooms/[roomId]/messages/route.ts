@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getUserIdFromRequest } from '@/lib/auth-request';
 import prisma from '@/lib/db';
+import { broadcastMessageToRoom } from './stream/route';
 
 export const dynamic = 'force-dynamic';
 
@@ -33,7 +34,17 @@ export async function GET(req: Request, { params }: { params: { roomId: string }
       return NextResponse.json({ error: 'You are not a member of this room' }, { status: 403 });
     }
 
-    // Get messages
+    // Parse pagination params
+    const url = new URL(req.url);
+    const limit = Math.min(parseInt(url.searchParams.get('limit') || '50', 10), 200);
+    const offset = Math.max(parseInt(url.searchParams.get('offset') || '0', 10), 0);
+
+    // Get total message count for pagination metadata
+    const totalCount = await prisma.roomMessage.count({
+      where: { roomId: params.roomId },
+    });
+
+    // Get messages with pagination
     const messages = await prisma.roomMessage.findMany({
       where: { roomId: params.roomId },
       include: {
@@ -42,10 +53,19 @@ export async function GET(req: Request, { params }: { params: { roomId: string }
         },
       },
       orderBy: { createdAt: 'asc' },
-      take: 50,
+      take: limit,
+      skip: offset,
     });
 
-    return NextResponse.json({ messages });
+    return NextResponse.json({ 
+      messages,
+      pagination: {
+        limit,
+        offset,
+        total: totalCount,
+        hasMore: offset + limit < totalCount,
+      }
+    });
   } catch (err) {
     console.error('[Rooms/Messages] Error:', err);
     return NextResponse.json({ error: 'Failed to fetch messages' }, { status: 500 });
@@ -101,6 +121,9 @@ export async function POST(req: Request, { params }: { params: { roomId: string 
         },
       },
     });
+
+    // Broadcast to SSE subscribers
+    broadcastMessageToRoom(params.roomId, message);
 
     return NextResponse.json({ message }, { status: 201 });
   } catch (err) {

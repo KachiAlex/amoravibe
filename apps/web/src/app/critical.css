@@ -1,0 +1,118 @@
+/* Critical CSS - Inline in <head> for above-the-fold content */
+/* This includes only essential resets, base typography, and layouts needed for initial render */
+
+@import "tailwindcss/base";
+
+/* Mobile-first base styles for critical path */
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent;
+  font-family: var(--font-sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif);
+  font-size: 1rem;
+  line-height: 1.5;
+  color: #0d0f1a;
+  background-color: white;
+}
+
+/* Minimal flex container for layout */
+.flex {
+  display: flex;
+}
+
+.flex-col {
+  flex-direction: column;
+}
+
+.min-h-screen {
+  min-height: 100vh;
+}
+
+.w-full {
+  width: 100%;
+}
+
+/* Critical text utilities */
+.text-sm { 
+  font-size: clamp(0.875rem, 1.75vw, 1rem);
+  line-height: 1.6;
+}
+
+.text-base {
+  font-size: clamp(1rem, 2vw, 1.125rem);
+  line-height: 1.7;
+}
+
+.text-lg {
+  font-size: clamp(1.125rem, 2.25vw, 1.375rem);
+  line-height: 1.8;
+}
+
+.text-xl {
+  font-size: clamp(1.25rem, 2.5vw, 1.5rem);
+  line-height: 1.8;
+}
+
+.text-2xl {
+  font-size: clamp(1.5rem, 3vw, 1.875rem);
+  line-height: 2rem;
+}
+
+.font-semibold {
+  font-weight: 600;
+}
+
+.font-bold {
+  font-weight: 700;
+}
+
+/* Touch targets - critical for mobile */
+button, a, input, select, textarea {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Focus visible for accessibility */
+button:focus-visible, a:focus-visible, input:focus-visible {
+  outline: 2px solid #8b5cf6;
+  outline-offset: 2px;
+}
+
+/* Critical color utilities */
+.text-ink-900 { color: #0d0f1a; }
+.bg-white { background-color: white; }
+.bg-gray-50 { background-color: #f9fafb; }
+.bg-rose-500 { background-color: #ff5c8d; }
+
+/* Critical spacing - Use Tailwind spacing for consistency */
+@layer utilities {
+  .px-3 { padding-left: clamp(0.75rem, 2vw, 2rem); padding-right: clamp(0.75rem, 2vw, 2rem); }
+  .px-4 { padding-left: clamp(1rem, 2.5vw, 2.5rem); padding-right: clamp(1rem, 2.5vw, 2.5rem); }
+  .py-3 { padding-top: clamp(0.75rem, 2vw, 2rem); padding-bottom: clamp(0.75rem, 2vw, 2rem); }
+  .py-4 { padding-top: clamp(1rem, 2.5vw, 2.5rem); padding-bottom: clamp(1rem, 2.5vw, 2.5rem); }
+  
+  .gap-2 { gap: clamp(0.5rem, 1.5vw, 1.5rem); }
+  .gap-3 { gap: clamp(0.75rem, 2vw, 2rem); }
+  .gap-4 { gap: clamp(1rem, 2.5vw, 2.5rem); }
+}
+
+/* Hide elements for mobile (shown on larger screens) */
+@media (max-width: 767px) {
+  .hidden-mobile {
+    display: none;
+  }
+}
+
+/* Show elements only on mobile */
+@media (min-width: 768px) {
+  .mobile-only {
+    display: none;
+  }
+}

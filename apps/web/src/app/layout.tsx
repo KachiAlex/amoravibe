@@ -1,10 +1,15 @@
 import React, { Suspense } from 'react';
 import type { Metadata } from 'next';
 import { Inter, Space_Grotesk } from 'next/font/google';
-import './globals.css';
+import './critical.css';
+import './globals-deferred.css';
 import { OnboardingModalProvider } from '@/app/providers/OnboardingModalProvider';
 import { SignInModalProvider } from '@/app/providers/SignInModalProvider';
 import { ThemeProvider } from '@/app/providers/ThemeProvider';
+import { DeferredStylesLoader } from '@/app/providers/DeferredStylesLoader';
+import { OptionalServicesLoader } from '@/app/providers/OptionalServicesLoader';
+import { ResourceHintsInjector } from '@/app/providers/ResourceHintsInjector';
+import { WebVitalsReporter } from '@/app/components/WebVitalsReporter';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 const spaceGrotesk = Space_Grotesk({
@@ -15,6 +20,11 @@ const spaceGrotesk = Space_Grotesk({
 export const metadata: Metadata = {
   title: 'Lovedate Trust Center',
   description: 'Onboarding, verification, and safety tooling for the Lovedate platform',
+  viewport: 'width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes',
+  charset: 'utf-8',
+  formatDetection: { telephone: false, email: false, address: false },
+  appleWebApp: { capable: true, statusBarStyle: 'black-translucent' },
+  icons: { icon: '/favicon.ico' },
 };
 
 export default function RootLayout({
@@ -23,8 +33,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${inter.variable} ${spaceGrotesk.variable}`}>
+    <html lang="en" className="scroll-smooth">
+      <body className={`${inter.variable} ${spaceGrotesk.variable} flex flex-col min-h-screen w-full bg-white text-ink-900`}>
+        <DeferredStylesLoader />
+        <OptionalServicesLoader />
+        <ResourceHintsInjector />
+        <WebVitalsReporter />
         <Suspense fallback={null}>
           <ThemeProvider>
             <OnboardingModalProvider>

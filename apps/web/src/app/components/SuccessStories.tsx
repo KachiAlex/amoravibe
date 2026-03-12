@@ -61,6 +61,10 @@ export function SuccessStories() {
                     width={400}
                     height={256}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    quality={80}
+                    priority={index < 3}
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    loading={index < 3 ? "eager" : "lazy"}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
 

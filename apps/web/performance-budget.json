@@ -1,0 +1,85 @@
+{
+  "bundles": [
+    {
+      "name": "Critical CSS",
+      "path": ".next/static/css/critical.css",
+      "maxSize": "5kb",
+      "threshold": "10%"
+    },
+    {
+      "name": "Initial CSS",
+      "path": ".next/static/css/**/*.css",
+      "maxSize": "10kb",
+      "threshold": "10%"
+    },
+    {
+      "name": "Initial JS",
+      "path": ".next/static/chunks/main*.js",
+      "maxSize": "120kb",
+      "threshold": "5%"
+    },
+    {
+      "name": "Total Bundle",
+      "path": ".next/**/*.{js,css}",
+      "maxSize": "180kb",
+      "threshold": "10%"
+    }
+  ],
+  "metrics": [
+    {
+      "name": "First Contentful Paint (FCP)",
+      "threshold": "1800ms",
+      "target": "1200ms"
+    },
+    {
+      "name": "Largest Contentful Paint (LCP)",
+      "threshold": "2500ms",
+      "target": "1500ms"
+    },
+    {
+      "name": "Cumulative Layout Shift (CLS)",
+      "threshold": "0.1",
+      "target": "0.05"
+    },
+    {
+      "name": "Time to Interactive (TTI)",
+      "threshold": "3500ms",
+      "target": "2500ms"
+    },
+    {
+      "name": "Time to First Byte (TTFB)",
+      "threshold": "600ms",
+      "target": "500ms"
+    }
+  ],
+  "lighthouse": {
+    "performance": {
+      "threshold": 85,
+      "target": 90
+    },
+    "accessibility": {
+      "threshold": 85,
+      "target": 95
+    },
+    "best-practices": {
+      "threshold": 80,
+      "target": 90
+    },
+    "seo": {
+      "threshold": 90,
+      "target": 95
+    }
+  },
+  "testing": {
+    "routes": [
+      "/",
+      "/dashboard",
+      "/onboarding"
+    ],
+    "devices": [
+      "desktop",
+      "mobile"
+    ],
+    "throttle": "slow-4g"
+  }
+}

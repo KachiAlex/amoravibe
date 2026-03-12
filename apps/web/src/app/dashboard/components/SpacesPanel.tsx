@@ -1,5 +1,7 @@
 "use client";
 import React, { useEffect, useState, useCallback, useRef } from "react";
+import Image from "next/image";
+import { useRoomMessagesStream } from "@/hooks/useRoomMessagesStream";
 
 type Space = {
   id: string;
@@ -46,6 +48,9 @@ type RoomMessage = {
     displayName: string;
     avatar?: string;
   };
+  // local-only fields for optimistic UI
+  localId?: string;
+  status?: 'pending' | 'failed' | 'sent';
 };
 
 export default function SpacesPanel() {
@@ -68,8 +73,11 @@ export default function SpacesPanel() {
   const [chatLoading, setChatLoading] = useState(false);
   const [sendingMessage, setSendingMessage] = useState(false);
   const [chatError, setChatError] = useState<string | null>(null);
+  const [connectionStatus, setConnectionStatus] = useState<'connected' | 'syncing' | 'disconnected'>('connected');
+  const [lastSyncTime, setLastSyncTime] = useState<number>(Date.now());
   const abortControllerRef = useRef<AbortController | null>(null);
   const chatViewportRef = useRef<HTMLDivElement | null>(null);
+  const syncTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const fetchSpaces = useCallback(async () => {
     setSpacesLoading(true);
@@ -144,9 +152,18 @@ export default function SpacesPanel() {
     }
   }, []);
 
-  const fetchGeneralMessages = useCallback(async (roomId: string, silent = false) => {
+  // Helper: Deduplicate and merge messages intelligently
+  const smartMergeMessages = useCallback((optimistic: RoomMessage[], serverMessages: RoomMessage[]) => {
+    const serverIds = new Set(serverMessages.map(m => m.id));
+    // Keep optimistic messages that don't have server equivalents, then add all server messages
+    const optimisticNotOnServer = optimistic.filter(m => !serverIds.has(m.id) && m.status === 'failed');
+    return [...optimisticNotOnServer, ...serverMessages];
+  }, []);
+
+  const fetchGeneralMessages = useCallback(async (roomId: string, silent = false, mergeWithOptimistic = false) => {
     if (!roomId) return;
     if (!silent) setChatLoading(true);
+    setConnectionStatus('syncing');
     try {
       const res = await fetch(`/api/rooms/${roomId}/messages`, {
         credentials: 'include',
@@ -156,40 +173,109 @@ export default function SpacesPanel() {
         throw new Error(errorData.error || 'Failed to load chat');
       }
       const data = await res.json();
-      setGeneralMessages(data.messages || []);
+      const serverMessages = data.messages || [];
+      
+      // Smart merge: keep failed optimistic messages, add server messages
+      if (mergeWithOptimistic) {
+        setGeneralMessages(prev => smartMergeMessages(prev, serverMessages));
+      } else {
+        setGeneralMessages(serverMessages);
+      }
+      
       setChatError(null);
+      setConnectionStatus('connected');
+      setLastSyncTime(Date.now());
     } catch (err) {
       console.error('[SpacesPanel] Failed to fetch general chat', err);
       setChatError('Failed to load chat messages. Please try again.');
+      setConnectionStatus('disconnected');
     } finally {
       if (!silent) setChatLoading(false);
     }
-  }, []);
+  }, [smartMergeMessages]);
 
   const handleSendGeneralMessage = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     if (!generalRoom || !chatInput.trim()) return;
-    setSendingMessage(true);
+
+    // create a temporary local message for optimistic UI
+    const tempId = `local-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const tempMsg: RoomMessage = {
+      id: tempId,
+      localId: tempId,
+      text: chatInput,
+      createdAt: new Date().toISOString(),
+      user: { id: 'me', displayName: 'You' },
+      status: 'pending',
+    };
+
+    // append optimistically and clear input
+    const messageText = chatInput;
+    setGeneralMessages((prev) => [...prev, tempMsg]);
+    setChatInput('');
+    setConnectionStatus('syncing');
+
     try {
       const res = await fetch(`/api/rooms/${generalRoom.id}/messages`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ text: chatInput }),
+        body: JSON.stringify({ text: messageText }),
       });
+
       if (!res.ok) {
         const errorData = await res.json();
         throw new Error(errorData.error || 'Failed to send message');
       }
-      setChatInput('');
-      await fetchGeneralMessages(generalRoom.id, true);
+
+      // Smart reconciliation: merge new server message into optimistic
+      const newMessage = await res.json();
+      setGeneralMessages((prev) => 
+        prev.map((m) => m.localId === tempId ? { ...newMessage, status: 'sent' } : m)
+      );
+      setConnectionStatus('connected');
+      setLastSyncTime(Date.now());
+      setChatError(null);
     } catch (err) {
       console.error('[SpacesPanel] Failed to send chat message', err);
-      setChatError('Unable to send message. Please try again.');
-    } finally {
-      setSendingMessage(false);
+      setChatError('Unable to send message. You can retry.');
+      // mark the optimistic message as failed
+      setGeneralMessages((prev) => prev.map((m) => (m.localId === tempId ? { ...m, status: 'failed' } : m)));
+      setConnectionStatus('disconnected');
     }
-  }, [generalRoom, chatInput, fetchGeneralMessages]);
+  }, [generalRoom]);
+
+  const handleRetryMessage = useCallback(async (localId?: string) => {
+    if (!generalRoom || !localId) return;
+    const msg = generalMessages.find((m) => m.localId === localId || m.id === localId);
+    if (!msg) return;
+
+    // mark pending
+    setGeneralMessages((prev) => prev.map((m) => (m.localId === localId ? { ...m, status: 'pending' } : m)));
+    setConnectionStatus('syncing');
+
+    try {
+      const res = await fetch(`/api/rooms/${generalRoom.id}/messages`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ text: msg.text }),
+      });
+      if (!res.ok) throw new Error('retry failed');
+      
+      // Smart merge: update optimistic with server response
+      const newMessage = await res.json();
+      setGeneralMessages((prev) => 
+        prev.map((m) => m.localId === localId ? { ...newMessage, status: 'sent' } : m)
+      );
+      setConnectionStatus('connected');
+      setLastSyncTime(Date.now());
+    } catch (err) {
+      console.error('[SpacesPanel] Retry failed', err);
+      setGeneralMessages((prev) => prev.map((m) => (m.localId === localId ? { ...m, status: 'failed' } : m)));
+      setConnectionStatus('disconnected');
+    }
+  }, [generalRoom, generalMessages]);
 
   const fetchMembers = useCallback(async (spaceId: string) => {
     try {
@@ -224,10 +310,46 @@ export default function SpacesPanel() {
 
   const breakoutRooms = React.useMemo(() => rooms.filter((room) => !room.isGeneral), [rooms]);
 
+  // Set up SSE for real-time messages with polling fallback
+  const sseStatus = useRoomMessagesStream({
+    roomId: generalRoom?.id || '',
+    lastSync: new Date(lastSyncTime),
+    enabled: !!generalRoom?.id && activeTab === 'chat',
+    onMessage: (message, isInitial) => {
+      // Skip initial catch-up messages if we already have them
+      if (isInitial) return;
+      
+      setGeneralMessages(prev => {
+        // Create Set of server message IDs to filter out duplicates
+        const serverIds = new Set(prev.filter(m => !m.localId).map(m => m.id));
+        
+        // If message already exists, skip it
+        if (serverIds.has(message.id)) return prev;
+        
+        // Add new message
+        return [...prev, { ...message, status: 'sent' }];
+      });
+      
+      setConnectionStatus('connected');
+      setLastSyncTime(Date.now());
+    },
+    onConnected: () => {
+      setConnectionStatus('connected');
+      console.log('[SSE] Room stream connected');
+    },
+    onError: (error) => {
+      console.error('[SSE] Stream error:', error);
+      setConnectionStatus('disconnected');
+      // Polling fallback will handle reconnection
+    },
+  });
+
   useEffect(() => {
     if (!generalRoom?.id || activeTab !== 'chat') return;
     fetchGeneralMessages(generalRoom.id);
-    const refreshInterval = setInterval(() => fetchGeneralMessages(generalRoom.id, true), 10000);
+    // Polling as fallback: use smart merge instead of full refetch (reduced data transfer)
+    // With SSE enabled, this runs less frequently (30s instead of 15s) to sync state
+    const refreshInterval = setInterval(() => fetchGeneralMessages(generalRoom.id, true, true), 30000);
     return () => clearInterval(refreshInterval);
   }, [generalRoom?.id, activeTab, fetchGeneralMessages]);
 
@@ -490,10 +612,17 @@ export default function SpacesPanel() {
                   <div key={member.id} className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 hover:shadow-xl transition">
                     <div className="flex items-start gap-4 mb-4">
                       <div className="relative">
-                        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-fuchsia-100 to-purple-100 flex items-center justify-center text-2xl font-bold text-fuchsia-700">
+                        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-fuchsia-100 to-purple-100 flex items-center justify-center text-2xl font-bold text-fuchsia-700 overflow-hidden">
                           {member.avatar ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img src={member.avatar} alt={member.displayName} className="w-16 h-16 rounded-full object-cover" />
+                            <Image
+                              src={member.avatar}
+                              alt={member.displayName}
+                              width={64}
+                              height={64}
+                              className="w-16 h-16 rounded-full object-cover"
+                              loading="lazy"
+                              unoptimized
+                            />
                           ) : (
                             member.displayName[0].toUpperCase()
                           )}
@@ -548,9 +677,21 @@ export default function SpacesPanel() {
                   <p className="text-sm text-gray-500">Everyone in this space hangs out here.</p>
                 </div>
                 {generalRoom && (
-                  <span className="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-600">
-                    Live
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className={`h-2 w-2 rounded-full ${
+                      connectionStatus === 'connected' ? 'bg-emerald-500' : 
+                      connectionStatus === 'syncing' ? 'bg-yellow-500' : 'bg-red-500'
+                    }`}></span>
+                    <span className="px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700">
+                      {connectionStatus === 'connected' ? 'Live' : 
+                       connectionStatus === 'syncing' ? 'Syncing…' : 'Offline'}
+                    </span>
+                    {lastSyncTime && (
+                      <span className="text-xs text-gray-400 hidden sm:inline">
+                        Last sync: {Math.round((Date.now() - lastSyncTime) / 1000)}s ago
+                      </span>
+                    )}
+                  </div>
                 )}
               </div>
 
@@ -577,22 +718,40 @@ export default function SpacesPanel() {
                     ) : (
                       generalMessages.map((msg) => (
                         <div key={msg.id} className="flex gap-3 items-start">
-                          <div className="h-10 w-10 rounded-full bg-gradient-to-br from-fuchsia-100 to-purple-100 flex items-center justify-center text-sm font-bold text-fuchsia-700 overflow-hidden">
+                          <div className="h-10 w-10 rounded-full bg-gradient-to-br from-fuchsia-100 to-purple-100 flex items-center justify-center text-sm font-bold text-fuchsia-700 overflow-hidden flex-shrink-0">
                             {msg.user.avatar ? (
-                              // eslint-disable-next-line @next/next/no-img-element
-                              <img src={msg.user.avatar} alt={msg.user.displayName} className="h-10 w-10 object-cover" />
+                              <Image
+                                src={msg.user.avatar}
+                                alt={msg.user.displayName}
+                                width={40}
+                                height={40}
+                                className="h-10 w-10 object-cover"
+                                loading="lazy"
+                                unoptimized
+                              />
                             ) : (
                               msg.user.displayName[0]?.toUpperCase()
                             )}
                           </div>
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 text-sm">
-                              <span className="font-semibold text-gray-900">{msg.user.displayName}</span>
-                              <span className="text-xs text-gray-400">{new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                            )
-                            </div>
-                            <p className="text-gray-800 text-sm leading-relaxed">{msg.text}</p>
-                          </div>
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 text-sm">
+                                  <span className="font-semibold text-gray-900">{msg.user.displayName}</span>
+                                  <span className="text-xs text-gray-400">{new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                  {msg.status === 'pending' && (
+                                    <span className="text-xs text-gray-400 italic"> • Sending…</span>
+                                  )}
+                                  {msg.status === 'failed' && (
+                                    <button
+                                      type="button"
+                                      onClick={() => handleRetryMessage(msg.localId || msg.id)}
+                                      className="ml-2 text-xs text-red-600 font-semibold"
+                                    >
+                                      Retry
+                                    </button>
+                                  )}
+                                </div>
+                                <p className="text-gray-800 text-sm leading-relaxed">{msg.text}</p>
+                              </div>
                         </div>
                       ))
                     )}
