@@ -45,19 +45,26 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
 
     // TODO: Replace with actual query once SpaceMember model exists
     // For now, return sample users from the database
-    const sampleUsers = await prisma.user.findMany({
-      take: 10,
-      where: {
-        id: { not: userId },
-      },
-      select: {
-        id: true,
-        displayName: true,
-        avatar: true,
-        about: true,
-        interests: true,
-      },
-    });
+    let sampleUsers;
+    try {
+      sampleUsers = await prisma.user.findMany({
+        take: 10,
+        where: {
+          id: { not: userId },
+        },
+        select: {
+          id: true,
+          displayName: true,
+          avatar: true,
+          about: true,
+          interests: true,
+        },
+      });
+    } catch (queryErr) {
+      console.error('[Spaces/Members] Query error:', queryErr instanceof Error ? queryErr.message : String(queryErr));
+      // Fallback: return just authenticated user
+      sampleUsers = [];
+    }
 
     // Format response with mock online status
     const formattedMembers = sampleUsers.map((member) => {
@@ -95,6 +102,10 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
     return NextResponse.json({ members: formattedMembers });
   } catch (err) {
     console.error('[Spaces/Members] Error:', err);
-    return NextResponse.json({ error: 'Failed to fetch members' }, { status: 500 });
+    const errorMessage = err instanceof Error ? err.message : String(err);
+    const errorStack = err instanceof Error ? err.stack : '';
+    console.error('[Spaces/Members] Error Message:', errorMessage);
+    console.error('[Spaces/Members] Error Stack:', errorStack);
+    return NextResponse.json({ error: 'Failed to fetch members', details: errorMessage }, { status: 500 });
   }
 }

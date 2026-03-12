@@ -28,7 +28,12 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
       return NextResponse.json({ error: 'Space not found' }, { status: 404 });
     }
 
-    await ensureGeneralRoom(space.id, user.id);
+    try {
+      await ensureGeneralRoom(space.id, user.id);
+    } catch (roomErr) {
+      console.warn('[Spaces/Rooms] Failed to ensure general room:', roomErr);
+      // Continue anyway, as general room may already exist
+    }
 
     // Get all public rooms in the space
     const rooms = await prisma.room.findMany({
@@ -67,30 +72,41 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
     return NextResponse.json({ rooms: formattedRooms });
   } catch (err) {
     console.error('[Spaces/Rooms] Error:', err);
-    return NextResponse.json({ error: 'Failed to fetch rooms' }, { status: 500 });
+    const errorMessage = err instanceof Error ? err.message : String(err);
+    const errorStack = err instanceof Error ? err.stack : '';
+    console.error('[Spaces/Rooms] Error Message:', errorMessage);
+    console.error('[Spaces/Rooms] Error Stack:', errorStack);
+    return NextResponse.json({ error: 'Failed to fetch rooms', details: errorMessage }, { status: 500 });
   }
 }
 
 async function ensureGeneralRoom(spaceId: string, userId: string) {
-  const existing = await prisma.room.findFirst({
-    where: { spaceId, isGeneral: true },
-  });
-  if (existing) {
-    await ensureRoomMembership(existing.id, userId);
-    return existing;
+  try {
+    const existing = await prisma.room.findFirst({
+      where: { spaceId, isGeneral: true },
+    });
+    if (existing) {
+      await ensureRoomMembership(existing.id, userId);
+      console.log('[Spaces/Rooms] Found existing general room:', existing.id);
+      return existing;
+    }
+    const room = await prisma.room.create({
+      data: {
+        name: 'General Chat',
+        description: 'Main hangout for everyone in this space.',
+        spaceId,
+        creatorId: userId,
+        isPublic: true,
+        isGeneral: true,
+      },
+    });
+    await ensureRoomMembership(room.id, userId);
+    console.log('[Spaces/Rooms] Created general room:', room.id);
+    return room;
+  } catch (err) {
+    console.error('[Spaces/Rooms] ensureGeneralRoom failed:', err instanceof Error ? err.message : String(err));
+    throw err;
   }
-  const room = await prisma.room.create({
-    data: {
-      name: 'General Chat',
-      description: 'Main hangout for everyone in this space.',
-      spaceId,
-      creatorId: userId,
-      isPublic: true,
-      isGeneral: true,
-    },
-  });
-  await ensureRoomMembership(room.id, userId);
-  return room;
 }
 
 async function ensureRoomMembership(roomId: string, userId: string) {
