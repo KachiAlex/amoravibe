@@ -11,15 +11,13 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import type { NavigationProp } from '@react-navigation/native';
-import { colors as uiColors } from '@lovedate/ui';
-
 const palette = {
-  ink900: uiColors.ink900,
-  ink700: uiColors.ink700,
-  sand100: uiColors.sand100,
-  rose500: uiColors.rose500,
-  rose300: uiColors.rose300,
-  sea400: uiColors.sea400,
+  ink900: '#1a202c',
+  ink700: '#374151',
+  sand100: '#faf8f6',
+  rose500: '#f43f5e',
+  rose300: '#fb7185',
+  sea400: '#06b6d4',
 };
 
 type RootStackParamList = {
