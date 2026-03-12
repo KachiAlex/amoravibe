@@ -10,6 +10,7 @@ const activeConnections = new Map<string, Set<ReadableStreamDefaultController>>(
 export async function GET(req: Request, { params: paramsPromise }: { params: Promise<{ roomId: string }> }) {
   try {
     const params = await paramsPromise;
+    const roomId = params.roomId; // Store roomId for closure access
     const userId = await getUserIdFromRequest(req);
     if (!userId) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
@@ -28,7 +29,7 @@ export async function GET(req: Request, { params: paramsPromise }: { params: Pro
       where: {
         uniq_room_member: {
           userId: user.id,
-          roomId: params.roomId,
+          roomId: roomId,
         },
       },
     });
@@ -45,7 +46,7 @@ export async function GET(req: Request, { params: paramsPromise }: { params: Pro
     // Fetch initial messages since lastSync
     const initialMessages = await prisma.roomMessage.findMany({
       where: {
-        roomId: params.roomId,
+        roomId: roomId,
         createdAt: { gte: lastSyncDate },
       },
       include: {
@@ -70,10 +71,10 @@ export async function GET(req: Request, { params: paramsPromise }: { params: Pro
     const stream = new ReadableStream({
       async start(controller) {
         // Register this connection
-        if (!activeConnections.has(params.roomId)) {
-          activeConnections.set(params.roomId, new Set());
+        if (!activeConnections.has(roomId)) {
+          activeConnections.set(roomId, new Set());
         }
-        activeConnections.get(params.roomId)!.add(controller);
+        activeConnections.get(roomId)!.add(controller);
 
         // Send initial messages as catch-up
         for (const msg of initialMessages) {
@@ -102,11 +103,11 @@ export async function GET(req: Request, { params: paramsPromise }: { params: Pro
         return () => {
           isConnected = false;
           clearInterval(heartbeatInterval);
-          const connections = activeConnections.get(params.roomId);
+          const connections = activeConnections.get(roomId);
           if (connections) {
             connections.delete(controller);
             if (connections.size === 0) {
-              activeConnections.delete(params.roomId);
+              activeConnections.delete(roomId);
             }
           }
         };
@@ -116,7 +117,11 @@ export async function GET(req: Request, { params: paramsPromise }: { params: Pro
     return new NextResponse(stream, { headers });
   } catch (err) {
     console.error('[Rooms/Messages/Stream] Error:', err);
-    return NextResponse.json({ error: 'Failed to establish stream' }, { status: 500 });
+    const errorMessage = err instanceof Error ? err.message : String(err);
+    const errorStack = err instanceof Error ? err.stack : '';
+    console.error('[Rooms/Messages/Stream] Error Message:', errorMessage);
+    console.error('[Rooms/Messages/Stream] Error Stack:', errorStack);
+    return NextResponse.json({ error: 'Failed to establish stream', details: errorMessage }, { status: 500 });
   }
 }
 
