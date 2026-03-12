@@ -91,6 +91,7 @@ export default function MySpacesPanel() {
     onMessage: handleSSEMessage,
     onConnected: handleSSEConnected,
     onError: handleSSEError,
+  });
 
   // Initial load and polling fallback
   useEffect(() => {

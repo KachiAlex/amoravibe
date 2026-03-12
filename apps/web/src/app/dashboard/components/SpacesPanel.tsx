@@ -379,6 +379,7 @@ export default function SpacesPanel() {
     onMessage: handleSSEMessage,
     onConnected: handleSSEConnected,
     onError: handleSSEError,
+  });
 
   useEffect(() => {
     if (!generalRoom?.id || activeTab !== 'chat') return;
