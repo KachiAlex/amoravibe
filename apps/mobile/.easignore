@@ -13,7 +13,7 @@ build/
 .env.local
 .env.*.local
 *.swp
-*.swo
+.swo
 *~
 .idea/
 .vscode/
@@ -39,3 +39,25 @@ coverage/
 # Temporary files
 .turbo/
 .next/
+
+# Workspace root files and directories (don't need for mobile build)
+../../node_modules/
+../../.git/
+../../.next/
+../../.turbo/
+../../dist/
+../../build/
+../../apps/web/
+../../services/
+../../api/
+../../netlify/
+../../docker/
+../../infra/
+../../scripts/
+../../docs/
+../../packages/api/
+../../packages/ui/
+../../packages/config/
+../../.github/
+../../.husky/
+

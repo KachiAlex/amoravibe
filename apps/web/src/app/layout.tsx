@@ -1,15 +1,10 @@
 import React, { Suspense } from 'react';
 import type { Metadata } from 'next';
 import { Inter, Space_Grotesk } from 'next/font/google';
-import './critical.css';
-import './globals-deferred.css';
+import './globals.css';
 import { OnboardingModalProvider } from '@/app/providers/OnboardingModalProvider';
 import { SignInModalProvider } from '@/app/providers/SignInModalProvider';
 import { ThemeProvider } from '@/app/providers/ThemeProvider';
-import { DeferredStylesLoader } from '@/app/providers/DeferredStylesLoader';
-import { OptionalServicesLoader } from '@/app/providers/OptionalServicesLoader';
-import { ResourceHintsInjector } from '@/app/providers/ResourceHintsInjector';
-import { WebVitalsReporter } from '@/app/components/WebVitalsReporter';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 const spaceGrotesk = Space_Grotesk({
@@ -35,10 +30,6 @@ export default function RootLayout({
   return (
     <html lang="en" className="scroll-smooth">
       <body className={`${inter.variable} ${spaceGrotesk.variable} flex flex-col min-h-screen w-full bg-white text-ink-900`}>
-        <DeferredStylesLoader />
-        <OptionalServicesLoader />
-        <ResourceHintsInjector />
-        <WebVitalsReporter />
         <Suspense fallback={null}>
           <ThemeProvider>
             <OnboardingModalProvider>
