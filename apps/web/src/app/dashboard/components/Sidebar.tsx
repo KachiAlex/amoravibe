@@ -71,7 +71,7 @@ function Sidebar({ activeTab }: { activeTab?: string }) {
         <div className="flex items-center justify-between mb-6 md:mb-8 gap-2">
           <div className="flex items-center gap-2 min-w-0 flex-1">
             <Image
-              src="/amoravibe.jpg"
+              src="/images/default-avatar.png"
               alt="AmoraVibe"
               width={40}
               height={40}
