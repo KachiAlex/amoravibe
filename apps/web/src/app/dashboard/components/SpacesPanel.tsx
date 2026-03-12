@@ -131,21 +131,42 @@ export default function SpacesPanel() {
     
     abortControllerRef.current = new AbortController();
     setLoading(true);
+    setError(null);
     
     try {
       const res = await fetch(`/api/spaces/${spaceId}/rooms`, {
         credentials: 'include',
         signal: abortControllerRef.current.signal
       });
+      
+      if (!res.ok) {
+        throw new Error(`Failed to fetch rooms: ${res.status}`);
+      }
+      
       const data = await res.json();
       const fetchedRooms: Room[] = data.rooms || [];
+      
+      if (fetchedRooms.length === 0) {
+        console.warn('[SpacesPanel] No rooms returned from API for space', spaceId);
+        setError('No rooms found. Please try refreshing.');
+      }
+      
       setRooms(fetchedRooms);
       const general = fetchedRooms.find((room) => room.isGeneral);
-      setGeneralRoom(general || null);
+      
+      if (general) {
+        setGeneralRoom(general);
+        console.log('[SpacesPanel] General room found:', general.name);
+      } else {
+        console.warn('[SpacesPanel] No general room found in rooms list');
+        setGeneralRoom(null);
+        setError('General room not available. Please refresh.');
+      }
     } catch (err) {
       if ((err as Error).name !== 'AbortError') {
-        console.error("Failed to fetch rooms", err);
-        setError("Failed to load rooms");
+        const errorMsg = err instanceof Error ? err.message : 'Unknown error';
+        console.error("[SpacesPanel] Failed to fetch rooms:", errorMsg);
+        setError(`Failed to load rooms: ${errorMsg}`);
       }
     } finally {
       setLoading(false);
@@ -290,11 +311,20 @@ export default function SpacesPanel() {
   }, []);
 
   const handleSelectSpace = useCallback((space: Space) => {
+    console.log('[SpacesPanel] Selecting space:', space.name);
     setSelectedSpace(space);
     setShowCreateRoomForm(false);
     setError(null);
-    setActiveTab('chat');
-    fetchRooms(space.id);
+    setGeneralMessages([]);
+    setChatError(null);
+    setActiveTab('rooms'); // Start with rooms tab to show loading
+    
+    // Fetch rooms (which will trigger ensureGeneralRoom on backend)
+    fetchRooms(space.id).then(() => {
+      // Once rooms are fetched, switch to chat tab
+      setTimeout(() => setActiveTab('chat'), 200);
+    });
+    
     fetchMembers(space.id);
   }, [fetchRooms, fetchMembers]);
 
@@ -701,9 +731,25 @@ export default function SpacesPanel() {
                 </div>
               )}
 
+              {error && !generalRoom && (
+                <div className="mb-3 text-sm text-orange-600 bg-orange-50 border border-orange-100 rounded-xl px-3 py-2">
+                  {error}
+                </div>
+              )}
+
               {!generalRoom ? (
-                <div className="flex-1 flex items-center justify-center text-center text-gray-500 text-sm">
-                  This space hasn’t spawned its general room yet. Try refreshing or creating a room.
+                <div className="flex-1 flex flex-col items-center justify-center text-center text-gray-500 gap-4">
+                  <div className="text-sm">
+                    <p className="font-semibold mb-1">General room not initialized</p>
+                    <p className="text-xs">The general chat room will be created when you refresh.</p>
+                  </div>
+                  <button
+                    onClick={() => selectedSpace && fetchRooms(selectedSpace.id)}
+                    disabled={loading}
+                    className="px-4 py-2 text-sm font-semibold rounded-full bg-fuchsia-500 text-white hover:bg-fuchsia-600 disabled:opacity-60 transition"
+                  >
+                    {loading ? 'Refreshing...' : 'Refresh Rooms'}
+                  </button>
                 </div>
               ) : (
                 <>
