@@ -32,7 +32,7 @@ export async function GET(req: Request, { params: paramsPromise }: { params: Pro
     // Check if user is a member of the room
     const roomMember = await prisma.roomMember.findUnique({
       where: {
-        uniq_room_member: {
+        userId_roomId: {
           userId: user.id,
           roomId: roomId,
         },

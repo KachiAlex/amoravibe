@@ -43,7 +43,7 @@ export async function POST(req: Request, { params }: { params: { roomId: string 
     // Check if already a member
     const existingMember = await prisma.roomMember.findUnique({
       where: {
-        uniq_room_member: {
+        userId_roomId: {
           userId: user.id,
           roomId: params.roomId,
         },
