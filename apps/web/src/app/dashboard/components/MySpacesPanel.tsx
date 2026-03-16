@@ -40,6 +40,8 @@ type Message = {
 
 export default function MySpacesPanel() {
   const [joinedSpaces, setJoinedSpaces] = useState<Space[]>([]);
+  const [roomsBySpace, setRoomsBySpace] = useState<Record<string, Room[]>>({});
+  const [loadingRooms, setLoadingRooms] = useState<Record<string, boolean>>({});
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [messageText, setMessageText] = useState("");
@@ -112,8 +114,24 @@ export default function MySpacesPanel() {
       const data = await res.json();
       const spaces = (data.spaces || []).filter((s: Space) => s.isMember);
       setJoinedSpaces(spaces);
+      // Fetch rooms for each space
+      spaces.forEach(space => fetchRoomsBySpace(space.id));
     } catch (err) {
       console.error("Failed to fetch joined spaces", err);
+    }
+  }
+
+  async function fetchRoomsBySpace(spaceId: string) {
+    try {
+      setLoadingRooms(prev => ({ ...prev, [spaceId]: true }));
+      const res = await fetch(`/api/spaces/${spaceId}/rooms`);
+      if (!res.ok) throw new Error('Failed to fetch rooms');
+      const data = await res.json();
+      setRoomsBySpace(prev => ({ ...prev, [spaceId]: data.rooms || [] }));
+    } catch (err) {
+      console.error(`Failed to fetch rooms for space ${spaceId}`, err);
+    } finally {
+      setLoadingRooms(prev => ({ ...prev, [spaceId]: false }));
     }
   }
 
@@ -376,10 +394,29 @@ export default function MySpacesPanel() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Rooms will be fetched and displayed here */}
-                <div className="text-center py-8 text-gray-500 col-span-full">
-                  Loading rooms...
-                </div>
+                {loadingRooms[space.id] ? (
+                  <div className="text-center py-8 text-gray-500 col-span-full">
+                    Loading rooms...
+                  </div>
+                ) : (roomsBySpace[space.id] || []).length === 0 ? (
+                  <div className="text-center py-8 text-gray-500 col-span-full">
+                    No rooms yet
+                  </div>
+                ) : (
+                  (roomsBySpace[space.id] || []).map((room) => (
+                    <div
+                      key={room.id}
+                      onClick={() => setSelectedRoom(room)}
+                      className="p-4 border border-gray-200 rounded-lg hover:border-fuchsia-500 hover:bg-fuchsia-50 cursor-pointer transition"
+                    >
+                      <h4 className="font-semibold text-lg">{room.name}</h4>
+                      {room.description && <p className="text-sm text-gray-600">{room.description}</p>}
+                      <p className="text-xs text-gray-500 mt-2">
+                        {room.isMember ? '✓ Member' : 'Public'}
+                      </p>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
           ))}
