@@ -217,8 +217,14 @@ export default function SpacesPanel() {
 
   const handleSendGeneralMessage = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!generalRoom || !chatInput.trim()) return;
+    console.log('[SpacesPanel] Send button clicked, chatInput:', chatInput);
+    console.log('[SpacesPanel] generalRoom:', generalRoom?.id);
+    if (!generalRoom || !chatInput.trim()) {
+      console.log('[SpacesPanel] Early return - no room or empty input');
+      return;
+    }
 
+    setSendingMessage(true);
     // create a temporary local message for optimistic UI
     const tempId = `local-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     const tempMsg: RoomMessage = {
@@ -246,11 +252,13 @@ export default function SpacesPanel() {
 
       if (!res.ok) {
         const errorData = await res.json();
+        console.error('[SpacesPanel] Send failed with status', res.status, ':', errorData);
         throw new Error(errorData.error || 'Failed to send message');
       }
 
       // Smart reconciliation: merge new server message into optimistic
       const newMessage = await res.json();
+      console.log('[SpacesPanel] Message sent successfully:', newMessage);
       setGeneralMessages((prev) => 
         prev.map((m) => m.localId === tempId ? { ...newMessage, status: 'sent' } : m)
       );
@@ -263,6 +271,8 @@ export default function SpacesPanel() {
       // mark the optimistic message as failed
       setGeneralMessages((prev) => prev.map((m) => (m.localId === tempId ? { ...m, status: 'failed' } : m)));
       setConnectionStatus('disconnected');
+    } finally {
+      setSendingMessage(false);
     }
   }, [generalRoom]);
 

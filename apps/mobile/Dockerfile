@@ -1,0 +1,64 @@
+# Android build environment for Expo/React Native APK
+FROM ubuntu:22.04
+
+# Avoid interactive prompts
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    openjdk-17-jdk \
+    wget \
+    unzip \
+    git \
+    curl \
+    ca-certificates \
+    gnupg \
+    lsb-release \
+    build-essential \
+    python3 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Node.js 18
+RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
+    apt-get install -y nodejs && \
+    rm -rf /var/lib/apt/lists/*
+
+# Set up Android SDK
+ENV ANDROID_HOME=/opt/android-sdk
+ENV ANDROID_SDK_ROOT=$ANDROID_HOME
+ENV PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/emulator:$ANDROID_HOME/platform-tools:$ANDROID_HOME/tools
+
+RUN mkdir -p $ANDROID_HOME && \
+    cd $ANDROID_HOME && \
+    wget -q https://dl.google.com/android/repository/cmdline-tools-linux-10135456_latest.zip && \
+    unzip -q cmdline-tools-linux-10135456_latest.zip && \
+    rm cmdline-tools-linux-10135456_latest.zip && \
+    mkdir -p cmdline-tools/latest && \
+    mv cmdline-tools/* cmdline-tools/latest/ 2>/dev/null || true
+
+# Accept SDK licenses
+RUN mkdir -p $ANDROID_HOME/licenses && \
+    echo "24333f8a63b6825ea9c5514f83c2829b004d1fee" > $ANDROID_HOME/licenses/android-sdk-license && \
+    echo "1d1a29c4d5f51432090d8e2500da9d9111ef3a1cd62eaf2d1ef0697e912d5fb8" > $ANDROID_HOME/licenses/android-sdk-preview-license
+
+# Install Android SDK packages (silently)
+RUN yes | sdkmanager --sdk_root=$ANDROID_HOME "platform-tools" "platforms;android-34" "build-tools;34.0.0" > /dev/null 2>&1 || true
+
+# Install Gradle wrapper & build tools
+RUN apt-get update && apt-get install -y gradle && rm -rf /var/lib/apt/lists/*
+
+# Install Expo & EAS CLI globally
+RUN npm install -g expo-cli eas-cli
+
+# Set working directory
+WORKDIR /workspace/apps/mobile
+
+# Copy only package.json (lock files will be generated during install)
+COPY package.json ./
+RUN npm install --legacy-peer-deps || true
+
+# Copy app source code
+COPY . ./
+
+# Default command - will be overridden
+CMD ["/bin/bash"]
