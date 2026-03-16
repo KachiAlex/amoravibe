@@ -384,12 +384,9 @@ export default function OnboardingPage() {
                           if (!signRes.ok) throw new Error('Unable to prepare upload.');
                           const signature = await signRes.json();
 
-                          const uploadUrl = `https://api.cloudinary.com/v1_1/${signature.cloudName}/auto/upload`;
+                          const uploadUrl = `https://api.cloudinary.com/v1_1/${signature.cloudName}/image/upload`;
                           const formData = new FormData();
                           formData.append('file', file);
-                          formData.append('api_key', signature.apiKey);
-                          formData.append('timestamp', String(signature.timestamp));
-                          formData.append('signature', signature.signature);
                           formData.append('upload_preset', signature.uploadPreset);
                           if (signature.params?.folder) {
                             formData.append('folder', signature.params.folder as string);
