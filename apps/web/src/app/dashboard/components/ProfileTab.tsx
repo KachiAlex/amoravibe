@@ -109,7 +109,7 @@ export default function ProfileTab({ profile, onEdit }: { profile: any; onEdit: 
             className="w-32 h-32 rounded-full border-4 border-white shadow-lg object-cover"
             priority={false}
             quality={85}
-            unoptimized={avatarPreview?.includes('cloudinary') === false}
+            unoptimized={!avatarPreview?.includes('cloudinary')}
           />
           <div className="flex flex-col items-center gap-2">
             <button
