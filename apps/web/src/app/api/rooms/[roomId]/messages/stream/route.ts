@@ -111,16 +111,36 @@ export async function GET(req: Request, { params: paramsPromise }: { params: Pro
           // Keep connection alive with heartbeat every 30 seconds
           const heartbeatInterval = setInterval(() => {
             if (isConnected) {
-              controller.enqueue(encoder.encode(`:heartbeat\n\n`));
+              try {
+                controller.enqueue(encoder.encode(`:heartbeat\n\n`));
+              } catch (err) {
+                console.error('[Stream] Heartbeat failed, connection closed:', err);
+                isConnected = false;
+                clearInterval(heartbeatInterval);
+              }
             }
           }, 30000);
           console.log('[Stream:start] Heartbeat interval set');
+
+          // Safety timeout: Gracefully close connection before Vercel's 300s limit (use 250s buffer)
+          const connectionTimeout = setTimeout(() => {
+            console.log('[Stream] Connection timeout reached (250s), closing gracefully');
+            isConnected = false;
+            clearInterval(heartbeatInterval);
+            try {
+              controller.close();
+            } catch (err) {
+              console.error('[Stream] Error closing controller:', err);
+            }
+          }, 250000); // 250 seconds
+          console.log('[Stream:start] Connection timeout set to 250s');
 
           // Cleanup on disconnect
           return () => {
             console.log('[Stream:cleanup] Cleanup called');
             isConnected = false;
             clearInterval(heartbeatInterval);
+            clearTimeout(connectionTimeout);
             const connections = activeConnections.get(roomId);
             if (connections) {
               connections.delete(controller);
