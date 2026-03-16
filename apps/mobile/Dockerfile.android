@@ -55,7 +55,7 @@ WORKDIR /workspace/apps/mobile
 
 # Copy only package.json (lock files will be generated during install)
 COPY package.json ./
-RUN npm install --legacy-peer-deps 2>&1 | tail -20 || true
+RUN npm install --legacy-peer-deps || true
 
 # Copy app source code
 COPY . ./
