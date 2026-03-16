@@ -238,7 +238,7 @@ export default function SpacesPanel() {
       localId: tempId,
       text: chatInput,
       createdAt: new Date().toISOString(),
-      user: { id: 'me', displayName: 'You' },
+      user: { id: 'me', displayName: 'You', avatar: undefined },
       status: 'pending',
     };
 
@@ -795,10 +795,10 @@ export default function SpacesPanel() {
                       generalMessages.map((msg) => (
                         <div key={msg.id} className="flex gap-3 items-start">
                           <div className="h-10 w-10 rounded-full bg-gradient-to-br from-fuchsia-100 to-purple-100 flex items-center justify-center text-sm font-bold text-fuchsia-700 overflow-hidden flex-shrink-0">
-                            {msg.user.avatar ? (
+                            {msg.user?.avatar ? (
                               <Image
                                 src={msg.user.avatar}
-                                alt={msg.user.displayName}
+                                alt={msg.user?.displayName || 'User'}
                                 width={40}
                                 height={40}
                                 className="h-10 w-10 object-cover"
@@ -806,12 +806,12 @@ export default function SpacesPanel() {
                                 unoptimized
                               />
                             ) : (
-                              msg.user.displayName[0]?.toUpperCase()
+                              (msg.user?.displayName?.[0] || '?')?.toUpperCase()
                             )}
                           </div>
                               <div className="flex-1">
                                 <div className="flex items-center gap-2 text-sm">
-                                  <span className="font-semibold text-gray-900">{msg.user.displayName}</span>
+                                  <span className="font-semibold text-gray-900">{msg.user?.displayName || 'Unknown User'}</span>
                                   <span className="text-xs text-gray-400">{new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                                   {msg.status === 'pending' && (
                                     <span className="text-xs text-gray-400 italic"> • Sending…</span>
