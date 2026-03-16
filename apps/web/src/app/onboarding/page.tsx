@@ -420,6 +420,7 @@ export default function OnboardingPage() {
                           setError((err as Error).message || 'Avatar upload failed');
                         }
                       }}
+                      disabled={loading}
                       className="block text-white"
                     />
                   </div>

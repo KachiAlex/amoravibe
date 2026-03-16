@@ -75,7 +75,6 @@ export default function ProfileTab({ profile, onEdit }: { profile: any; onEdit: 
       }
 
       setAvatarPreview(avatarUrl);
-      onEdit?.();
     } catch (err) {
       setError((err as Error).message || 'Something went wrong');
     } finally {
@@ -214,7 +213,6 @@ export default function ProfileTab({ profile, onEdit }: { profile: any; onEdit: 
                     }
                     setPhotos((prev) => (prev.includes(photoUrl) ? prev : [...prev, photoUrl]));
                   }
-                  onEdit?.();
                 } catch (err) {
                   console.error('Gallery upload failed', err);
                   setError((err as Error).message || 'Photo upload failed');
