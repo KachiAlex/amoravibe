@@ -68,8 +68,11 @@ export default function MySpacesPanel() {
       return [...prev, { ...message, status: 'sent' }];
     });
     
-    setConnectionStatus('connected');
-    setLastSyncTime(Date.now());
+    // Use setTimeout to batch state updates
+    setTimeout(() => {
+      setConnectionStatus('connected');
+      setLastSyncTime(Date.now());
+    }, 0);
   }, []);
 
   const handleSSEConnected = useCallback(() => {

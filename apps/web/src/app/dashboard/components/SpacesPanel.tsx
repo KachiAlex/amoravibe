@@ -268,11 +268,15 @@ export default function SpacesPanel() {
 
   const handleRetryMessage = useCallback(async (localId?: string) => {
     if (!generalRoom || !localId) return;
-    const msg = generalMessages.find((m) => m.localId === localId || m.id === localId);
-    if (!msg) return;
 
-    // mark pending
-    setGeneralMessages((prev) => prev.map((m) => (m.localId === localId ? { ...m, status: 'pending' } : m)));
+    // Get message from current state rather than closure
+    let msg: RoomMessage | undefined;
+    setGeneralMessages((prev) => {
+      msg = prev.find((m) => m.localId === localId || m.id === localId);
+      return prev.map((m) => (m.localId === localId ? { ...m, status: 'pending' } : m));
+    });
+    
+    if (!msg) return;
     setConnectionStatus('syncing');
 
     try {
@@ -296,7 +300,7 @@ export default function SpacesPanel() {
       setGeneralMessages((prev) => prev.map((m) => (m.localId === localId ? { ...m, status: 'failed' } : m)));
       setConnectionStatus('disconnected');
     }
-  }, [generalRoom, generalMessages]);
+  }, [generalRoom]);
 
   const fetchMembers = useCallback(async (spaceId: string) => {
     try {
@@ -356,8 +360,11 @@ export default function SpacesPanel() {
       return [...prev, { ...message, status: 'sent' }];
     });
     
-    setConnectionStatus('connected');
-    setLastSyncTime(Date.now());
+    // Use setTimeout to batch state updates
+    setTimeout(() => {
+      setConnectionStatus('connected');
+      setLastSyncTime(Date.now());
+    }, 0);
   }, []);
 
   const handleSSEConnected = useCallback(() => {

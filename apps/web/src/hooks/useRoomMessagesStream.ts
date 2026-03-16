@@ -26,6 +26,13 @@ export function useRoomMessagesStream({
   const eventSourceRef = useRef<EventSource | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const reconnectAttemptsRef = useRef(0);
+  const callbacksRef = useRef({ onMessage, onConnected, onError });
+  
+  // Keep callback refs in sync without triggering hook dependencies
+  useEffect(() => {
+    callbacksRef.current = { onMessage, onConnected, onError };
+  }, [onMessage, onConnected, onError]);
+  
   const maxReconnectAttempts = 5;
   const baseReconnectDelay = 1000; // 1 second
 
@@ -50,10 +57,10 @@ export function useRoomMessagesStream({
         try {
           const sseMsg: SSEMessage = JSON.parse(event.data);
 
-          if (sseMsg.type === 'message' && onMessage) {
-            onMessage(sseMsg.data, sseMsg.isInitial ?? false);
-          } else if (sseMsg.type === 'connected' && onConnected) {
-            onConnected();
+          if (sseMsg.type === 'message' && callbacksRef.current.onMessage) {
+            callbacksRef.current.onMessage(sseMsg.data, sseMsg.isInitial ?? false);
+          } else if (sseMsg.type === 'connected' && callbacksRef.current.onConnected) {
+            callbacksRef.current.onConnected();
             reconnectAttemptsRef.current = 0; // Reset on successful connection
           }
         } catch (err) {
@@ -77,8 +84,8 @@ export function useRoomMessagesStream({
           }, delay);
         } else {
           console.error('[SSE] Max reconnection attempts reached, falling back to polling');
-          if (onError) {
-            onError(new Error('SSE connection failed after multiple attempts'));
+          if (callbacksRef.current.onError) {
+            callbacksRef.current.onError(new Error('SSE connection failed after multiple attempts'));
           }
         }
       });
@@ -87,11 +94,11 @@ export function useRoomMessagesStream({
       console.log('[SSE] Connected to room stream:', roomId);
     } catch (err) {
       console.error('[SSE] Failed to connect:', err);
-      if (onError) {
-        onError(err instanceof Error ? err : new Error('SSE connection error'));
+      if (callbacksRef.current.onError) {
+        callbacksRef.current.onError(err instanceof Error ? err : new Error('SSE connection error'));
       }
     }
-  }, [roomId, lastSync, enabled, onMessage, onConnected, onError, getReconnectDelay]);
+  }, [roomId, lastSync, enabled, getReconnectDelay]);
 
   useEffect(() => {
     if (!enabled) {
