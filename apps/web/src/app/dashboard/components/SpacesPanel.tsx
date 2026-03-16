@@ -280,7 +280,7 @@ export default function SpacesPanel() {
     } finally {
       setSendingMessage(false);
     }
-  }, [generalRoom]);
+  }, [generalRoom, chatInput]);
 
   const handleRetryMessage = useCallback(async (localId?: string) => {
     if (!generalRoom || !localId) return;
