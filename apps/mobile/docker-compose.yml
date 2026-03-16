@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  android-builder:
+    build:
+      context: .
+      dockerfile: Dockerfile.android
+      args:
+        BUILDKIT_INLINE_CACHE: 1
+    volumes:
+      - .:/workspace/apps/mobile:cached
+      - ./dist:/output:delegated
+    working_dir: /workspace/apps/mobile
+    environment:
+      - ANDROID_HOME=/opt/android-sdk
+      - LANG=en_US.UTF-8
+      - LC_ALL=en_US.UTF-8
+    command: bash
+    stdin_open: true
+    tty: true
