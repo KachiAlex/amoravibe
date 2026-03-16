@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { colors as uiColors } from '@lovedate/ui';
 import {
   ActivityIndicator,
   SafeAreaView,
@@ -10,10 +9,33 @@ import {
   View,
   Pressable,
 } from 'react-native';
-import type { OnboardingStatusResponse, OnboardingStep } from '@lovedate/api';
 import { lovedateApi } from '../config/api';
 
-const palette = uiColors;
+// Local type definitions
+type OnboardingStep = {
+  id: string;
+  title: string;
+  description: string;
+  status: 'pending' | 'active' | 'complete';
+};
+
+type OnboardingStatusResponse = {
+  userId: string;
+  progressPercent: number;
+  steps: OnboardingStep[];
+};
+
+// Color palette (hardcoded from @lovedate/ui)
+const palette = {
+  ink900: '#1a202c',
+  ink800: '#1f2937',
+  ink700: '#374151',
+  sand100: '#faf8f6',
+  rose500: '#f43f5e',
+  rose300: '#fb7185',
+  sea400: '#06b6d4',
+};
+
 const demoUserId = process.env.EXPO_PUBLIC_DEMO_USER_ID ?? 'demo-user';
 
 const fallbackStatus: OnboardingStatusResponse = {

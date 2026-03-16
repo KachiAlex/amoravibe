@@ -15,4 +15,31 @@ export const lovedateApi = {
       highlights: [],
     };
   },
+  async fetchOnboardingStatus(userId: string) {
+    // Mock response - in production, replace with actual API call
+    return {
+      userId,
+      progressPercent: 40,
+      steps: [
+        {
+          id: 'identity',
+          title: 'Identity proof',
+          description: 'Scan government ID + liveness selfie',
+          status: 'active' as const,
+        },
+        {
+          id: 'device',
+          title: 'Device trust',
+          description: 'Register trusted device + biometric fallback',
+          status: 'pending' as const,
+        },
+        {
+          id: 'profile',
+          title: 'Discovery profile',
+          description: 'Orientation, pronouns, and match intent',
+          status: 'pending' as const,
+        },
+      ],
+    };
+  },
 };
