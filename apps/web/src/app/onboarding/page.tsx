@@ -382,20 +382,26 @@ export default function OnboardingPage() {
                             body: JSON.stringify({ folder: 'avatars' }),
                           });
                           if (!signRes.ok) throw new Error('Unable to prepare upload.');
-                          const signature = await signRes.json();
+                          const signData = await signRes.json();
 
-                          const uploadUrl = `https://api.cloudinary.com/v1_1/${signature.cloudName}/image/upload`;
+                          const uploadUrl = `https://api.cloudinary.com/v1_1/${signData.cloudName}/image/upload`;
                           const formData = new FormData();
                           formData.append('file', file);
-                          formData.append('upload_preset', signature.uploadPreset);
-                          if (signature.params?.folder) {
-                            formData.append('folder', signature.params.folder as string);
+                          formData.append('upload_preset', signData.uploadPreset);
+                          // Include signature parameters for signed upload
+                          formData.append('api_key', signData.apiKey);
+                          formData.append('signature', signData.signature);
+                          formData.append('timestamp', signData.timestamp.toString());
+                          if (signData.params?.folder) {
+                            formData.append('folder', signData.params.folder as string);
                           }
 
                           console.log('[Onboarding] Avatar upload:', {
                             uploadUrl,
-                            uploadPreset: signature.uploadPreset,
-                            folder: signature.params?.folder,
+                            uploadPreset: signData.uploadPreset,
+                            signature: signData.signature ? '✓' : '✗',
+                            timestamp: signData.timestamp,
+                            folder: signData.params?.folder,
                           });
 
                           const uploadRes = await fetch(uploadUrl, { method: 'POST', body: formData });
