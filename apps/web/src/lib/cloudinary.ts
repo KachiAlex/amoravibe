@@ -16,8 +16,8 @@ function readEnv(): CloudinaryConfig {
     cloudName: get('CLOUDINARY_CLOUD_NAME'),
     apiKey: get('CLOUDINARY_API_KEY'),
     apiSecret: get('CLOUDINARY_API_SECRET'),
-    // Trim spaces that may be present in the preset name and remove internal whitespace
-    uploadPreset: get('CLOUDINARY_UPLOAD_PRESET').replace(/\s+/g, ''),
+    // Get preset name as-is but trim leading/trailing whitespace (don't remove internal spaces)
+    uploadPreset: get('CLOUDINARY_UPLOAD_PRESET'),
   } as const;
 
   // Debug log – show which vars are set (mask secret)
