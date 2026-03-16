@@ -22,9 +22,9 @@ if errorlevel 1 (
 echo [36m✓ Docker found[0m
 echo.
 
-REM Get the directory of this script
-set SCRIPT_DIR=%~dp0
-set OUTPUT_DIR=%SCRIPT_DIR%dist
+REM Get the directory of this script (without trailing slash)
+for %%A in ("%~dp0.") do set "SCRIPT_DIR=%%~fA"
+set OUTPUT_DIR=%SCRIPT_DIR%\dist
 
 REM Create output directory
 if not exist "%OUTPUT_DIR%" (
@@ -32,7 +32,9 @@ if not exist "%OUTPUT_DIR%" (
 )
 
 echo [34m📦 Step 1: Building Docker image (this takes 5-10 minutes on first run)...[0m
-docker build -f "%SCRIPT_DIR%Dockerfile.android" -t amoravibe-android-builder "%SCRIPT_DIR%"
+echo Starting Docker build from: %SCRIPT_DIR%
+
+docker build -f "%SCRIPT_DIR%\Dockerfile.android" -t amoravibe-android-builder "%SCRIPT_DIR%"
 
 if errorlevel 1 (
     echo [31m❌ Docker image build failed![0m
@@ -48,11 +50,11 @@ echo [33mPlease wait, this may take a while...[0m
 echo.
 
 docker run --rm ^
-    -v "%SCRIPT_DIR%:/workspace/apps/mobile" ^
-    -v "%OUTPUT_DIR%:/output" ^
+    -v "%SCRIPT_DIR%":/workspace/apps/mobile ^
+    -v "%OUTPUT_DIR%":/output ^
     -e ANDROID_HOME=/opt/android-sdk ^
     amoravibe-android-builder ^
-    bash -c "cd /workspace/apps/mobile && npm install && npx expo build-android --release-channel preview --output /output"
+    bash -c "cd /workspace/apps/mobile && npm install && npx expo build-android --release-channel preview --output /output 2>&1"
 
 if errorlevel 1 (
     echo.
