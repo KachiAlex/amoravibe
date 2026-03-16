@@ -42,6 +42,8 @@ export function useRoomMessagesStream({
   }, []);
 
   const connect = useCallback(() => {
+    // Only run on client side
+    if (typeof window === 'undefined') return;
     if (!enabled || !roomId) return;
 
     try {
@@ -101,7 +103,7 @@ export function useRoomMessagesStream({
   }, [roomId, lastSync, enabled, getReconnectDelay]);
 
   useEffect(() => {
-    if (!enabled) {
+    if (!enabled || typeof window === 'undefined') {
       return;
     }
 

@@ -7,11 +7,11 @@ import MessagesPanel from './MessagesPanel';
 import DiscoverPanel from './DiscoverPanel';
 import dynamic from 'next/dynamic';
 const ProfilePanel = dynamic(() => import('./ProfilePanel'), { ssr: false });
+import dynamic from 'next/dynamic';
+const ProfilePanel = dynamic(() => import('./ProfilePanel'), { ssr: false });
+const SpacesPanel = dynamic(() => import('./SpacesPanel'), { ssr: false });
+const MySpacesPanel = dynamic(() => import('./MySpacesPanel'), { ssr: false });
 import SettingsPanel from './SettingsPanel';
-import SpacesPanel from './SpacesPanel';
-import MySpacesPanel from './MySpacesPanel';
-
-const VISIBLE_TABS = [
   { id: 'matches', label: 'Matches' },
   { id: 'messages', label: 'Messages' },
   { id: 'discover', label: 'Discover' },
