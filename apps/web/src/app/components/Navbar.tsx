@@ -30,7 +30,6 @@ export function Navbar() {
               alt="AmoraVibe logo"
               width={48}
               height={48}
-              priority
               unoptimized
               className="w-12 h-12 rounded-full object-cover shadow-sm"
             />
