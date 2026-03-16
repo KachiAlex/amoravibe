@@ -93,6 +93,7 @@ export default function ProfileTab({ profile, onEdit }: { profile: any; onEdit: 
           priority={false}
           quality={80}
           sizes="(max-width: 640px) 100vw, 32rem"
+          unoptimized={!profile.cover}
         />
         <div className="absolute left-1/2 top-48 -translate-x-1/2 flex flex-col items-center gap-3">
           <Image 

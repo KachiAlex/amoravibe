@@ -220,6 +220,7 @@ export default function DiscoverSwipePanel({ onBack, filters }: DiscoverSwipePan
                   className="h-full w-full object-cover"
                   priority={history.length === 0}
                   sizes="(max-width: 640px) 100vw, 460px"
+                  unoptimized={!currentProfile.photos && !currentProfile.cover}
                 />
                 <span className="absolute top-4 right-4 bg-white/90 text-gray-800 text-sm font-semibold px-3 py-1 rounded-full shadow">
                   {currentProfile.distance || '2 miles away'}
