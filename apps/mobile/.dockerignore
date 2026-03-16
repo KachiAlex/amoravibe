@@ -1,0 +1,46 @@
+# Docker build ignore file
+# Excludes files/directories from Docker context
+
+# Dependencies
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Build outputs
+.expo/
+.next/
+dist/
+build/
+*.apk
+*.aab
+
+# Version control
+.git/
+.gitignore
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# OS files
+.turbo/
+.turborc
+.eslintcache
+
+# Workspace root files (don't need for mobile build)
+../../node_modules/
+../../.git/
+../../.turbo/
+../../apps/web/
+../../services/
+../../api/
+../../infra/
+../../netlify/
+../../docker/
+../../docs/
+../../packages/
+../../.github/

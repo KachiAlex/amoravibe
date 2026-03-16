@@ -164,8 +164,15 @@ export default function MySpacesPanel() {
 
   async function handleSendMessage(e: React.FormEvent) {
     e.preventDefault();
-    if (!selectedRoom || !messageText.trim()) return;
+    console.log('[MySpacesPanel] Send button clicked with text:', messageText);
+    console.log('[MySpacesPanel] Selected room:', selectedRoom?.id);
+    console.log('[MySpacesPanel] Loading state:', loading);
+    if (!selectedRoom || !messageText.trim()) {
+      console.log('[MySpacesPanel] Early return - room or text empty');
+      return;
+    }
 
+    setLoading(true);
     const localId = `local-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     const msgText = messageText;
     
@@ -198,6 +205,7 @@ export default function MySpacesPanel() {
       if (res.ok) {
         // Smart merge: update optimistic with server response
         const newMessage = await res.json();
+        console.log('[MySpacesPanel] Message sent successfully:', newMessage);
         setMessages((prev) => 
           prev.map((m) => m.localId === localId ? { ...newMessage, status: 'sent' } : m)
         );
@@ -205,12 +213,13 @@ export default function MySpacesPanel() {
         setLastSyncTime(Date.now());
       } else {
         // Mark optimistic message as failed
+        const errorData = await res.json();
+        console.error('[MySpacesPanel] Send failed with status', res.status, ':', errorData);
         setMessages((msgs) =>
           msgs.map((msg) =>
             msg.localId === localId ? { ...msg, status: 'failed' } : msg
           )
         );
-        const errorData = await res.json();
         setChatError(errorData.error || 'Failed to send message');
         setConnectionStatus('disconnected');
       }
@@ -223,6 +232,8 @@ export default function MySpacesPanel() {
       );
       setChatError('Failed to send message. Please try again.');
       setConnectionStatus('disconnected');
+    } finally {
+      setLoading(false);
     }
   }
 

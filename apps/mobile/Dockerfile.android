@@ -53,11 +53,11 @@ RUN npm install -g expo-cli eas-cli
 # Set working directory
 WORKDIR /workspace/apps/mobile
 
-# Copy package files
-COPY package.json package-lock.json yarn.lock* ./
-RUN npm install || yarn install || true
+# Copy only package.json (lock files will be generated during install)
+COPY package.json ./
+RUN npm install --legacy-peer-deps 2>&1 | tail -20 || true
 
-# Copy app
+# Copy app source code
 COPY . ./
 
 # Default command - will be overridden
