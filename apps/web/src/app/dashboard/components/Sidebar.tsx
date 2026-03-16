@@ -75,6 +75,7 @@ function Sidebar({ activeTab }: { activeTab?: string }) {
               alt="AmoraVibe"
               width={40}
               height={40}
+              unoptimized
               className="rounded-full shadow-md flex-shrink-0"
               priority
             />

@@ -31,6 +31,7 @@ export function Navbar() {
               width={48}
               height={48}
               priority
+              unoptimized
               className="w-12 h-12 rounded-full object-cover shadow-sm"
             />
             <span className="text-2xl font-bold gradient-heading">
