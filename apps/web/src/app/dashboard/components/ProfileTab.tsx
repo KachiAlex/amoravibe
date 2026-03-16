@@ -40,8 +40,20 @@ export default function ProfileTab({ profile, onEdit }: { profile: any; onEdit: 
         formData.append('folder', signature.params.folder as string);
       }
 
+      console.log('[ProfileTab] Avatar upload:', {
+        uploadUrl,
+        cloudName: signature.cloudName,
+        uploadPreset: signature.uploadPreset,
+        folder: signature.params?.folder,
+      });
+
       const uploadRes = await fetch(uploadUrl, { method: 'POST', body: formData });
       const uploaded = await uploadRes.json();
+      console.log('[ProfileTab] Upload response:', {
+        status: uploadRes.status,
+        ok: uploadRes.ok,
+        response: uploaded,
+      });
       if (!uploadRes.ok) {
         throw new Error(uploaded?.error?.message || 'Upload failed');
       }
@@ -161,8 +173,19 @@ export default function ProfileTab({ profile, onEdit }: { profile: any; onEdit: 
                       formData.append('folder', signature.params.folder as string);
                     }
 
+                    console.log('[ProfileTab] Gallery upload:', {
+                      uploadUrl,
+                      uploadPreset: signature.uploadPreset,
+                      folder: signature.params?.folder,
+                    });
+
                     const uploadRes = await fetch(uploadUrl, { method: 'POST', body: formData });
                     const uploaded = await uploadRes.json();
+                    console.log('[ProfileTab] Gallery upload response:', {
+                      status: uploadRes.status,
+                      ok: uploadRes.ok,
+                      response: uploaded,
+                    });
                     if (!uploadRes.ok) {
                       throw new Error(uploaded?.error?.message || 'Upload failed');
                     }

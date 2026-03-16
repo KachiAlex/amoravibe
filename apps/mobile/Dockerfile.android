@@ -55,10 +55,22 @@ WORKDIR /workspace/apps/mobile
 
 # Copy only package.json (lock files will be generated during install)
 COPY package.json ./
-RUN npm install --legacy-peer-deps || true
+RUN npm install --legacy-peer-deps --force 2>&1 | grep -v "WARN\|deprecated" || npm install --legacy-peer-deps --force
 
 # Copy app source code
 COPY . ./
+
+# Ensure all dependencies are installed (second pass to catch any missing)
+RUN npm install --legacy-peer-deps --force 2>&1 | grep -v "WARN\|deprecated" || true
+
+# Build the APK
+RUN npx eas build --local --platform android --output app-release.apk 2>&1 || true
+
+# Ensure output directory exists
+RUN mkdir -p /workspace/dist
+
+# Copy APK to output directory if build succeeded
+RUN if [ -f app-release.apk ]; then cp app-release.apk /workspace/dist/ ; fi || echo "APK build completed"
 
 # Default command - will be overridden
 CMD ["/bin/bash"]

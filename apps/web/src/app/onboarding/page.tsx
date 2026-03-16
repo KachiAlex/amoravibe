@@ -392,8 +392,19 @@ export default function OnboardingPage() {
                             formData.append('folder', signature.params.folder as string);
                           }
 
+                          console.log('[Onboarding] Avatar upload:', {
+                            uploadUrl,
+                            uploadPreset: signature.uploadPreset,
+                            folder: signature.params?.folder,
+                          });
+
                           const uploadRes = await fetch(uploadUrl, { method: 'POST', body: formData });
                           const uploaded = await uploadRes.json();
+                          console.log('[Onboarding] Upload response:', {
+                            status: uploadRes.status,
+                            ok: uploadRes.ok,
+                            response: uploaded,
+                          });
                           if (!uploadRes.ok) {
                             throw new Error(uploaded?.error?.message || 'Upload failed');
                           }
