@@ -7,8 +7,11 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(req: Request, { params: paramsPromise }: { params: Promise<{ roomId: string }> }) {
   try {
+    console.log('[Messages GET] Request received');
     const params = await paramsPromise;
+    console.log('[Messages GET] roomId:', params.roomId);
     const userId = await getUserIdFromRequest(req);
+    console.log('[Messages GET] userId:', userId);
     if (!userId) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
     }
@@ -58,6 +61,7 @@ export async function GET(req: Request, { params: paramsPromise }: { params: Pro
       skip: offset,
     });
 
+    console.log('[Messages GET] Success, returning', messages.length, 'messages');
     return NextResponse.json({ 
       messages,
       pagination: {
@@ -68,15 +72,22 @@ export async function GET(req: Request, { params: paramsPromise }: { params: Pro
       }
     });
   } catch (err) {
-    console.error('[Rooms/Messages] Error:', err);
+    console.error('[Messages GET] Error:', err);
+    if (err instanceof Error) {
+      console.error('[Messages GET] Error message:', err.message);
+      console.error('[Messages GET] Error stack:', err.stack);
+    }
     return NextResponse.json({ error: 'Failed to fetch messages' }, { status: 500 });
   }
 }
 
 export async function POST(req: Request, { params: paramsPromise }: { params: Promise<{ roomId: string }> }) {
   try {
+    console.log('[Messages POST] Request received');
     const params = await paramsPromise;
+    console.log('[Messages POST] roomId:', params.roomId);
     const userId = await getUserIdFromRequest(req);
+    console.log('[Messages POST] userId:', userId);
     if (!userId) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
     }
@@ -124,12 +135,18 @@ export async function POST(req: Request, { params: paramsPromise }: { params: Pr
       },
     });
 
+    console.log('[Messages POST] Message created:', message.id);
     // Broadcast to SSE subscribers
     broadcastMessageToRoom(params.roomId, message);
+    console.log('[Messages POST] Broadcast sent');
 
     return NextResponse.json({ message }, { status: 201 });
   } catch (err) {
-    console.error('[Rooms/Messages] Error:', err);
+    console.error('[Messages POST] Error:', err);
+    if (err instanceof Error) {
+      console.error('[Messages POST] Error message:', err.message);
+      console.error('[Messages POST] Error stack:', err.stack);
+    }
     return NextResponse.json({ error: 'Failed to send message' }, { status: 500 });
   }
 }
