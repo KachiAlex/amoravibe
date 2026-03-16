@@ -5,10 +5,28 @@ import { buildUploadSignature, getCloudinaryConfig } from '@/lib/cloudinary';
 
 export async function POST(request: Request) {
   try {
+    console.log('[uploads/sign] Received upload signature request');
+    
     // Validate config up front so we can return a clearer error when env vars are missing
-    const cfg = getCloudinaryConfig();
+    let cfg;
+    try {
+      cfg = getCloudinaryConfig();
+      console.log('[uploads/sign] Cloudinary config loaded');
+    } catch (configErr) {
+      console.error('[uploads/sign] Cloudinary config error:', configErr);
+      return NextResponse.json(
+        { 
+          error: {
+            message: 'Cloudinary is not configured. Missing environment variables: CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET, CLOUDINARY_UPLOAD_PRESET',
+            details: String(configErr)
+          } 
+        }, 
+        { status: 500 }
+      );
+    }
+
     const body = await request.json().catch(() => ({}));
-    console.log('[uploads/sign] received body:', body);
+    console.log('[uploads/sign] Received body:', body);
     const folder = typeof body.folder === 'string' ? body.folder : undefined;
     const extraTags = Array.isArray(body.tags) ? body.tags.join(',') : undefined;
 
@@ -18,10 +36,11 @@ export async function POST(request: Request) {
       tags: extraTags,
       context: body.context,
     });
-    console.log('[uploads/sign] generated signature:', {
+    console.log('[uploads/sign] Generated signature:', {
       cloudName: signature.cloudName,
       timestamp: signature.timestamp,
-      params: signature.paramsToSign,
+      uploadPreset: signature.uploadPreset,
+      paramsToSign: signature.paramsToSign,
     });
 
     return NextResponse.json({
@@ -33,7 +52,16 @@ export async function POST(request: Request) {
       params: signature.paramsToSign,
     });
   } catch (error) {
-    console.error('[uploads/sign] failed', error);
-    return NextResponse.json({ error: 'Unable to generate upload signature. Check Cloudinary env vars.' }, { status: 500 });
+    console.error('[uploads/sign] Unexpected error:', error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    return NextResponse.json(
+      { 
+        error: {
+          message: 'Unable to generate upload signature', 
+          details: errorMessage
+        } 
+      }, 
+      { status: 500 }
+    );
   }
 }
