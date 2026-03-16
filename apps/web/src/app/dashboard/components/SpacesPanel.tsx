@@ -118,11 +118,17 @@ export default function SpacesPanel() {
 
   // Reset chat when switching spaces
   useEffect(() => {
+    console.log('[SpacesPanel] Space changed, resetting chat. New space:', selectedSpace?.id);
     setGeneralMessages([]);
     setChatInput('');
     setGeneralRoom(null);
     setChatError(null);
   }, [selectedSpace]);
+
+  // Log state whenever activeTab or chatInput changes
+  useEffect(() => {
+    console.log('[SpacesPanel] State update - activeTab:', activeTab, 'chatInput:', JSON.stringify(chatInput), 'selectedSpace:', selectedSpace?.id);
+  }, [activeTab, chatInput, selectedSpace?.id]);
 
   const fetchRooms = useCallback(async (spaceId: string) => {
     if (abortControllerRef.current) {
@@ -832,7 +838,10 @@ export default function SpacesPanel() {
                       <input
                         type="text"
                         value={chatInput}
-                        onChange={(e) => setChatInput(e.target.value)}
+                        onChange={(e) => {
+                          console.log('[SpacesPanel] Input onChange fired, value:', e.target.value);
+                          setChatInput(e.target.value);
+                        }}
                         placeholder="Share an update with everyone…"
                         className="flex-1 rounded-2xl border-2 border-gray-200 px-4 py-3 text-sm focus:border-fuchsia-500 focus:outline-none"
                         disabled={sendingMessage}
