@@ -1,6 +1,5 @@
 'use client';
 
-import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
 import { Menu, X } from 'lucide-react';
@@ -25,12 +24,11 @@ export function Navbar() {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-3">
-            <Image
+            <img
               src="/images/default-avatar.png"
               alt="AmoraVibe logo"
               width={48}
               height={48}
-              unoptimized
               className="w-12 h-12 rounded-full object-cover shadow-sm"
             />
             <span className="text-2xl font-bold gradient-heading">
