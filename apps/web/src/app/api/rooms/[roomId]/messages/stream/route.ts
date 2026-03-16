@@ -9,9 +9,13 @@ const activeConnections = new Map<string, Set<ReadableStreamDefaultController>>(
 
 export async function GET(req: Request, { params: paramsPromise }: { params: Promise<{ roomId: string }> }) {
   try {
+    console.log('[Stream] Received request');
     const params = await paramsPromise;
-    const roomId = params.roomId; // Store roomId for closure access
+    const roomId = params.roomId;
+    console.log('[Stream] roomId:', roomId);
+    
     const userId = await getUserIdFromRequest(req);
+    console.log('[Stream] userId:', userId);
     if (!userId) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
     }
@@ -19,6 +23,7 @@ export async function GET(req: Request, { params: paramsPromise }: { params: Pro
     const user = await prisma.user.findUnique({
       where: { id: userId },
     });
+    console.log('[Stream] user found:', !!user);
 
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
@@ -33,6 +38,7 @@ export async function GET(req: Request, { params: paramsPromise }: { params: Pro
         },
       },
     });
+    console.log('[Stream] roomMember found:', !!roomMember);
 
     if (!roomMember) {
       return NextResponse.json({ error: 'You are not a member of this room' }, { status: 403 });
@@ -41,9 +47,11 @@ export async function GET(req: Request, { params: paramsPromise }: { params: Pro
     // Get the last message timestamp from query params (for catching up)
     const url = new URL(req.url);
     const lastSync = url.searchParams.get('lastSync');
-    const lastSyncDate = lastSync ? new Date(lastSync) : new Date(Date.now() - 5 * 60 * 1000); // Default: last 5 minutes
+    const lastSyncDate = lastSync ? new Date(lastSync) : new Date(Date.now() - 5 * 60 * 1000);
+    console.log('[Stream] lastSyncDate:', lastSyncDate);
 
     // Fetch initial messages since lastSync
+    console.log('[Stream] Fetching initial messages...');
     const initialMessages = await prisma.roomMessage.findMany({
       where: {
         roomId: roomId,
@@ -56,6 +64,7 @@ export async function GET(req: Request, { params: paramsPromise }: { params: Pro
       },
       orderBy: { createdAt: 'asc' },
     });
+    console.log('[Stream] Initial messages count:', initialMessages.length);
 
     // SSE headers
     const headers = new Headers({
@@ -65,62 +74,80 @@ export async function GET(req: Request, { params: paramsPromise }: { params: Pro
       'X-Accel-Buffering': 'no', // Disable buffering for real-time delivery
     });
 
+    console.log('[Stream] Creating TextEncoder');
     const encoder = new TextEncoder();
     let isConnected = true;
 
+    console.log('[Stream] Creating ReadableStream');
     const stream = new ReadableStream({
       async start(controller) {
-        // Register this connection
-        if (!activeConnections.has(roomId)) {
-          activeConnections.set(roomId, new Set());
-        }
-        activeConnections.get(roomId)!.add(controller);
+        try {
+          console.log('[Stream:start] Function called');
+          // Register this connection
+          if (!activeConnections.has(roomId)) {
+            activeConnections.set(roomId, new Set());
+          }
+          activeConnections.get(roomId)!.add(controller);
+          console.log('[Stream:start] Connection registered');
 
-        // Send initial messages as catch-up
-        for (const msg of initialMessages) {
+          // Send initial messages as catch-up
+          for (const msg of initialMessages) {
+            controller.enqueue(
+              encoder.encode(
+                `data: ${JSON.stringify({ type: 'message', data: msg, isInitial: true })}\n\n`
+              )
+            );
+          }
+          console.log('[Stream:start] Initial messages sent');
+
+          // Send initial connection confirmation
           controller.enqueue(
             encoder.encode(
-              `data: ${JSON.stringify({ type: 'message', data: msg, isInitial: true })}\n\n`
+              `data: ${JSON.stringify({ type: 'connected', data: { timestamp: new Date().toISOString() } })}\n\n`
             )
           );
-        }
+          console.log('[Stream:start] Connected message sent');
 
-        // Send initial connection confirmation
-        controller.enqueue(
-          encoder.encode(
-            `data: ${JSON.stringify({ type: 'connected', data: { timestamp: new Date().toISOString() } })}\n\n`
-          )
-        );
-
-        // Keep connection alive with heartbeat every 30 seconds
-        const heartbeatInterval = setInterval(() => {
-          if (isConnected) {
-            controller.enqueue(encoder.encode(`:heartbeat\n\n`));
-          }
-        }, 30000);
-
-        // Cleanup on disconnect
-        return () => {
-          isConnected = false;
-          clearInterval(heartbeatInterval);
-          const connections = activeConnections.get(roomId);
-          if (connections) {
-            connections.delete(controller);
-            if (connections.size === 0) {
-              activeConnections.delete(roomId);
+          // Keep connection alive with heartbeat every 30 seconds
+          const heartbeatInterval = setInterval(() => {
+            if (isConnected) {
+              controller.enqueue(encoder.encode(`:heartbeat\n\n`));
             }
-          }
-        };
+          }, 30000);
+          console.log('[Stream:start] Heartbeat interval set');
+
+          // Cleanup on disconnect
+          return () => {
+            console.log('[Stream:cleanup] Cleanup called');
+            isConnected = false;
+            clearInterval(heartbeatInterval);
+            const connections = activeConnections.get(roomId);
+            if (connections) {
+              connections.delete(controller);
+              if (connections.size === 0) {
+                activeConnections.delete(roomId);
+              }
+            }
+          };
+        } catch (err) {
+          console.error('[Stream:start] Error in start function:', err);
+          throw err;
+        }
       },
     });
 
+    console.log('[Stream] ReadableStream created successfully, returning response');
     return new NextResponse(stream, { headers });
   } catch (err) {
-    console.error('[Rooms/Messages/Stream] Error:', err);
+    console.error('[Stream] Caught error in try block');
+    console.error('[Stream] Error type:', err?.constructor?.name);
+    console.error('[Stream] Error:', err);
+    if (err instanceof Error) {
+      console.error('[Stream] Error message:', err.message);
+      console.error('[Stream] Error stack:', err.stack);
+    }
     const errorMessage = err instanceof Error ? err.message : String(err);
-    const errorStack = err instanceof Error ? err.stack : '';
-    console.error('[Rooms/Messages/Stream] Error Message:', errorMessage);
-    console.error('[Rooms/Messages/Stream] Error Stack:', errorStack);
+    console.error('[Stream] Returning 500 with message:', errorMessage);
     return NextResponse.json({ error: 'Failed to establish stream', details: errorMessage }, { status: 500 });
   }
 }
