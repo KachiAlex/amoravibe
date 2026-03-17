@@ -42,6 +42,8 @@ model User {
   roomMembers          RoomMember[]
   roomMessages         RoomMessage[]
   spaceMembers         SpaceMember[]
+  bookmarks            Bookmark[]          @relation("UserBookmarks")
+  bookmarkedBy         Bookmark[]          @relation("BookmarkedBy")
 }
 
 model Match {
@@ -75,6 +77,18 @@ model MatchAction {
 
   @@unique([actorId, targetUserId], map: "uniq_match_action_actor_target")
   @@index([actorId, targetUserId], map: "idx_match_action_actor_target")
+}
+
+model Bookmark {
+  id              String   @id @default(uuid())
+  userId          String
+  bookmarkedUserId String
+  createdAt       DateTime @default(now())
+  user            User     @relation("UserBookmarks", fields: [userId], references: [id], onDelete: Cascade)
+  bookmarkedUser  User     @relation("BookmarkedBy", fields: [bookmarkedUserId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, bookmarkedUserId], map: "uniq_bookmark_user_target")
+  @@index([userId], map: "idx_bookmark_user")
 }
 
 model Message {

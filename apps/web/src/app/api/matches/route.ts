@@ -1,155 +1,98 @@
 import { NextResponse } from 'next/server';
-import { getSession } from '@/lib/session';
+import { getUserIdFromRequest } from '@/lib/auth-request';
 import db from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 
-// Fallback matches (dev only) limited to women to respect heterosexual preference
-const FALLBACK_MATCHES = [
-  {
-    id: 'seed-sarah',
-    name: 'Sarah Johnson',
-    matchPercent: 95,
-    avatar: 'https://randomuser.me/api/portraits/women/44.jpg',
-    tagline: 'Designing delightful experiences, coffee snob, sunset chaser.',
-    role: 'UX Designer',
-    location: 'San Francisco, CA',
-    tags: ['Travel', 'Design', 'Coffee'],
-    status: 'CONNECTED',
-    isHighlighted: false,
-  },
-  {
-    id: 'seed-emma',
-    name: 'Emma Rodriguez',
-    matchPercent: 90,
-    avatar: 'https://randomuser.me/api/portraits/women/68.jpg',
-    tagline: 'Fitness devotee, brunch curator, always planning the next getaway.',
-    role: 'Marketing Lead',
-    location: 'New York, NY',
-    tags: ['Brunch', 'Fitness', 'Travel'],
-    status: 'CONNECTED',
-    isHighlighted: false,
-  },
-  {
-    id: 'seed-aisha',
-    name: 'Aisha Bello',
-    matchPercent: 87,
-    avatar: 'https://randomuser.me/api/portraits/women/12.jpg',
-    tagline: 'Book club organizer bringing storytelling into every conversation.',
-    role: 'Product Manager',
-    location: 'Austin, TX',
-    tags: ['Books', 'Podcasts', 'Latte Art'],
-    status: 'CONNECTED',
-    isHighlighted: false,
-  },
-  {
-    id: 'seed-lucy',
-    name: 'Lucy Park',
-    matchPercent: 89,
-    avatar: 'https://randomuser.me/api/portraits/women/82.jpg',
-    tagline: 'Data storyteller who loves sunrise runs and ramen hunts.',
-    role: 'Data Analyst',
-    location: 'Boston, MA',
-    tags: ['Running', 'Foodie', 'Data Viz'],
-    status: 'CONNECTED',
-    isHighlighted: true,
-  },
-  {
-    id: 'seed-hannah',
-    name: 'Hannah Lee',
-    matchPercent: 91,
-    avatar: 'https://randomuser.me/api/portraits/women/15.jpg',
-    tagline: 'Coffee roaster, bookworm, and weekend ceramic artist.',
-    role: 'Product Researcher',
-    location: 'Portland, OR',
-    tags: ['Coffee', 'Books', 'Art'],
-    status: 'CONNECTED',
-    isHighlighted: false,
-  },
-];
-
 export async function GET(req: Request) {
-  const session = await getSession();
-  const { searchParams } = new URL(req.url);
-  const userId = searchParams.get('userId') ?? session?.userId ?? null;
-  const limit = Number.isFinite(Number(searchParams.get('limit'))) ? Number(searchParams.get('limit')) : 12;
+  try {
+    // Require authentication - no fallback users allowed
+    const userId = await getUserIdFromRequest(req);
+    if (!userId) {
+      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+    }
 
-  if (!userId) {
-    // Local/dev fallback: return seeded matches instead of 401/empty
-    return NextResponse.json(FALLBACK_MATCHES, { status: 200 });
-  }
+    const { searchParams } = new URL(req.url);
+    const limit = Number.isFinite(Number(searchParams.get('limit'))) ? Number(searchParams.get('limit')) : 12;
 
-  // Load user to respect orientation preference
-  // Load user (full object to avoid select typing issues) to respect orientation/intent
-  const currentUser = (await db.user.findUnique({
-    where: { id: userId },
-  })) as any;
+    // Verify user exists and load preferences
+    const currentUser = (await db.user.findUnique({
+      where: { id: userId },
+    })) as any;
 
-  const orientation = currentUser?.orientation?.toLowerCase();
-  const wantsWomenOnly = orientation === 'straight';
-  const currentIntent = currentUser?.lookingFor?.toLowerCase() ?? null;
+    if (!currentUser) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
 
-  const seriousnessScore = (intent: string | null) => {
-    const map: Record<string, number> = {
-      casual: 1,
-      friendship: 1,
-      friends: 1,
-      relationship: 2,
-      serious: 2,
-      marriage: 3,
-      longterm: 3,
-    };
-    if (!intent) return 0;
-    return map[intent] ?? 0;
-  };
+    const orientation = currentUser?.orientation?.toLowerCase();
+    const wantsWomenOnly = orientation === 'straight';
+    const currentIntent = currentUser?.lookingFor?.toLowerCase() ?? null;
 
-  const matches = await db.match.findMany({
-    where: {
-      status: 'CONNECTED',
-      OR: [{ requesterId: userId }, { targetUserId: userId }],
-    },
-    include: {
-      requester: true,
-      target: true,
-    },
-    orderBy: { updatedAt: 'desc' },
-    take: Number.isFinite(limit) ? (limit > 0 ? limit : 12) : 12,
-  });
-
-  const payload = matches
-    .map((match: any) => {
-      const other = match.requesterId === userId ? match.target : match.requester;
-      return {
-        id: match.id,
-        name: other.displayName ?? other.name ?? 'Match',
-        avatar: other.avatar ?? '',
-        tagline: other.about ?? undefined,
-        role: other.job ?? undefined,
-        city: other.location ?? undefined,
-        lookingFor: other.lookingFor ?? undefined,
-        tags: other.interests ?? [],
-        matchPercent: match.compatibilityScore ?? 0,
-        status: match.status,
-        highlighted: match.isHighlighted,
-        gender: other.gender ?? undefined,
+    const seriousnessScore = (intent: string | null) => {
+      const map: Record<string, number> = {
+        casual: 1,
+        friendship: 1,
+        friends: 1,
+        relationship: 2,
+        serious: 2,
+        marriage: 3,
+        longterm: 3,
       };
-    })
-    // Enforce orientation preference: for straight users, only show female profiles
-    .filter((m) => {
-      if (!wantsWomenOnly) return true;
-      return (m.gender ?? '').toLowerCase() === 'female';
-    })
-    // Enforce intent compatibility: avoid mismatches (e.g., casual vs marriage)
-    .filter((m) => {
-      if (!currentIntent) return true;
-      const userScore = seriousnessScore(currentIntent);
-      const otherScore = seriousnessScore((m as any).lookingFor ?? null);
-      if (userScore === 0 || otherScore === 0) return true;
-      // Allow if both are similar level, or both within casual/friendship
-      // Reject if one is casual/friendship and the other is relationship/marriage level
-      const diff = Math.abs(userScore - otherScore);
-      return diff <= 1;
+      if (!intent) return 0;
+      return map[intent] ?? 0;
+    };
+
+    const matches = await db.match.findMany({
+      where: {
+        status: 'CONNECTED',
+        OR: [{ requesterId: userId }, { targetUserId: userId }],
+      },
+      include: {
+        requester: true,
+        target: true,
+      },
+      orderBy: { updatedAt: 'desc' },
+      take: Number.isFinite(limit) ? (limit > 0 ? limit : 12) : 12,
     });
 
-  return NextResponse.json(payload);
+    const payload = matches
+      .map((match: any) => {
+        const other = match.requesterId === userId ? match.target : match.requester;
+        return {
+          id: match.id,
+          name: other.displayName ?? other.name ?? 'Match',
+          avatar: other.avatar ?? '',
+          tagline: other.about ?? undefined,
+          role: other.job ?? undefined,
+          city: other.location ?? undefined,
+          lookingFor: other.lookingFor ?? undefined,
+          tags: other.interests ?? [],
+          matchPercent: match.compatibilityScore ?? 0,
+          status: match.status,
+          highlighted: match.isHighlighted,
+          gender: other.gender ?? undefined,
+        };
+      })
+      // Enforce orientation preference: for straight users, only show female profiles
+      .filter((m) => {
+        if (!wantsWomenOnly) return true;
+        return (m.gender ?? '').toLowerCase() === 'female';
+      })
+      // Enforce intent compatibility: avoid mismatches (e.g., casual vs marriage)
+      .filter((m) => {
+        if (!currentIntent) return true;
+        const userScore = seriousnessScore(currentIntent);
+        const otherScore = seriousnessScore((m as any).lookingFor ?? null);
+        if (userScore === 0 || otherScore === 0) return true;
+        // Allow if both are similar level, or both within casual/friendship
+        // Reject if one is casual/friendship and the other is relationship/marriage level
+        const diff = Math.abs(userScore - otherScore);
+        return diff <= 1;
+      });
+
+    return NextResponse.json(payload);
+  } catch (err) {
+    console.error('[Matches GET] Error:', err);
+    return NextResponse.json({ error: 'Failed to fetch matches' }, { status: 500 });
+  }
 }
