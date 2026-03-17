@@ -161,6 +161,7 @@ export default function Header({ userName, userFirstName, userAvatar, userOrient
               width={32}
               height={32}
               className="rounded-full object-cover"
+              priority
             />
           ) : (
             <span className="bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full px-2 py-1 font-bold text-xs">
