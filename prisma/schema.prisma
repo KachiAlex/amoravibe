@@ -58,6 +58,7 @@ model Match {
   target             User          @relation("TargetMatches", fields: [targetUserId], references: [id])
   actions            MatchAction[]
 
+  @@unique([requesterId, targetUserId], map: "uniq_match_participants")
   @@index([requesterId, targetUserId], map: "idx_match_participants")
 }
 
@@ -72,6 +73,7 @@ model MatchAction {
   match        Match?          @relation(fields: [matchId], references: [id])
   target       User            @relation("MatchActionTarget", fields: [targetUserId], references: [id])
 
+  @@unique([actorId, targetUserId], map: "uniq_match_action_actor_target")
   @@index([actorId, targetUserId], map: "idx_match_action_actor_target")
 }
 

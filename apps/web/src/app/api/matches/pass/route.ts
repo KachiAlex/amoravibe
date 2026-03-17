@@ -4,17 +4,6 @@ import prisma from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 
-// TODO: Add Pass model to schema.prisma:
-// model Pass {
-//   id            String   @id @default(uuid())
-//   userId        String
-//   passedUserId  String
-//   createdAt     DateTime @default(now())
-//   user          User     @relation("UserPasses", fields: [userId], references: [id])
-//   passedUser    User     @relation("PassedBy", fields: [passedUserId], references: [id])
-//   @@unique([userId, passedUserId])
-// }
-
 export async function POST(req: Request) {
   try {
     const userId = await getUserIdFromRequest(req);
@@ -29,24 +18,45 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Profile ID is required' }, { status: 400 });
     }
 
-    // Check if user exists
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-    });
+    if (userId === profileId) {
+      return NextResponse.json({ error: 'Cannot pass on yourself' }, { status: 400 });
+    }
 
-    if (!user) {
+    // Verify both users exist
+    const [actor, target] = await Promise.all([
+      prisma.user.findUnique({ where: { id: userId }, select: { id: true } }),
+      prisma.user.findUnique({ where: { id: profileId }, select: { id: true } }),
+    ]);
+
+    if (!actor || !target) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    // TODO: Store pass in database once Pass model exists
-    // For now, just return success (client-side only)
-    
-    return NextResponse.json({ 
+    // Record the pass action
+    await prisma.matchAction.upsert({
+      where: {
+        actorId_targetUserId: {
+          actorId: userId,
+          targetUserId: profileId,
+        },
+      },
+      update: {
+        action: 'PASS',
+        createdAt: new Date(),
+      },
+      create: {
+        actorId: userId,
+        targetUserId: profileId,
+        action: 'PASS',
+      },
+    });
+
+    return NextResponse.json({
       success: true,
-      message: 'Profile passed'
+      message: 'Profile passed',
     });
   } catch (err) {
-    console.error('[Matches/Pass] Error:', err);
+    console.error('[matches/pass] Error:', err);
     return NextResponse.json({ error: 'Failed to pass profile' }, { status: 500 });
   }
 }
