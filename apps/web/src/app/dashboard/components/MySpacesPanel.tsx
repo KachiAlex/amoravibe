@@ -2,6 +2,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import Image from "next/image";
 import { useRoomMessagesStream } from "@/hooks/useRoomMessagesStream";
+import BirthdayNotification from "./BirthdayNotification";
 
 type Space = {
   id: string;
@@ -315,6 +316,8 @@ export default function MySpacesPanel() {
             </div>
           </div>
         </div>
+
+        {selectedRoom && <BirthdayNotification roomId={selectedRoom.id} />}
 
         <div className="flex-1 bg-white rounded-2xl shadow-lg p-6 mb-6 overflow-y-auto border border-gray-100">
           <div className="space-y-4">

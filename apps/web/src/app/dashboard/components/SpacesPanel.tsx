@@ -2,6 +2,7 @@
 import React, { useEffect, useState, useCallback, useRef } from "react";
 import Image from "next/image";
 import { useRoomMessagesStream } from "@/hooks/useRoomMessagesStream";
+import BirthdayNotification from "./BirthdayNotification";
 
 type Space = {
   id: string;
@@ -730,6 +731,7 @@ export default function SpacesPanel() {
         {activeTab === 'chat' && (
           <div className="grid gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(220px,1fr)]">
             <div className="bg-white rounded-3xl border border-gray-100 shadow-xl p-4 md:p-6 flex flex-col min-h-[480px]">
+              {selectedSpace && <BirthdayNotification spaceId={selectedSpace.id} />}
               <div className="flex items-start justify-between mb-4">
                 <div>
                   <p className="text-xs uppercase tracking-wide text-gray-400 font-semibold">General Chat</p>
