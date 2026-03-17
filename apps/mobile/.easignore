@@ -1,5 +1,6 @@
 # Node modules will be reinstalled by EAS Build
 node_modules/
+../../node_modules/
 
 # Build artifacts
 *.tgz
@@ -7,6 +8,8 @@ node_modules/
 .expo-shared/
 dist/
 build/
+.gradle/
+android/build/
 
 # OS and IDE files
 .DS_Store
@@ -22,6 +25,7 @@ build/
 # Git
 .git/
 .gitignore
+.github/
 
 # Package lock files (let EAS use its own resolution)
 yarn.lock
@@ -39,15 +43,20 @@ coverage/
 # Temporary files
 .turbo/
 .next/
+.eslintcache
+.turborc
 
-# Workspace root files and directories (don't need for mobile build)
-../../node_modules/
-../../.git/
-../../.next/
-../../.turbo/
-../../dist/
-../../build/
-../../apps/web/
+# Workspace root files and directories (exclude everything except mobile)
+../../
+
+# Debug and log files
+npm-debug.log*
+yarn-error.log*
+*.log
+
+# Cache directories
+.cache/
+.pytest_cache/
 ../../services/
 ../../api/
 ../../netlify/
