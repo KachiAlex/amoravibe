@@ -22,7 +22,10 @@
       }
     },
     "production": {
-      "distribution": "store"
+      "distribution": "store",
+      "android": {
+        "buildType": "apk"
+      }
     }
   },
   "submit": {
