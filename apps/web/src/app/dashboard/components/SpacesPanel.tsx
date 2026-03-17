@@ -3,6 +3,7 @@ import React, { useEffect, useState, useCallback, useRef } from "react";
 import Image from "next/image";
 import { useRoomMessagesStream } from "@/hooks/useRoomMessagesStream";
 import BirthdayNotification from "./BirthdayNotification";
+import UserProfileModal from "./UserProfileModal";
 
 type Space = {
   id: string;
@@ -72,6 +73,7 @@ export default function SpacesPanel() {
   const [generalMessages, setGeneralMessages] = useState<RoomMessage[]>([]);
   const [chatInput, setChatInput] = useState('');
   const [chatLoading, setChatLoading] = useState(false);
+  const [profileModalUserId, setProfileModalUserId] = useState<string | null>(null);
   const [sendingMessage, setSendingMessage] = useState(false);
   const [chatError, setChatError] = useState<string | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<'connected' | 'syncing' | 'disconnected'>('connected');
@@ -714,7 +716,9 @@ export default function SpacesPanel() {
                       </div>
                     )}
                     <div className="flex gap-2">
-                      <button className="flex-1 bg-gradient-to-r from-fuchsia-500 to-purple-500 text-white px-4 py-2 rounded-full font-semibold text-sm shadow hover:shadow-lg transition">
+                      <button
+                        onClick={() => setProfileModalUserId(member.id)}
+                        className="flex-1 bg-gradient-to-r from-fuchsia-500 to-purple-500 text-white px-4 py-2 rounded-full font-semibold text-sm shadow hover:shadow-lg transition">
                         View Profile
                       </button>
                       <button className="px-4 py-2 rounded-full border border-gray-200 text-gray-700 hover:bg-gray-50 transition text-sm font-semibold">
@@ -967,6 +971,12 @@ export default function SpacesPanel() {
           </div>
         ))}
       </div>
+
+      <UserProfileModal
+        userId={profileModalUserId || ''}
+        isOpen={!!profileModalUserId}
+        onClose={() => setProfileModalUserId(null)}
+      />
     </div>
   );
 }
