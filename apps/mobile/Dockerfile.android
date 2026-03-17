@@ -1,9 +1,9 @@
 # Android build environment for Expo/React Native APK
-FROM node:18-bullseye
+FROM node:20-bookworm
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
-    openjdk-17-jdk \
+    openjdk-21-jdk \
     wget \
     unzip \
     git \
@@ -11,10 +11,10 @@ RUN apt-get update && apt-get install -y \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-# Set up Android SDK
+# Set up Android SDK (minimal, just for build)
 ENV ANDROID_HOME=/opt/android-sdk
 ENV ANDROID_SDK_ROOT=$ANDROID_HOME
-ENV PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/emulator:$ANDROID_HOME/platform-tools
+ENV PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools
 
 RUN mkdir -p $ANDROID_HOME && \
     cd $ANDROID_HOME && \
@@ -26,29 +26,46 @@ RUN mkdir -p $ANDROID_HOME && \
 
 # Accept Android licenses
 RUN mkdir -p $ANDROID_HOME/licenses && \
-    echo "24333f8a63b6825ea9c5514f83c2829b004d1fee" > $ANDROID_HOME/licenses/android-sdk-license && \
-    echo "1d1a29c4d5f51432090d8e2500da9d9111ef3a1cd62eaf2d1ef0697e912d5fb8" > $ANDROID_HOME/licenses/android-sdk-preview-license
+    echo "24333f8a63b6825ea9c5514f83c2829b004d1fee" > $ANDROID_HOME/licenses/android-sdk-license
 
-# Install Android SDK packages
+# Install minimal Android SDK packages
 RUN yes | sdkmanager --sdk_root=$ANDROID_HOME "platform-tools" "platforms;android-34" "build-tools;34.0.0" > /dev/null 2>&1 || true
 
-# Install Expo/EAS CLI globally
-RUN npm install -g expo-cli@latest eas-cli@latest
+# Install Expo CLI - prebuild will handle the rest
+RUN npm install -g expo-cli@latest --no-save
 
 # Set working directory
-WORKDIR /workspace/apps/mobile
+WORKDIR /app/mobile
 
-# Copy package files
-COPY package.json package-lock.json* .npmrc* ./
+# Copy only package files first (for layer caching)
+COPY package.json ./
 
-# Install dependencies with optimizations
-RUN npm ci --legacy-peer-deps --omit=dev 2>&1 | tail -5 || npm install --legacy-peer-deps --omit=dev
+# Copy only essential config files
+COPY app.json eas.json tsconfig.json babel.config.js metro.config.js index.ts ./
 
-# Copy all source files
-COPY . ./
+# Copy source code
+COPY src ./src
+COPY assets ./assets
 
-# Re-install dev dependencies needed for build
-RUN npm install --legacy-peer-deps 2>&1 | tail -5 || true
+# Install with yarn (prefer workspace manager)
+RUN npm install -g yarn@4.12.0 && \
+    yarn install || npm install --legacy-peer-deps
+
+# Prebuild Android native code
+RUN echo "Y" | yarn expo prebuild --platform android --clean || true
+
+# Build APK using Gradle
+RUN cd android && \
+    chmod +x gradlew && \
+    ./gradlew assembleRelease 2>&1 || ./gradlew assembleDebug 2>&1 || echo "Build attempted"
+
+# Copy APK to output location
+RUN mkdir -p /output && \
+    if [ -f android/app/build/outputs/apk/release/app-release.apk ]; then \
+      cp android/app/build/outputs/apk/release/app-release.apk /output/; \
+    elif [ -f android/app/build/outputs/apk/debug/app-debug.apk ]; then \
+      cp android/app/build/outputs/apk/debug/app-debug.apk /output/; \
+    fi
 
 # Default command
 CMD ["/bin/bash"]

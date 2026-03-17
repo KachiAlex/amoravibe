@@ -1,10 +1,12 @@
 # Docker build ignore file
-# Excludes files/directories from Docker context
+# Excludes files/directories from Docker context to speed up build
 
-# Dependencies
+# Dependencies (will be installed in image)
 node_modules/
-npm-debug.log
-yarn-error.log
+npm-debug.log*
+yarn-error.log*
+yarn.lock
+package-lock.json
 
 # Build outputs
 .expo/
@@ -13,29 +15,41 @@ dist/
 build/
 *.apk
 *.aab
+.gradle/
 
 # Version control
 .git/
 .gitignore
+.github/
 
-# IDEs
+# IDE files
 .vscode/
 .idea/
+*.iml
 *.swp
 *.swo
 *~
 .DS_Store
+.vim/
 
 # OS files
-.turbo/
-.turborc
-.eslintcache
+Thumbs.db
 
-# Workspace root files (don't need for mobile build)
-../../node_modules/
+# Temporary/cache
+.turbo/
+.eslintcache
+.env.local
+.env
+cookies.txt
+*.log
+
+# Monorepo workspace files (not needed for mobile-only build)
+../.git/
 ../../.git/
+../../node_modules/
 ../../.turbo/
 ../../apps/web/
+../../apps/mobile/node_modules/
 ../../services/
 ../../api/
 ../../infra/
@@ -44,3 +58,9 @@ build/
 ../../docs/
 ../../packages/
 ../../.github/
+
+# Test/dev files
+test-results/
+.pytest_cache/
+coverage/
+*.test.js
