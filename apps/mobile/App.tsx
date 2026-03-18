@@ -10,6 +10,7 @@ import { ActivityIndicator, SafeAreaView, ScrollView, StyleSheet, Text, View } f
 import { OnboardingScreen } from './src/screens/OnboardingScreen';
 import { TrustCenterScreen } from './src/screens/TrustCenterScreen';
 import { LoginScreen } from './src/screens/LoginScreen';
+import { HeroBanner } from './src/components/HeroBanner';
 import { lovedateApi } from './src/config/api';
 
 // Local type definitions (replacing @lovedate/api imports)
@@ -155,6 +156,10 @@ function LandingScreen({ navigation }: { navigation: NavigationProp<RootStackPar
     <SafeAreaView style={styles.safeArea}>
       <StatusBar style="dark" />
       <ScrollView contentContainerStyle={styles.scroll}>
+        {/* Hero Banner with branding and call-to-action */}
+        <HeroBanner onGetStarted={() => navigation.navigate('Onboarding')} />
+
+        {/* Trust Center Card */}
         <View style={styles.heroCard}>
           <View style={styles.badge}>
             <Text style={styles.badgeText}>{preview?.snapshotLabel ?? 'Phase 5 · Lovedate'}</Text>
@@ -253,12 +258,14 @@ const styles = StyleSheet.create({
     backgroundColor: palette.sand100,
   },
   scroll: {
-    padding: 24,
-    gap: 24,
+    paddingBottom: 24,
   },
   heroCard: {
     backgroundColor: 'rgba(255,255,255,0.92)',
     borderRadius: 32,
+    marginHorizontal: 24,
+    marginTop: 24,
+    marginBottom: 0,
     padding: 24,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.6)',
@@ -326,6 +333,9 @@ const styles = StyleSheet.create({
   statRow: {
     flexDirection: 'row',
     gap: 12,
+    marginHorizontal: 24,
+    marginTop: 24,
+    marginBottom: 0,
   },
   statCard: {
     flex: 1,
@@ -348,6 +358,8 @@ const styles = StyleSheet.create({
   section: {
     backgroundColor: 'rgba(255,255,255,0.92)',
     borderRadius: 32,
+    marginHorizontal: 24,
+    marginVertical: 24,
     padding: 24,
     borderWidth: 1,
     borderColor: 'rgba(13,15,26,0.08)',

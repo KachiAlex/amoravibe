@@ -1,0 +1,1 @@
+D:\amoravibe\apps\mobile\build-android.bat

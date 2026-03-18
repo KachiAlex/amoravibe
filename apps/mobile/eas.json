@@ -1,5 +1,4 @@
 {
-  "projectId": "b267a2e7-23e2-4651-8993-e899bc53fe85",
   "cli": {
     "version": ">= 16.0.0",
     "appVersionSource": "local"

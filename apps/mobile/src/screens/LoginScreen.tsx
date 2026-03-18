@@ -11,6 +11,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import type { NavigationProp } from '@react-navigation/native';
+import { HeroBanner } from '../components/HeroBanner';
 const palette = {
   ink900: '#1a202c',
   ink700: '#374151',
@@ -59,14 +60,12 @@ export function LoginScreen({ navigation }: { navigation: NavigationProp<RootSta
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar style="dark" />
+      <StatusBar style="light" />
       <ScrollView contentContainerStyle={styles.scroll}>
+        {/* Hero Banner with logo and introduction */}
+        <HeroBanner compact={true} />
+
         <View style={styles.container}>
-          {/* Header */}
-          <View style={styles.header}>
-            <Text style={styles.logo}>💕 Amoravibe</Text>
-            <Text style={styles.tagline}>Find Your Perfect Match</Text>
-          </View>
 
           {/* Form Card */}
           <View style={styles.card}>
@@ -162,26 +161,13 @@ const styles = StyleSheet.create({
   },
   scroll: {
     flexGrow: 1,
-    justifyContent: 'center',
-    padding: 24,
+    paddingHorizontal: 0,
+    paddingVertical: 0,
   },
   container: {
     gap: 32,
-  },
-  header: {
-    alignItems: 'center',
-    gap: 12,
-    marginBottom: 16,
-  },
-  logo: {
-    fontSize: 36,
-    fontWeight: '700',
-    color: palette.ink900,
-  },
-  tagline: {
-    fontSize: 16,
-    color: palette.ink700,
-    fontWeight: '500',
+    paddingHorizontal: 24,
+    paddingVertical: 24,
   },
   card: {
     backgroundColor: 'white',
