@@ -1,13 +1,11 @@
 #!/usr/bin/env node
-import { spawn } from 'child_process';
+import { spawnSync } from 'child_process';
 import { fileURLToPath } from 'url';
 import path from 'path';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
-const prismaBinary = process.platform === 'win32' ? 'prisma.cmd' : 'prisma';
-const prismaBinPath = path.resolve(repoRoot, 'node_modules', '.bin', prismaBinary);
 
 const args = process.argv.slice(2);
 if (args.length === 0) {
@@ -19,21 +17,16 @@ if (!hasSchemaFlag) {
   args.push('--schema=prisma/schema.prisma');
 }
 
-const child = spawn(prismaBinPath, args, {
+// Use npx to run prisma which handles Windows better
+const result = spawnSync('npx', ['prisma', ...args], {
   cwd: repoRoot,
   stdio: 'inherit',
   env: process.env,
+  shell: true,
 });
 
-child.on('exit', (code, signal) => {
-  if (signal) {
-    console.error(`prisma process terminated with signal ${signal}`);
-    process.exit(1);
-  }
-  process.exit(code ?? 1);
-});
-
-child.on('error', (error) => {
-  console.error('Failed to run Prisma CLI from repo root:', error);
+if (result.signal) {
+  console.error(`prisma process terminated with signal ${result.signal}`);
   process.exit(1);
-});
+}
+process.exit(result.status ?? 1);
