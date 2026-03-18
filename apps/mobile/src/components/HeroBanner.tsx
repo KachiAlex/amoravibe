@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   Dimensions,
+  Image,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -46,7 +47,10 @@ export function HeroBanner({ onGetStarted, compact = false }: HeroBannerProps) {
       <View style={styles.contentWrapper}>
         {/* Logo - centered & prominent */}
         <View style={styles.logoContainer}>
-          <Text style={styles.logoEmoji}>💕</Text>
+          <Image
+            source={require('../../assets/icon.png')}
+            style={styles.logo}
+          />
           <Text style={styles.logoText}>Amoravibe</Text>
         </View>
 
@@ -109,10 +113,12 @@ const styles = StyleSheet.create({
   logoContainer: {
     alignItems: 'center',
     marginTop: 8,
+    gap: 12,
   },
-  logoEmoji: {
-    fontSize: 48,
-    marginBottom: 8,
+  logo: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
   },
   logoText: {
     fontSize: 28,
