@@ -9,8 +9,11 @@ import {
   TouchableOpacity,
   View,
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import type { NavigationProp } from '@react-navigation/native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { HeroBanner } from '../components/HeroBanner';
 const palette = {
   ink900: '#1a202c',
@@ -33,6 +36,8 @@ export function LoginScreen({ navigation }: { navigation: NavigationProp<RootSta
   const [password, setPassword] = React.useState('');
   const [isLoading, setIsLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const [emailFocused, setEmailFocused] = React.useState(false);
+  const [passwordFocused, setPasswordFocused] = React.useState(false);
 
   const handleLogin = async () => {
     setError(null);
@@ -61,11 +66,15 @@ export function LoginScreen({ navigation }: { navigation: NavigationProp<RootSta
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar style="light" />
-      <ScrollView contentContainerStyle={styles.scroll}>
-        {/* Hero Banner with logo and introduction */}
-        <HeroBanner compact={true} />
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1 }}
+      >
+        <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+          {/* Hero Banner with logo and introduction */}
+          <HeroBanner compact={true} />
 
-        <View style={styles.container}>
+          <View style={styles.container}>
 
           {/* Form Card */}
           <View style={styles.card}>
@@ -75,30 +84,38 @@ export function LoginScreen({ navigation }: { navigation: NavigationProp<RootSta
             {/* Email Input */}
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Email</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="you@example.com"
-                placeholderTextColor={palette.ink700}
-                value={email}
-                onChangeText={setEmail}
-                editable={!isLoading}
-                keyboardType="email-address"
-                autoCapitalize="none"
-              />
+              <View style={[styles.inputWrapper, emailFocused && styles.inputWrapperFocused]}>
+                <TextInput
+                  style={styles.input}
+                  placeholder="you@example.com"
+                  placeholderTextColor={palette.ink700}
+                  value={email}
+                  onChangeText={setEmail}
+                  onFocus={() => setEmailFocused(true)}
+                  onBlur={() => setEmailFocused(false)}
+                  editable={!isLoading}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                />
+              </View>
             </View>
 
             {/* Password Input */}
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Password</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="••••••••"
-                placeholderTextColor={palette.ink700}
-                value={password}
-                onChangeText={setPassword}
-                editable={!isLoading}
-                secureTextEntry
-              />
+              <View style={[styles.inputWrapper, passwordFocused && styles.inputWrapperFocused]}>
+                <TextInput
+                  style={styles.input}
+                  placeholder="••••••••"
+                  placeholderTextColor={palette.ink700}
+                  value={password}
+                  onChangeText={setPassword}
+                  onFocus={() => setPasswordFocused(true)}
+                  onBlur={() => setPasswordFocused(false)}
+                  editable={!isLoading}
+                  secureTextEntry
+                />
+              </View>
             </View>
 
             {/* Error Message */}
@@ -108,17 +125,25 @@ export function LoginScreen({ navigation }: { navigation: NavigationProp<RootSta
               </View>
             )}
 
-            {/* Login Button */}
+            {/* Login Button with Gradient */}
             <TouchableOpacity
-              style={[styles.button, styles.buttonPrimary, isLoading && styles.buttonDisabled]}
+              style={[styles.buttonWrapper, isLoading && styles.buttonDisabled]}
               onPress={handleLogin}
               disabled={isLoading}
+              activeOpacity={0.85}
             >
-              {isLoading ? (
-                <ActivityIndicator color="white" />
-              ) : (
-                <Text style={styles.buttonText}>Sign In</Text>
-              )}
+              <LinearGradient
+                colors={[palette.rose500, palette.rose300]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.buttonGradient}
+              >
+                {isLoading ? (
+                  <ActivityIndicator color="white" />
+                ) : (
+                  <Text style={styles.buttonText}>Sign In</Text>
+                )}
+              </LinearGradient>
             </TouchableOpacity>
 
             {/* Divider */}
@@ -130,9 +155,10 @@ export function LoginScreen({ navigation }: { navigation: NavigationProp<RootSta
 
             {/* Sign Up Button */}
             <TouchableOpacity
-              style={[styles.button, styles.buttonSecondary]}
+              style={styles.buttonSecondary}
               onPress={handleSignUp}
               disabled={isLoading}
+              activeOpacity={0.85}
             >
               <Text style={styles.buttonTextSecondary}>Create Account</Text>
             </TouchableOpacity>
@@ -149,7 +175,8 @@ export function LoginScreen({ navigation }: { navigation: NavigationProp<RootSta
             </TouchableOpacity>
           </View>
         </View>
-      </ScrollView>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -198,10 +225,22 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: palette.ink900,
   },
-  input: {
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
+  inputWrapper: {
+    borderWidth: 1.5,
+    borderColor: '#e5e5e5',
     borderRadius: 12,
+    backgroundColor: '#fafafa',
+    transition: 'all 0.2s',
+  },
+  inputWrapperFocused: {
+    borderColor: palette.rose500,
+    backgroundColor: '#fff',
+    shadowColor: palette.rose500,
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 12,
+  },
+  input: {
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: 16,
@@ -220,32 +259,44 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
   },
-  button: {
-    borderRadius: 12,
+  buttonWrapper: {
+    borderRadius: 24,
+    overflow: 'hidden',
+    minHeight: 48,
+  },
+  buttonGradient: {
+    flex: 1,
     paddingVertical: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 48,
-  },
-  buttonPrimary: {
-    backgroundColor: palette.rose500,
-  },
-  buttonSecondary: {
-    borderWidth: 1.5,
-    borderColor: palette.rose500,
-  },
-  buttonDisabled: {
-    opacity: 0.6,
+    shadowColor: palette.rose500,
+    shadowOpacity: 0.3,
+    shadowOffset: { width: 0, height: 8 },
+    shadowRadius: 16,
+    elevation: 5,
   },
   buttonText: {
     color: 'white',
     fontSize: 16,
     fontWeight: '700',
+    letterSpacing: 0.3,
+  },
+  buttonSecondary: {
+    borderWidth: 1.5,
+    borderColor: palette.rose500,
+    borderRadius: 24,
+    paddingVertical: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 48,
   },
   buttonTextSecondary: {
     color: palette.rose500,
     fontSize: 16,
     fontWeight: '700',
+  },
+  buttonDisabled: {
+    opacity: 0.6,
   },
   divider: {
     flexDirection: 'row',

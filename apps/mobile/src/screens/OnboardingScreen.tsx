@@ -9,6 +9,8 @@ import {
   View,
   Pressable,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { HeroBanner } from '../components/HeroBanner';
 import { lovedateApi } from '../config/api';
 
 // Local type definitions
@@ -120,14 +122,23 @@ export function OnboardingScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar style="dark" />
-      <ScrollView contentContainerStyle={styles.scroll}>
+      <StatusBar style="light" />
+      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+        {/* Hero Banner at the top */}
+        <HeroBanner compact={true} />
+
+        {/* Onboarding Header */}
         <View style={styles.header}>
           <Text style={styles.kicker}>Lovedate onboarding</Text>
           <Text style={styles.title}>Verifiable identities, safer matches</Text>
           <Text style={styles.body}>
             Complete three lightweight steps to unlock messaging, device trust, and transparency
-            across the trust center.
+            aLinearGradient
+              colors={[palette.rose500, palette.rose300]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={[styles.progressFill, { width: `${status.progressPercent}%` }]}
+           
           </Text>
 
           <View style={styles.progressShell}>
@@ -144,29 +155,77 @@ export function OnboardingScreen() {
         </View>
 
         <View style={styles.list}>
-          {steps.map((step: OnboardingStep & { order: number; tag: string }) => (
-            <View key={step.id} style={styles.card}>
-              <View style={styles.cardHeader}>
-                <Text style={styles.stepIndex}>{String(step.order).padStart(2, '0')}</Text>
-                <View style={styles.tags}>
-                  <Text style={styles.stepTag}>{step.tag}</Text>
-                  <Text style={[styles.stepStatus, statusVariants[step.status]]}>
-                    {step.status}
-                  </Text>
+          {steps.map((step: OnboardingStep & { order: number; tag: string }) => {
+            const isActive = step.status === 'active';
+            const isComplete = step.status === 'complete';
+            return (
+              <View
+                key={step.id}
+                style={[
+                  styles.card,
+                  isActive && styles.cardActive,
+                  isComplete && styles.cardComplete,
+                ]}
+              >
+                <View style={styles.cardHeader}>
+                  <View
+                    style={[
+                      styles.stepIndexBox,
+                      isActive && styles.stepIndexBoxActive,
+                      isComplete && styles.stepIndexBoxComplete,
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.stepIndex,
+                        isActive && styles.stepIndexActive,
+                        isComplete && styles.stepIndexComplete,
+                      ]}
+                    >
+                      {isComplete ? '✓' : String(step.order).padStart(1, '')}
+                    </Text>
+                  </View>
+                  <View style={styles.cardContent}>
+                    <Text style={styles.cardTitle}>{step.title}</Text>
+                    <Text style={styles.cardBody}>{step.description}</Text>
+                  </View>
+                  <View style={styles.tags}>
+                    <Text
+                      style={[
+                        styles.stepTag,
+                        isActive && styles.stepTagActive,
+                        isComplete && styles.stepTagComplete,
+                      ]}
+                    >
+                      {step.tag}
+                    </Text>
+                  </View>
                 </View>
               </View>
-              <Text style={styles.cardTitle}>{step.title}</Text>
-              <Text style={styles.cardBody}>{step.description}</Text>
-            </View>
-          ))}
+            );
+          })}
         </View>
 
-        <Pressable style={({ pressed }) => [styles.primaryCta, pressed && { opacity: 0.9 }]}>
-          <Text style={styles.primaryCtaText}>Continue</Text>
-        </Pressable>
-        <Pressable style={styles.secondaryCta}>
-          <Text style={styles.secondaryCtaText}>Save & exit</Text>
-        </Pressable>
+        <View style={styles.ctaSection}>
+          <Pressable
+            style={({ pressed }) => [
+              styles.primaryCta,
+              pressed && { opacity: 0.9 },
+            ]}
+          >
+            <LinearGradient
+              colors={[palette.rose500, palette.rose300]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.ctaGradient}
+            >
+              <Text style={styles.primaryCtaText}>Continue</Text>
+            </LinearGradient>
+          </Pressable>
+          <Pressable style={styles.secondaryCta}>
+            <Text style={styles.secondaryCtaText}>Save & exit</Text>
+          </Pressable>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -178,11 +237,13 @@ const styles = StyleSheet.create({
     backgroundColor: palette.sand100,
   },
   scroll: {
-    padding: 24,
-    gap: 20,
+    paddingBottom: 24,
   },
   header: {
     gap: 10,
+    marginHorizontal: 24,
+    marginTop: 24,
+    marginBottom: 0,
   },
   kicker: {
     fontSize: 12,
@@ -217,6 +278,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
     fontWeight: '600',
     color: palette.ink800,
+    fontSize: 13,
   },
   progressLoader: {
     marginTop: 8,
@@ -230,97 +292,147 @@ const styles = StyleSheet.create({
   },
   errorText: {
     marginTop: 8,
-    color: palette.rose600,
+    color: '#dc2626',
     fontWeight: '600',
   },
   list: {
     gap: 16,
+    paddingHorizontal: 24,
+    marginTop: 24,
+    marginBottom: 0,
   },
   card: {
-    borderRadius: 24,
-    backgroundColor: 'rgba(255,255,255,0.95)',
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.9)',
     borderWidth: 1,
     borderColor: 'rgba(13,15,26,0.08)',
-    padding: 20,
+    padding: 16,
     shadowColor: palette.ink900,
     shadowOpacity: 0.08,
-    shadowOffset: { width: 0, height: 10 },
-    shadowRadius: 20,
+    shadowOffset: { width: 0, height: 8 },
+    shadowRadius: 16,
+    elevation: 2,
+  },
+  cardActive: {
+    borderColor: palette.rose500,
+    backgroundColor: 'rgba(244,63,94,0.05)',
+    shadowOpacity: 0.15,
+  },
+  cardComplete: {
+    borderColor: 'rgba(26,150,71,0.3)',
+    backgroundColor: 'rgba(26,150,71,0.05)',
   },
   cardHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    gap: 12,
+    alignItems: 'flex-start',
+  },
+  stepIndexBox: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: 'rgba(13,15,26,0.08)',
     alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(13,15,26,0.12)',
+  },
+  stepIndexBoxActive: {
+    backgroundColor: palette.rose500,
+    borderColor: palette.rose500,
+  },
+  stepIndexBoxComplete: {
+    backgroundColor: 'rgba(26,150,71,0.2)',
+    borderColor: '#0E6B3B',
+  },
+  stepIndex: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: palette.ink900,
+  },
+  stepIndexActive: {
+    color: '#fff',
+  },
+  stepIndexComplete: {
+    color: '#0E6B3B',
+  },
+  cardContent: {
+    flex: 1,
   },
   tags: {
     flexDirection: 'row',
     gap: 8,
     alignItems: 'center',
   },
-  stepIndex: {
-    fontSize: 32,
-    fontWeight: '700',
-    color: palette.ink900,
-  },
   stepTag: {
-    fontSize: 12,
-    letterSpacing: 1.5,
+    fontSize: 11,
+    letterSpacing: 1,
     color: palette.ink700,
     textTransform: 'uppercase',
-  },
-  stepStatus: {
-    fontSize: 12,
     fontWeight: '600',
-    textTransform: 'capitalize',
-    paddingHorizontal: 10,
+    backgroundColor: 'rgba(13,15,26,0.06)',
+    paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: 999,
+    borderRadius: 6,
   },
-  statusPending: {
-    backgroundColor: 'rgba(13,15,26,0.08)',
-    color: palette.ink800,
+  stepTagActive: {
+    color: palette.rose500,
+    backgroundColor: 'rgba(244,63,94,0.1)',
   },
-  statusActive: {
-    backgroundColor: palette.rose500,
-    color: palette.sand100,
-  },
-  statusComplete: {
-    backgroundColor: 'rgba(26,150,71,0.15)',
+  stepTagComplete: {
     color: '#0E6B3B',
+    backgroundColor: 'rgba(26,150,71,0.1)',
   },
   cardTitle: {
-    marginTop: 12,
-    fontSize: 20,
+    marginTop: 0,
+    fontSize: 16,
     color: palette.ink900,
     fontWeight: '600',
   },
   cardBody: {
-    marginTop: 6,
-    fontSize: 14,
+    marginTop: 4,
+    fontSize: 13,
     color: palette.ink700,
-    lineHeight: 20,
+    lineHeight: 18,
+  },
+  ctaSection: {
+    gap: 12,
+    marginTop: 32,
+    paddingHorizontal: 24,
   },
   primaryCta: {
-    marginTop: 12,
-    backgroundColor: palette.ink900,
-    borderRadius: 999,
-    paddingVertical: 16,
+    borderRadius: 24,
+    overflow: 'hidden',
+    minHeight: 48,
+  },
+  ctaGradient: {
+    flex: 1,
+    paddingVertical: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: palette.rose500,
+    shadowOpacity: 0.3,
+    shadowOffset: { width: 0, height: 8 },
+    shadowRadius: 16,
+    elevation: 5,
   },
   primaryCtaText: {
     color: palette.sand100,
     fontWeight: '600',
     textAlign: 'center',
     fontSize: 16,
+    letterSpacing: 0.3,
   },
   secondaryCta: {
     paddingVertical: 14,
-    borderRadius: 999,
-    borderWidth: 1,
+    borderRadius: 24,
+    borderWidth: 1.5,
     borderColor: palette.ink900,
   },
   secondaryCtaText: {
     textAlign: 'center',
     color: palette.ink900,
     fontWeight: '600',
+    fontSize: 15,
   },
 });
