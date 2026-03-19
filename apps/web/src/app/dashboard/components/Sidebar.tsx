@@ -140,16 +140,6 @@ function Sidebar({ activeTab }: { activeTab?: string }) {
             Sign Out
           </button>
         </div>
-        <button
-          className="mt-10 flex items-center gap-2 text-gray-500 hover:text-fuchsia-700 transition focus:outline-none focus:ring-2 focus:ring-fuchsia-200"
-          aria-label="Logout"
-          onClick={() => {
-            fetch('/api/auth/signout', { method: 'POST' }).finally(() => { window.location.href = '/'; });
-          }}
-        >
-          <span aria-hidden>↩️</span>
-          <span>Logout</span>
-        </button>
         {/* Close button for mobile */}
         <button
           className="md:hidden absolute top-4 right-4 bg-white text-purple-600 rounded-full p-2 shadow focus:outline-none focus:ring-2 focus:ring-fuchsia-200"
