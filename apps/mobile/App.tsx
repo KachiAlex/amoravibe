@@ -4,237 +4,115 @@ import {
   NavigationContainer,
   DefaultTheme as NavigationDefaultTheme,
 } from '@react-navigation/native';
-import type { NavigationProp } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { ActivityIndicator, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { OnboardingScreen } from './src/screens/OnboardingScreen';
-import { TrustCenterScreen } from './src/screens/TrustCenterScreen';
-import { LoginScreen } from './src/screens/LoginScreen';
-import { HeroBanner } from './src/components/HeroBanner';
-import { lovedateApi } from './src/config/api';
-
-// Local type definitions (replacing @lovedate/api imports)
-type TrustPreviewResponse = {
-  snapshotLabel: string;
-  stats: {
-    verificationPassRate: number;
-    riskHealth: 'stable' | 'warning' | 'critical';
-    exportSlaHours: number;
-  };
-  journey: Array<{
-    title: string;
-    description: string;
-    tag: string;
-  }>;
-  highlights: Array<{
-    title: string;
-    body: string;
-    badge: string;
-  }>;
-};
-
-const palette = {
-  ink900: '#1a202c',
-  ink700: '#374151',
-  sand100: '#faf8f6',
-  rose500: '#f43f5e',
-  rose300: '#fb7185',
-  sea400: '#06b6d4',
-};
-
-const phases = [
-  {
-    label: 'Orientation',
-    detail: 'Preference mapping + discovery spaces',
-    tag: 'Profile',
-  },
-  {
-    label: 'Verification',
-    detail: 'ID upload, selfie match, biometric opt-in',
-    tag: 'Required',
-  },
-  {
-    label: 'Device Trust',
-    detail: 'Trusted devices, passkeys, auth history',
-    tag: 'Security',
-  },
-  {
-    label: 'Trust Center',
-    detail: 'Moderation feed + privacy controls',
-    tag: 'Transparency',
-  },
-];
-
-const highlights = [
-  {
-    title: 'Realtime verification',
-    body: 'Persona-backed flow unlocks messaging within minutes with selfie fallback.',
-    badge: 'Phase 5',
-  },
-  {
-    title: 'Transparent risk signals',
-    body: 'Members can inspect risk drivers pulled from Phase 4 analytics dashboards.',
-    badge: 'Trust Center',
-  },
-  {
-    title: 'Privacy tooling',
-    body: 'Data export + delete requests wire into audit service SLAs (<48h).',
-    badge: 'Compliance',
-  },
-];
-
-const trustStats = [
-  {
-    label: 'Verification pass',
-    value: '92%',
-  },
-  {
-    label: 'Moderation cool-downs',
-    value: '↓ 18%',
-  },
-  {
-    label: 'Export SLA',
-    value: '< 48h',
-  },
-];
+import {
+  ActivityIndicator,
+  Image,
+  Pressable,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
+import { WebView, type WebViewNavigation } from 'react-native-webview';
 
 type RootStackParamList = {
-  Login: undefined;
-  Landing: undefined;
-  Onboarding: undefined;
-  TrustCenter: undefined;
+  Hero: undefined;
+  WebFlow: { mode: 'signin' | 'signup' | 'dashboard' };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
+const WEB_BASE_URL = process.env.EXPO_PUBLIC_WEB_URL ?? 'https://amoravibe-web.netlify.app';
 
-function LandingScreen({ navigation }: { navigation: NavigationProp<RootStackParamList> }) {
-  const [preview, setPreview] = React.useState<TrustPreviewResponse | null>(null);
-  const [isLoadingPreview, setIsLoadingPreview] = React.useState(true);
-  const [previewError, setPreviewError] = React.useState<string | null>(null);
+function resolveStartUrl(mode: RootStackParamList['WebFlow']['mode']): string {
+  if (mode === 'signup') {
+    return `${WEB_BASE_URL}/onboarding`;
+  }
+  if (mode === 'dashboard') {
+    return `${WEB_BASE_URL}/dashboard`;
+  }
+  return `${WEB_BASE_URL}/?openSignIn=1`;
+}
 
-  React.useEffect(() => {
-    let mounted = true;
-    lovedateApi
-      .fetchTrustPreview()
-      .then((data) => {
-        if (!mounted) return;
-        setPreview(data);
-        setPreviewError(null);
-      })
-      .catch((err: unknown) => {
-        if (!mounted) return;
-        setPreviewError(err instanceof Error ? err.message : 'Failed to load trust preview');
-      })
-      .finally(() => {
-        if (mounted) setIsLoadingPreview(false);
-      });
+function HeroScreen({ navigation }: { navigation: any }) {
+  return (
+    <SafeAreaView style={styles.heroSafeArea}>
+      <StatusBar style="light" />
+      <View style={styles.heroContainer}>
+        <Image
+          source={{ uri: `${WEB_BASE_URL}/images/default-avatar.png` }}
+          style={styles.heroLogo}
+        />
+        <Text style={styles.heroTitle}>Amoravibe</Text>
+        <Text style={styles.heroSubtitle}>Verified connections. Real conversations.</Text>
 
-    return () => {
-      mounted = false;
-    };
-  }, []);
+        <View style={styles.heroActions}>
+          <Pressable
+            onPress={() => navigation.navigate('WebFlow', { mode: 'signin' })}
+            style={styles.primaryButton}
+          >
+            <Text style={styles.primaryButtonText}>Sign in</Text>
+          </Pressable>
+          <Pressable
+            onPress={() => navigation.navigate('WebFlow', { mode: 'signup' })}
+            style={styles.secondaryButton}
+          >
+            <Text style={styles.secondaryButtonText}>Sign up</Text>
+          </Pressable>
+        </View>
+      </View>
+    </SafeAreaView>
+  );
+}
 
-  const heroStats = preview
-    ? [
-        { label: 'Verification pass', value: `${preview.stats.verificationPassRate}%` },
-        { label: 'Risk health', value: preview.stats.riskHealth },
-        { label: 'Export SLA', value: `< ${preview.stats.exportSlaHours}h` },
-      ]
-    : trustStats;
+function WebFlowScreen({ route, navigation }: { route: any; navigation: any }) {
+  const [isLoading, setIsLoading] = React.useState(true);
+  const [currentUrl, setCurrentUrl] = React.useState(resolveStartUrl(route.params.mode));
+  const startUrl = React.useMemo(() => resolveStartUrl(route.params.mode), [route.params.mode]);
 
-  const journeySteps = preview
-    ? preview.journey.map((step) => ({
-        label: step.title,
-        detail: step.description,
-        tag: step.tag,
-      }))
-    : phases;
-
-  const highlightCards = preview ? preview.highlights : highlights;
+  const handleNavigation = (navState: WebViewNavigation) => {
+    setCurrentUrl(navState.url);
+  };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={styles.webSafeArea}>
       <StatusBar style="dark" />
-      <ScrollView contentContainerStyle={styles.scroll}>
-        {/* Hero Banner with branding and call-to-action */}
-        <HeroBanner onGetStarted={() => navigation.navigate('Onboarding')} />
+      <View style={styles.webHeader}>
+        <Pressable onPress={() => navigation.navigate('Hero')} style={styles.headerButton}>
+          <Text style={styles.headerButtonText}>Home</Text>
+        </Pressable>
+        <Pressable
+          onPress={() => navigation.navigate('WebFlow', { mode: 'dashboard' })}
+          style={styles.headerButton}
+        >
+          <Text style={styles.headerButtonText}>Dashboard</Text>
+        </Pressable>
+      </View>
 
-        {/* Trust Center Card */}
-        <View style={styles.heroCard}>
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>{preview?.snapshotLabel ?? 'Phase 5 · Lovedate'}</Text>
-          </View>
-          <Text style={styles.heroTitle}>Trust Center in your pocket</Text>
-          <Text style={styles.heroBody}>
-            Onboarding, verification, and privacy controls converge in a single mobile experience.
-            Built atop the analytics warehouse and moderation automation completed in Phase 4.
-          </Text>
-          <View style={styles.ctaRow}>
-            <View style={[styles.pillButton, styles.pillSolid]}>
-              <Text
-                accessibilityRole="button"
-                style={[styles.pillText, styles.pillTextSolid]}
-                onPress={() => navigation.navigate('Onboarding')}
-              >
-                Start onboarding
-              </Text>
-            </View>
-            <View style={[styles.pillButton, styles.pillOutline]}>
-              <Text
-                accessibilityRole="button"
-                style={[styles.pillText, styles.pillTextOutline]}
-                onPress={() => navigation.navigate('TrustCenter')}
-              >
-                View trust specs
-              </Text>
-            </View>
-          </View>
+      {isLoading && (
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="large" color="#111827" />
+          <Text style={styles.loadingText}>Loading web experience...</Text>
         </View>
+      )}
 
-        <View style={styles.statRow}>
-          {isLoadingPreview ? (
-            <View style={[styles.statCard, styles.statCardLoading]}>
-              <ActivityIndicator color="#fff" />
-            </View>
-          ) : (
-            heroStats.map((stat) => (
-              <View key={stat.label} style={styles.statCard}>
-                <Text style={styles.statValue}>{stat.value}</Text>
-                <Text style={styles.statLabel}>{stat.label}</Text>
-              </View>
-            ))
-          )}
-        </View>
-        {previewError && <Text style={styles.errorText}>{previewError}</Text>}
+      <WebView
+        source={{ uri: startUrl }}
+        onLoadStart={() => setIsLoading(true)}
+        onLoadEnd={() => setIsLoading(false)}
+        onNavigationStateChange={handleNavigation}
+        sharedCookiesEnabled={true}
+        thirdPartyCookiesEnabled={true}
+        javaScriptEnabled={true}
+        domStorageEnabled={true}
+        startInLoadingState={true}
+      />
 
-        <View style={styles.section}>
-          <Text style={styles.sectionLabel}>Journey</Text>
-          <Text style={styles.sectionTitle}>Four-step runway</Text>
-          <View style={styles.phaseList}>
-            {journeySteps.map((phase) => (
-              <View key={phase.label} style={styles.phaseCard}>
-                <View style={styles.phaseHeader}>
-                  <Text style={styles.phaseTitle}>{phase.label}</Text>
-                  <Text style={styles.phaseTag}>{phase.tag}</Text>
-                </View>
-                <Text style={styles.phaseDetail}>{phase.detail}</Text>
-              </View>
-            ))}
-          </View>
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionLabel}>Highlights</Text>
-          <Text style={styles.sectionTitle}>What the mobile release delivers</Text>
-          {highlightCards.map((item) => (
-            <View key={item.title} style={styles.highlightCard}>
-              <Text style={styles.highlightBadge}>{item.badge}</Text>
-              <Text style={styles.highlightTitle}>{item.title}</Text>
-              <Text style={styles.highlightBody}>{item.body}</Text>
-            </View>
-          ))}
-        </View>
-      </ScrollView>
+      <View style={styles.urlBar}>
+        <Text numberOfLines={1} style={styles.urlText}>
+          {currentUrl}
+        </Text>
+      </View>
     </SafeAreaView>
   );
 }
@@ -242,182 +120,117 @@ function LandingScreen({ navigation }: { navigation: NavigationProp<RootStackPar
 export default function App() {
   return (
     <NavigationContainer theme={NavigationDefaultTheme}>
-      <Stack.Navigator initialRouteName="Login" screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="Login" component={LoginScreen} />
-        <Stack.Screen name="Landing" component={LandingScreen} />
-        <Stack.Screen name="Onboarding" component={OnboardingScreen} />
-        <Stack.Screen name="TrustCenter" component={TrustCenterScreen} />
+      <Stack.Navigator initialRouteName="Hero" screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="Hero" component={HeroScreen} />
+        <Stack.Screen name="WebFlow" component={WebFlowScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
+  heroSafeArea: {
     flex: 1,
-    backgroundColor: palette.sand100,
+    backgroundColor: '#0f172a',
   },
-  scroll: {
-    paddingBottom: 24,
+  heroContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+    gap: 14,
   },
-  heroCard: {
-    backgroundColor: 'rgba(255,255,255,0.92)',
-    borderRadius: 32,
-    marginHorizontal: 24,
-    marginTop: 24,
-    marginBottom: 0,
-    padding: 24,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.6)',
-    shadowColor: palette.ink900,
-    shadowOpacity: 0.15,
-    shadowOffset: { width: 0, height: 20 },
-    shadowRadius: 40,
-    elevation: 6,
-  },
-  badge: {
-    alignSelf: 'flex-start',
-    backgroundColor: 'rgba(255,92,141,0.15)',
-    borderRadius: 999,
-    paddingVertical: 6,
-    paddingHorizontal: 16,
-  },
-  badgeText: {
-    color: palette.rose500,
-    fontSize: 12,
-    letterSpacing: 2,
-    fontWeight: '600',
-    textTransform: 'uppercase',
+  heroLogo: {
+    width: 92,
+    height: 92,
+    borderRadius: 46,
+    marginBottom: 8,
+    backgroundColor: '#fff',
   },
   heroTitle: {
-    fontSize: 32,
-    color: palette.ink900,
+    fontSize: 36,
     fontWeight: '700',
-    marginTop: 16,
-  },
-  heroBody: {
-    fontSize: 16,
-    lineHeight: 22,
-    color: palette.ink700,
-    marginTop: 12,
-  },
-  ctaRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
-    marginTop: 20,
-  },
-  pillButton: {
-    borderRadius: 999,
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-  },
-  pillSolid: {
-    backgroundColor: palette.ink900,
-  },
-  pillOutline: {
-    borderWidth: 1,
-    borderColor: palette.ink900,
-  },
-  pillText: {
-    fontSize: 14,
-    fontWeight: '600',
-    textAlign: 'center',
-  },
-  pillTextSolid: {
-    color: palette.sand100,
-  },
-  pillTextOutline: {
-    color: palette.ink900,
-  },
-  statRow: {
-    flexDirection: 'row',
-    gap: 12,
-    marginHorizontal: 24,
-    marginTop: 24,
-    marginBottom: 0,
-  },
-  statCard: {
-    flex: 1,
-    borderRadius: 24,
-    backgroundColor: 'rgba(28,34,56,0.9)',
-    padding: 16,
-  },
-  statValue: {
     color: '#fff',
-    fontSize: 24,
-    fontWeight: '700',
+    letterSpacing: 0.5,
   },
-  statLabel: {
-    color: 'rgba(255,255,255,0.7)',
-    marginTop: 8,
-    fontSize: 12,
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-  },
-  section: {
-    backgroundColor: 'rgba(255,255,255,0.92)',
-    borderRadius: 32,
-    marginHorizontal: 24,
-    marginVertical: 24,
-    padding: 24,
-    borderWidth: 1,
-    borderColor: 'rgba(13,15,26,0.08)',
-    shadowColor: palette.ink900,
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 10 },
-    shadowRadius: 30,
-    elevation: 4,
-  },
-  sectionLabel: {
-    color: palette.ink700,
-    fontSize: 12,
-    letterSpacing: 2,
-    textTransform: 'uppercase',
-    fontWeight: '600',
-  },
-  sectionTitle: {
-    color: palette.ink900,
-    fontSize: 22,
-    fontWeight: '700',
-    marginTop: 6,
+  heroSubtitle: {
+    color: 'rgba(255,255,255,0.82)',
+    fontSize: 16,
+    textAlign: 'center',
     marginBottom: 16,
   },
-  phaseList: {
-    gap: 12,
+  heroActions: {
+    width: '100%',
+    gap: 10,
   },
-  phaseCard: {
-    borderRadius: 20,
-    backgroundColor: 'rgba(240,240,235,0.8)',
-    padding: 16,
+  primaryButton: {
+    backgroundColor: '#f43f5e',
+    borderRadius: 14,
+    paddingVertical: 14,
+    alignItems: 'center',
   },
-  phaseTitle: {
-    fontSize: 16,
-    color: palette.ink900,
+  primaryButtonText: {
+    color: '#fff',
+    fontSize: 17,
+    fontWeight: '700',
+  },
+  secondaryButton: {
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255,255,255,0.4)',
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+  secondaryButtonText: {
+    color: '#fff',
+    fontSize: 17,
+    fontWeight: '700',
+  },
+  webSafeArea: {
+    flex: 1,
+    backgroundColor: '#f9fafb',
+  },
+  webHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
+  },
+  headerButton: {
+    backgroundColor: '#111827',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  headerButtonText: {
+    color: '#fff',
     fontWeight: '600',
   },
-  phaseDetail: {
-    color: palette.ink700,
-    marginTop: 6,
-    fontSize: 14,
+  loadingOverlay: {
+    position: 'absolute',
+    top: 80,
+    left: 0,
+    right: 0,
+    zIndex: 20,
+    alignItems: 'center',
+    gap: 8,
   },
-  highlightCard: {
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(28,34,56,0.08)',
-    padding: 18,
-    marginBottom: 12,
-    backgroundColor: 'rgba(255,255,255,0.85)',
+  loadingText: {
+    color: '#111827',
+    fontWeight: '500',
   },
-  highlightTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: palette.ink900,
+  urlBar: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderTopWidth: 1,
+    borderTopColor: '#e5e7eb',
+    backgroundColor: '#fff',
   },
-  highlightBody: {
-    marginTop: 6,
-    color: palette.ink700,
-    fontSize: 14,
-    lineHeight: 20,
+  urlText: {
+    color: '#6b7280',
+    fontSize: 11,
   },
 });
