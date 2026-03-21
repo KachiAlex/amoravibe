@@ -1,0 +1,10 @@
+# Netlify redirects for Next.js App Router
+# Route all requests to Next.js for proper handling of dynamic pages
+# This is critical for WebView deep linking in the mobile app
+
+# Rewrite all non-file routes to index for SPA routing
+/api/* 200
+/_next/* 200
+/static/* 200
+/*.* 200
+/* / 200
