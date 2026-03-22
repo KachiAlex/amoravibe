@@ -58,14 +58,16 @@ jobs:
               echo "Installing dependencies..."
               npm install --legacy-peer-deps --no-optional > /dev/null 2>&1
               
-              # DO NOT RUN PREBUILD - the android directory already exists
-              # We just build with Gradle directly
-              
-              cd apps/mobile/android
-              chmod +x gradlew
+              # Generate Android native code from our WebView App.tsx
+              echo "Generating Android native files..."
+              cd apps/mobile
+              npx expo prebuild --platform android --clean --no-install > /dev/null 2>&1
               
               echo "Building WebView APK (pure wrapper, no Metro)..."
-              # Clean and build - no prebuild needed
+              cd android
+              chmod +x gradlew
+              
+              # Build with Gradle
               ./gradlew clean assembleDebug --no-daemon --max-workers=2 --build-cache 2>&1 | tail -100
               
               # Verify build
@@ -78,7 +80,7 @@ jobs:
                 echo "✓ Filename: app-debug.apk"
                 echo "✓ Size: $(du -h $BUILD_OUTPUT | cut -f1)"
                 echo "✓ Icon: Amoravibe logo embedded"
-                echo "✓ WebView wrapper (no Metro, no dev server)"
+                echo "✓ App: Pure WebView wrapper (no Metro)"
                 echo "✓ Loads: https://amoravibe-web.vercel.app/"
                 echo "✓ ─────────────────────────────────────────"
               else
