@@ -1,0 +1,121 @@
+name: Build APK (Docker)
+
+on:
+  push:
+    branches: [ master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        
+      - name: Build Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./docker/android-build.Dockerfile
+          load: true
+          tags: amoravibe-android-builder:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          
+      - name: Build APK with Docker
+        run: |
+          docker run --rm \
+            -v ${{ github.workspace }}:/app \
+            -w /app \
+            -e JAVA_OPTS="-Xmx2048m" \
+            amoravibe-android-builder:latest \
+            bash -c '
+              set -e
+              echo "=== Building Amoravibe APK ==="
+              
+              # Clean lock files
+              rm -f yarn.lock package-lock.json
+              
+              # Install dependencies
+              echo "Installing dependencies..."
+              npm install --legacy-peer-deps --no-optional 2>&1 | tail -20
+              
+              # Navigate to mobile app directory
+              cd apps/mobile
+              
+              # Run prebuild to generate Android native code
+              echo "Generating Android native code..."
+              npx expo prebuild --platform android --clean --no-install 2>&1 | tail -30
+              
+              # Build the APK
+              echo "Building APK with Gradle..."
+              cd android
+              chmod +x gradlew
+              ./gradlew assembleDebug -x lint 2>&1 | tail -50
+              
+              # Verify build
+              if [ -f "app/build/outputs/apk/debug/app-debug.apk" ]; then
+                echo "✓ APK built successfully"
+                ls -lh app/build/outputs/apk/debug/app-debug.apk
+              else
+                echo "✗ APK not found after build"
+                find app/build/outputs -name "*.apk" 2>/dev/null || echo "No APK files found"
+                exit 1
+              fi
+            '
+            
+      - name: Check APK file
+        run: |
+          if [ -f "${{ github.workspace }}/apps/mobile/android/app/build/outputs/apk/debug/app-debug.apk" ]; then
+            ls -lh "${{ github.workspace }}/apps/mobile/android/app/build/outputs/apk/debug/app-debug.apk"
+            echo "APK_PATH=apps/mobile/android/app/build/outputs/apk/debug/app-debug.apk" >> $GITHUB_ENV
+          else
+            echo "APK not found!"
+            find "${{ github.workspace }}/apps/mobile" -name "*.apk" 2>/dev/null || echo "No APK files"
+            exit 1
+          fi
+            
+      - name: Extract APK
+        run: |
+          mkdir -p apk-output
+          if [ -f "apps/mobile/android/app/build/outputs/apk/debug/app-debug.apk" ]; then
+            cp apps/mobile/android/app/build/outputs/apk/debug/app-debug.apk apk-output/amoravibe-debug.apk
+          elif [ -f "apps/mobile/android/app/build/outputs/apk/release/app-release.apk" ]; then
+            cp apps/mobile/android/app/build/outputs/apk/release/app-release.apk apk-output/amoravibe.apk
+          else
+            echo "APK files not found!"
+            exit 1
+          fi
+          ls -lh apk-output/
+          
+      - name: Upload APK as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: amoravibe-apk-docker
+          path: apk-output/
+          retention-days: 30
+          
+      - name: Create Release and Upload APK
+        if: success()
+        uses: softprops/action-gh-release@v2
+        with:
+          files: apk-output/*
+          tag_name: apk-docker-${{ github.run_number }}
+          release_name: "APK Build #${{ github.run_number }}"
+          body: |
+            Docker-based APK build from commit ${{ github.sha }}
+            
+            **Build Info:**
+            - Workflow: Build APK (Docker)
+            - Triggered: ${{ github.event_name }}
+            - Commit: ${{ github.sha }}
+            
+            **Installation Instructions:**
+            1. Download the APK file from this release
+            2. Transfer to your Android device
+            3. Enable "Unknown Sources" in Security settings
+            4. Open the APK file to install
