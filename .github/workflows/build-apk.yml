@@ -1,0 +1,85 @@
+name: Build Android APK
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Setup EAS
+        run: npm install -g eas-cli@latest
+
+      - name: EAS Login
+        run: eas login --non-interactive
+        env:
+          EAS_TOKEN: ${{ secrets.EAS_TOKEN }}
+
+      - name: Build APK with EAS
+        run: |
+          cd $GITHUB_WORKSPACE
+          eas build --platform android --profile production --non-interactive
+        env:
+          EAS_TOKEN: ${{ secrets.EAS_TOKEN }}
+
+      - name: Download APK
+        run: |
+          BUILD_ID=$(eas build list --platform android --json | jq -r '.[0].id')
+          echo "Build ID: $BUILD_ID"
+          mkdir -p builds
+          eas build:download --path ./builds --id "$BUILD_ID"
+
+      - name: Upload APK to GitHub
+        uses: actions/upload-artifact@v3
+        with:
+          name: app-release-apk
+          path: builds/**/*.apk
+          retention-days: 30
+
+      - name: Create Release
+        if: success()
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: release-${{ github.run_number }}
+          release_name: Release ${{ github.run_number }}
+          body: |
+            Android APK built successfully!
+            
+            **Build Details:**
+            - Commit: ${{ github.sha }}
+            - Date: ${{ github.event.head_commit.timestamp }}
+            
+            Download the APK from the artifacts or use ADB to install:
+            ```
+            adb install -r app-release.apk
+            ```
+          draft: false
+          prerelease: false
+
+      - name: Upload APK to Release
+        if: success()
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./builds/app-release.apk
+          asset_name: amoravibe-app-release.apk
+          asset_content_type: application/vnd.android.package-archive
