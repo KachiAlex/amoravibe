@@ -13,7 +13,6 @@ import {
   Platform,
 } from 'react-native';
 import type { NavigationProp } from '@react-navigation/native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { HeroBanner } from '../components/HeroBanner';
 const palette = {
   ink900: '#1a202c',
@@ -125,25 +124,22 @@ export function LoginScreen({ navigation }: { navigation: NavigationProp<RootSta
               </View>
             )}
 
-            {/* Login Button with Gradient */}
+            {/* Login Button */}
             <TouchableOpacity
               style={[styles.buttonWrapper, isLoading && styles.buttonDisabled]}
               onPress={handleLogin}
               disabled={isLoading}
               activeOpacity={0.85}
             >
-              <LinearGradient
-                colors={[palette.rose500, palette.rose300]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.buttonGradient}
+              <View
+                style={[styles.buttonGradient, { backgroundColor: palette.rose500 }]}
               >
                 {isLoading ? (
                   <ActivityIndicator color="white" />
                 ) : (
                   <Text style={styles.buttonText}>Sign In</Text>
                 )}
-              </LinearGradient>
+              </View>
             </TouchableOpacity>
 
             {/* Divider */}

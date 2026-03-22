@@ -1,0 +1,56 @@
+# Node modules (will be installed fresh)
+node_modules/
+*/node_modules/
+
+# Build artifacts
+build/
+dist/
+*.apk
+*.aar
+*.jks
+
+# Build logs and caches
+.gradle/
+.next/
+.expo/
+.cache/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+.AppleDouble
+.LSOverride
+
+# Git
+.git/
+.gitignore
+
+# Testing and coverage
+coverage/
+test-results/
+
+# Dependencies lock files (optional - rebuild on cloud)
+yarn.lock
+package-lock.json
+
+# Temporary files
+*.log
+*.tmp
+.tmp/
+temp/
+
+# Large data files
+*.txt
+*.json
+deploy*.json
+build*.json

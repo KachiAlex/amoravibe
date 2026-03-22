@@ -7,7 +7,6 @@ import {
   Dimensions,
   Image,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 
 interface HeroBannerProps {
   onGetStarted?: () => void;
@@ -36,13 +35,7 @@ export function HeroBanner({ onGetStarted, compact = false }: HeroBannerProps) {
 
   return (
     <View style={[styles.container, { minHeight }]}>
-      {/* Gradient background */}
-      <LinearGradient
-        colors={['#1a202c', '#2d3e50', '#1a202c']}
-        start={{ x: 0.5, y: 0 }}
-        end={{ x: 0.5, y: 1 }}
-        style={styles.background}
-      />
+      <View style={styles.background} />
 
       <View style={styles.contentWrapper}>
         {/* Logo - centered & prominent */}

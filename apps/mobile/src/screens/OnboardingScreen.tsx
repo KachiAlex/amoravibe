@@ -9,7 +9,6 @@ import {
   View,
   Pressable,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { HeroBanner } from '../components/HeroBanner';
 import { lovedateApi } from '../config/api';
 
@@ -133,12 +132,6 @@ export function OnboardingScreen() {
           <Text style={styles.title}>Verifiable identities, safer matches</Text>
           <Text style={styles.body}>
             Complete three lightweight steps to unlock messaging, device trust, and transparency
-            aLinearGradient
-              colors={[palette.rose500, palette.rose300]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={[styles.progressFill, { width: `${status.progressPercent}%` }]}
-           
           </Text>
 
           <View style={styles.progressShell}>
@@ -213,14 +206,11 @@ export function OnboardingScreen() {
               pressed && { opacity: 0.9 },
             ]}
           >
-            <LinearGradient
-              colors={[palette.rose500, palette.rose300]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.ctaGradient}
+            <View
+              style={[styles.ctaGradient, { backgroundColor: palette.rose500 }]}
             >
               <Text style={styles.primaryCtaText}>Continue</Text>
-            </LinearGradient>
+            </View>
           </Pressable>
           <Pressable style={styles.secondaryCta}>
             <Text style={styles.secondaryCtaText}>Save & exit</Text>

@@ -1,3 +1,12 @@
 {
-  "expo": {}
+  "expo": {
+    "extra": {
+      "eas": {
+        "projectId": "90af2f0d-2f13-4984-ab40-2932b5b117b4"
+      }
+    },
+    "android": {
+      "package": "com.kachianietie.amoravibemonorepo"
+    }
+  }
 }
