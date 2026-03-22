@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { WebView } from 'react-native-webview';
 
-const WEB_URL = process.env.EXPO_PUBLIC_WEB_URL ?? 'https://amoravibe-web.netlify.app';
+const WEB_URL = process.env.EXPO_PUBLIC_WEB_URL ?? 'https://amoravibe-web.vercel.app/';
 
 export default function App() {
   const [isLoading, setIsLoading] = React.useState(true);
