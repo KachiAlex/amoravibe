@@ -99,23 +99,15 @@ jobs:
           path: apk-output/
           retention-days: 30
           
-      - name: Create Release and Upload APK
+      - name: Comment on commit with APK download link
         if: success()
-        uses: softprops/action-gh-release@v2
+        uses: actions/github-script@v7
         with:
-          files: apk-output/*
-          tag_name: apk-docker-${{ github.run_number }}
-          release_name: "APK Build #${{ github.run_number }}"
-          body: |
-            Docker-based APK build from commit ${{ github.sha }}
-            
-            **Build Info:**
-            - Workflow: Build APK (Docker)
-            - Triggered: ${{ github.event_name }}
-            - Commit: ${{ github.sha }}
-            
-            **Installation Instructions:**
-            1. Download the APK file from this release
-            2. Transfer to your Android device
-            3. Enable "Unknown Sources" in Security settings
-            4. Open the APK file to install
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `✅ APK Build Successful!\n\n📦 Download: [Artifacts](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})\n\n**File:** app-debug.apk\n\n**Install:**\n\`\`\`\nadb install -r app-debug.apk\n\`\`\``
+            })
+        continue-on-error: true
