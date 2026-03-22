@@ -37,44 +37,53 @@ jobs:
               set -e
               echo "=== Building Amoravibe WebView APK ==="
               
-              # Clean lock files and build artifacts
+              # Install ImageMagick for icon conversion
+              apt-get update > /dev/null 2>&1 && apt-get install -y imagemagick > /dev/null 2>&1
+              
+              # Copy Amoravibe logo to assets as icons
+              echo "Setting app icons from Amoravibe logo..."
+              LOGO="public/images/logo.jpg"
+              ASSETS="apps/mobile/assets"
+              
+              # Convert logo to PNG icons
+              convert "$LOGO" -resize 192x192 "$ASSETS/icon.png"
+              convert "$LOGO" -resize 192x192 "$ASSETS/adaptive-icon.png"  
+              convert "$LOGO" -resize 512x512 "$ASSETS/splash-icon.png"
+              convert "$LOGO" -resize 192x192 "$ASSETS/favicon.png"
+              
+              # Clean lock files
               rm -f yarn.lock package-lock.json
-              rm -rf apps/mobile/android/app/build apps/mobile/android/build apps/mobile/android/.gradle 2>/dev/null || true
               
               # Install dependencies
               echo "Installing dependencies..."
               npm install --legacy-peer-deps --no-optional > /dev/null 2>&1
               
-              # Navigate to mobile app directory
-              cd apps/mobile
+              # DO NOT RUN PREBUILD - the android directory already exists
+              # We just build with Gradle directly
               
-              # Generate Android native files if directory does not exist
-              if [ ! -d "android" ]; then
-                echo "Generating Android native files (Expo prebuild)..."
-                npx expo prebuild --platform android --clean --no-install > /dev/null 2>&1
-              fi
-              
-              echo "Building WebView APK (Gradle)..."
-              cd android
+              cd apps/mobile/android
               chmod +x gradlew
               
-              # Build APK - pure WebView wrapper, no Metro needed
-              ./gradlew clean assembleDebug --no-daemon --max-workers=2 2>&1 | tail -100
+              echo "Building WebView APK (pure wrapper, no Metro)..."
+              # Clean and build - no prebuild needed
+              ./gradlew clean assembleDebug --no-daemon --max-workers=2 --build-cache 2>&1 | tail -100
               
               # Verify build
               BUILD_OUTPUT="app/build/outputs/apk/debug/app-debug.apk"
               if [ -f "$BUILD_OUTPUT" ]; then
                 echo ""
                 echo "✓ ─────────────────────────────────────────"
-                echo "✓ APK BUILD SUCCESSFUL"
+                echo "✓ APK BUILD SUCCESSFUL!"
                 echo "✓ ─────────────────────────────────────────"
-                echo "✓ File: app-debug.apk"
+                echo "✓ Filename: app-debug.apk"
                 echo "✓ Size: $(du -h $BUILD_OUTPUT | cut -f1)"
-                echo "✓ WebView wrapper - loads amoravibe-web.vercel.app"
+                echo "✓ Icon: Amoravibe logo embedded"
+                echo "✓ WebView wrapper (no Metro, no dev server)"
+                echo "✓ Loads: https://amoravibe-web.vercel.app/"
                 echo "✓ ─────────────────────────────────────────"
               else
                 echo "✗ BUILD FAILED - APK not found"
-                ls -la app/build/outputs/apk/ 2>/dev/null || echo "No outputs directory"
+                ls -la app/build/outputs/ 2>/dev/null || echo "No outputs"
                 exit 1
               fi
             '

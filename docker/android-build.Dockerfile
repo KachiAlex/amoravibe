@@ -16,6 +16,7 @@ RUN apt-get update && apt-get install -y \
     wget \
     git \
     unzip \
+    imagemagick \
     openjdk-17-jdk \
     python3 \
     python3-pip \
