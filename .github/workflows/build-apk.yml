@@ -45,41 +45,37 @@ jobs:
           eas build:download --path ./builds --id "$BUILD_ID"
 
       - name: Upload APK to GitHub
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: app-release-apk
           path: builds/**/*.apk
           retention-days: 30
 
-      - name: Create Release
+      - name: Create GitHub Release
         if: success()
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: softprops/action-gh-release@v1
         with:
+          files: builds/**/*.apk
           tag_name: release-${{ github.run_number }}
-          release_name: Release ${{ github.run_number }}
+          release_name: Android APK Release ${{ github.run_number }}
           body: |
-            Android APK built successfully!
+            ✅ Android APK built successfully!
             
-            **Build Details:**
+            **Build Information:**
             - Commit: ${{ github.sha }}
-            - Date: ${{ github.event.head_commit.timestamp }}
+            - Branch: ${{ github.ref_name }}
             
-            Download the APK from the artifacts or use ADB to install:
+            **How to Install:**
+            ```bash
+            adb install -r amoravibe-app-release.apk
             ```
-            adb install -r app-release.apk
+            
+            Or install on emulator:
+            ```bash
+            adb -e install -r amoravibe-app-release.apk
             ```
-          draft: false
-          prerelease: false
-
-      - name: Upload APK to Release
-        if: success()
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./builds/app-release.apk
-          asset_name: amoravibe-app-release.apk
-          asset_content_type: application/vnd.android.package-archive
+            
+            **App Details:**
+            - Loads web app from: https://amoravibe-web.netlify.app
+            - Supports sessions and cookies
+            - Full mobile view
