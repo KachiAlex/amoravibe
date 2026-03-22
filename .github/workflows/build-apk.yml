@@ -29,11 +29,6 @@ jobs:
       - name: Setup EAS
         run: npm install -g eas-cli@latest
 
-      - name: EAS Login
-        run: eas login --non-interactive
-        env:
-          EAS_TOKEN: ${{ secrets.EAS_TOKEN }}
-
       - name: Build APK with EAS
         run: |
           cd $GITHUB_WORKSPACE
