@@ -34,7 +34,7 @@ jobs:
           cd $GITHUB_WORKSPACE
           eas build --platform android --profile production --non-interactive
         env:
-          EAS_TOKEN: ${{ secrets.EAS_TOKEN }}
+          EXPO_TOKEN: ${{ secrets.EAS_TOKEN }}
 
       - name: Download APK
         run: |
