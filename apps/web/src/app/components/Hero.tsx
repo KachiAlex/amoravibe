@@ -136,15 +136,9 @@ export function Hero() {
 
           <div className="flex flex-col justify-center gap-4 sm:flex-row">
             <OpenOnboardingButton className="inline-flex items-center justify-center gap-3 rounded-full bg-gradient-to-r from-rose-500 via-fuchsia-500 to-amber-400 px-10 py-4 text-lg font-semibold text-white shadow-[0_20px_45px_rgba(244,114,182,0.35)] transition hover:scale-[1.01]">
-              Start matching now
+              Get Started
               <ArrowRight className="w-5 h-5" />
             </OpenOnboardingButton>
-            <Link
-              href="#how-it-works"
-              className="inline-flex items-center justify-center gap-3 rounded-full border border-white/30 px-10 py-4 text-lg font-semibold text-white/90 backdrop-blur-sm transition hover:border-white/60"
-            >
-              See how Amoravibe works
-            </Link>
           </div>
 
           <div className="grid grid-cols-3 gap-6 pt-6 text-left text-white/80 max-w-xl mx-auto">
