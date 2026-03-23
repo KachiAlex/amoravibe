@@ -25,7 +25,7 @@ export function Navbar() {
           {/* Logo */}
           <Link href="/" className="flex items-center gap-3">
             <img
-              src="/images/default-avatar.png"
+              src="/amoravibe.jpg"
               alt="AmoraVibe logo"
               width={48}
               height={48}

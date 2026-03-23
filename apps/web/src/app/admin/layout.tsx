@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import LogoutButton from './LogoutButton';
 
 const NAV_LINKS = [
@@ -19,7 +20,17 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         {/* Sidebar - drawer on mobile, fixed on desktop */}
         <aside className="w-full md:w-64 border-r border-white/10 bg-slate-900/70 backdrop-blur md:min-h-screen">
           <div className="px-4 md:px-6 py-6 md:py-8 border-b border-white/10">
-            <p className="text-xs tracking-[0.4em] uppercase text-slate-400">Amoravibe</p>
+            <div className="flex items-center gap-2 mb-2">
+              <Image
+                src="/amoravibe.jpg"
+                alt="AmoraVibe"
+                width={40}
+                height={40}
+                className="rounded-full shadow-md object-cover"
+                priority
+              />
+              <p className="text-xs tracking-[0.4em] uppercase text-slate-400">Amoravibe</p>
+            </div>
             <h1 className="mt-2 text-lg md:text-xl font-semibold text-white">Admin Control</h1>
           </div>
           <nav className="px-3 md:px-4 py-4 md:py-6 space-y-1">

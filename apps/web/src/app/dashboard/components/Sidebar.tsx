@@ -71,11 +71,11 @@ function Sidebar({ activeTab }: { activeTab?: string }) {
         <div className="flex items-center justify-between mb-6 md:mb-8 gap-2">
           <div className="flex items-center gap-2 min-w-0 flex-1">
             <Image
-              src="/images/default-avatar.png"
+              src="/amoravibe.jpg"
               alt="AmoraVibe"
               width={40}
               height={40}
-              className="rounded-full shadow-md flex-shrink-0"
+              className="rounded-full shadow-md flex-shrink-0 object-cover"
               priority
             />
             <span className="font-extrabold text-lg md:text-xl bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent drop-shadow-lg truncate">AmoraVibe</span>

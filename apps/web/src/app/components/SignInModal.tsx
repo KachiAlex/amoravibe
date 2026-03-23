@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { getAuthErrorMessage } from '@/lib/auth-errors';
 import { AnimatePresence, motion } from '@/lib/motion-shim';
 import { CheckCircle2, Loader2, Lock, Mail, Phone, X } from 'lucide-react';
+import { useOnboardingModal } from '@/app/providers/OnboardingModalProvider';
 
 interface SignInModalProps {
   isOpen: boolean;
@@ -35,6 +36,7 @@ export function SignInModal({ isOpen, onClose }: SignInModalProps) {
   const [showToast, setShowToast] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
   const router = useRouter();
+  const { openModal: openOnboardingModal } = useOnboardingModal();
 
   useEffect(() => {
     if (!isOpen) {
@@ -61,6 +63,11 @@ export function SignInModal({ isOpen, onClose }: SignInModalProps) {
 
   const handleModeChange = (mode: SignInMode) => {
     setForm((prev) => ({ ...prev, mode }));
+  };
+
+  const handleCreateAccount = () => {
+    onClose();
+    openOnboardingModal();
   };
 
   const handleSubmit = async (event: FormEvent) => {
@@ -235,6 +242,23 @@ export function SignInModal({ isOpen, onClose }: SignInModalProps) {
                       ) : (
                         'Sign in'
                       )}
+                    </button>
+
+                    <div className="relative">
+                      <div className="absolute inset-0 flex items-center">
+                        <div className="w-full border-t border-gray-200"></div>
+                      </div>
+                      <div className="relative flex justify-center text-sm">
+                        <span className="px-2 bg-white text-ink-600">Don't have an account?</span>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handleCreateAccount}
+                      className="flex w-full items-center justify-center rounded-2xl border-2 border-gray-300 py-3 text-ink-900 font-semibold transition hover:bg-gray-50"
+                    >
+                      Create Account
                     </button>
 
                     {/* Netlify Identity sign-in removed */}
