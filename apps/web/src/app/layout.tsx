@@ -19,7 +19,8 @@ export const metadata: Metadata = {
   charset: 'utf-8',
   formatDetection: { telephone: false, email: false, address: false },
   appleWebApp: { capable: true, statusBarStyle: 'black-translucent' },
-  icons: { icon: '/favicon.ico' },
+  icons: { icon: '/images/logo.jpg', apple: '/images/logo.jpg' },
+  manifest: '/manifest.webmanifest',
 };
 
 export default function RootLayout({
