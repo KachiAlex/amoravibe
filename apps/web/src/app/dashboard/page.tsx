@@ -2,6 +2,7 @@ import React from 'react';
 import Header from './components/Header';
 import Tabs from './components/Tabs';
 import MatchesGrid from './components/MatchesGrid';
+import FloatingMessenger from './components/FloatingMessenger';
 import { getDashboardData } from './hooks/useDashboardData';
 
 export const dynamic = 'force-dynamic';
@@ -56,6 +57,7 @@ export default async function DashboardPage() {
           </div>
         </div>
       </main>
+      <FloatingMessenger />
     </div>
   );
 }

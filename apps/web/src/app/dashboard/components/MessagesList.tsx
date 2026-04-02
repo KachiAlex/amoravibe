@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -15,9 +15,11 @@ type Conv = {
 
 export default function MessagesList() {
   const [convs, setConvs] = useState<Conv[]>([]);
+  const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string|null>(null);
 
+  // Load conversations on mount
   useEffect(() => {
     let mounted = true;
     setLoading(true);
@@ -32,12 +34,56 @@ export default function MessagesList() {
     return () => { mounted = false; };
   }, []);
 
+  // Search conversations with debounce
+  const handleSearch = useCallback(async (query: string) => {
+    setSearch(query);
+    if (!query.trim()) {
+      // Reset to full list
+      fetch('/api/messages/conversations')
+        .then((r) => r.json())
+        .then((data) => setConvs(data.conversations || []))
+        .catch(() => {});
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/messages/search?q=${encodeURIComponent(query)}&limit=50`);
+      const data = await res.json();
+      setConvs(data.results || []);
+    } catch (err) {
+      setError('Search failed');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Debounced search with timeout
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (search) {
+        handleSearch(search);
+      }
+    }, 300);
+    return () => clearTimeout(timeout);
+  }, [search, handleSearch]);
+
   if (error) return <div className="text-center py-12 text-lg text-red-500">{error}</div>;
   return (
     <section aria-label="Messages">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold mb-4">Messages</h2>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-2xl font-bold">Messages</h2>
         <span className="text-sm text-gray-500">{loading ? 'Loading…' : `${convs.length} conversations`}</span>
+      </div>
+      <div className="mb-4">
+        <input
+          type="search"
+          placeholder="Search conversations by name or message..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-full px-4 py-2 rounded-lg border border-gray-200 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
+          aria-label="Search conversations"
+        />
       </div>
       <div className="space-y-3" role="list">
         {convs.map((c) => (

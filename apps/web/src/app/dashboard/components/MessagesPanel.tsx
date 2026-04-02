@@ -15,37 +15,50 @@ type MessagesPanelProps = { initialMessages?: Message[] };
 
 export default function MessagesPanel({ initialMessages = [] }: MessagesPanelProps): JSX.Element {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
-
-  // Polling interval in milliseconds
-  const POLL_INTERVAL = 10000;
+  const [error, setError] = useState<string | null>(null);
 
   const hasInitialMessages = initialMessages.length > 0;
 
   useEffect(() => {
     let isMounted = true;
-    // hydrate from server on mount (if server provided none)
+    
+    // Initial fetch (if needed)
     if (!hasInitialMessages) {
       fetch('/api/messages', { credentials: 'same-origin' })
         .then((r) => r.json())
         .then((data) => {
           if (isMounted) setMessages(Array.isArray(data) ? data : []);
         })
-        .catch(() => {});
+        .catch(() => setError('Failed to load messages'));
     }
 
-    // Poll for new messages every POLL_INTERVAL ms
-    const interval = setInterval(() => {
-      fetch('/api/messages', { credentials: 'same-origin' })
-        .then((r) => r.json())
-        .then((data) => {
-          if (isMounted && Array.isArray(data)) setMessages(data);
-        })
-        .catch(() => {});
-    }, POLL_INTERVAL);
+    // Real-time SSE connection for new messages
+    const eventSource = new EventSource('/api/messages/stream', { withCredentials: true });
+    
+    eventSource.onmessage = (event) => {
+      if (!isMounted) return;
+      try {
+        const newMessage = JSON.parse(event.data);
+        setMessages((prev) => {
+          // Avoid duplicates
+          if (prev.some(m => m.id === newMessage.id)) return prev;
+          return [...prev, newMessage];
+        });
+      } catch (e) {
+        console.error('Failed to parse message:', e);
+      }
+    };
+
+    eventSource.onerror = () => {
+      if (isMounted) {
+        setError('Connection lost. Attempting to reconnect...');
+        eventSource.close();
+      }
+    };
 
     return () => {
       isMounted = false;
-      clearInterval(interval);
+      eventSource.close();
     };
   }, [hasInitialMessages]);
 
@@ -58,6 +71,11 @@ export default function MessagesPanel({ initialMessages = [] }: MessagesPanelPro
           <button className="px-5 py-2 rounded-full font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 shadow">Unread (2)</button>
         </div>
       </div>
+      {error && (
+        <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-800">
+          {error}
+        </div>
+      )}
       <div className="flex flex-col gap-4">
         {messages.length === 0 && <div className="text-center text-gray-400">No messages yet.</div>}
         {messages.map((m) => (
