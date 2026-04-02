@@ -62,14 +62,36 @@ for (const [density, size] of Object.entries(densityMap)) {
   }
 }
 
-// Any available 512/foreground files -> copy to mipmap-anydpi-v26
+// Detect adaptive icon pieces (foreground/background) and copy them
 const anydpiDir = path.join(androidRes, 'mipmap-anydpi-v26');
-const anySrc = findFileBySize(assetsDir, 512) || findFileBySize(assetsDir, 432) || findFileBySize(assetsDir, 360);
-if (anySrc) {
-  const dest = path.join(anydpiDir, 'ic_launcher.png');
-  if (copyIfExists(anySrc, dest)) {
-    console.log(`Copied adaptive icon ${path.basename(anySrc)} -> ${path.relative(repoRoot, dest)}`);
-    copied++;
+const foregroundSrc = (fs.existsSync(assetsDir) && fs.readdirSync(assetsDir).find(f => /foreground/i.test(f) && f.toLowerCase().endsWith('.png'))) ? path.join(assetsDir, fs.readdirSync(assetsDir).find(f => /foreground/i.test(f) && f.toLowerCase().endsWith('.png'))) : null;
+const backgroundSrc = (fs.existsSync(assetsDir) && fs.readdirSync(assetsDir).find(f => /background/i.test(f) && f.toLowerCase().endsWith('.png'))) ? path.join(assetsDir, fs.readdirSync(assetsDir).find(f => /background/i.test(f) && f.toLowerCase().endsWith('.png'))) : null;
+
+if (foregroundSrc || backgroundSrc) {
+  if (foregroundSrc) {
+    const destF = path.join(anydpiDir, 'ic_launcher_foreground.png');
+    if (copyIfExists(foregroundSrc, destF)) {
+      console.log(`Copied foreground ${path.basename(foregroundSrc)} -> ${path.relative(repoRoot, destF)}`);
+      copied++;
+    }
+  }
+  if (backgroundSrc) {
+    const destB = path.join(anydpiDir, 'ic_launcher_background.png');
+    if (copyIfExists(backgroundSrc, destB)) {
+      console.log(`Copied background ${path.basename(backgroundSrc)} -> ${path.relative(repoRoot, destB)}`);
+      copied++;
+    }
+  }
+
+  // Generate adaptive icon XML if at least one piece was copied
+  try {
+    fs.mkdirSync(anydpiDir, { recursive: true });
+    const xmlPath = path.join(anydpiDir, 'ic_launcher.xml');
+    const xmlContent = `<?xml version="1.0" encoding="utf-8"?>\n<adaptive-icon xmlns:android=\"http://schemas.android.com/apk/res/android\">\n  <background android:drawable=\"@mipmap/ic_launcher_background\" />\n  <foreground android:drawable=\"@mipmap/ic_launcher_foreground\" />\n</adaptive-icon>`;
+    fs.writeFileSync(xmlPath, xmlContent, 'utf8');
+    console.log(`Wrote adaptive icon xml -> ${path.relative(repoRoot, xmlPath)}`);
+  } catch (e) {
+    console.warn('Failed to write adaptive icon xml:', e && e.message);
   }
 }
 
