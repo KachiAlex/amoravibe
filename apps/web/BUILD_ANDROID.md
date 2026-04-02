@@ -80,6 +80,14 @@ Secrets (optional, for signing):
 - `ANDROID_KEY_ALIAS`
 - `ANDROID_KEY_PASSWORD`
 
+Play Store upload (optional):
+- `PLAY_SERVICE_ACCOUNT_JSON` — JSON contents of a Google Play service account key (store as a GitHub secret). The workflow will upload the built APK to the `internal` track when this secret is present.
+
+To create the service account JSON:
+1. In Google Play Console, go to Settings -> API access and create a service account or link an existing one.
+2. Grant the service account the `Release manager` role for the app.
+3. Create and download a JSON key and add its full contents as the repository secret `PLAY_SERVICE_ACCOUNT_JSON`.
+
 If you want the CI to also sign the APK, add those secrets in the repository settings. The workflow will decode the keystore and sign the APK using `apksigner` from the Android build-tools.
 
 To run the workflow manually: go to Actions -> Build Android APK -> Run workflow.
