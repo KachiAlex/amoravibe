@@ -10,6 +10,7 @@ type Msg = {
   text: string;
   createdAt: string;
   read?: boolean;
+  edited?: boolean;
   _pending?: boolean;
 };
 
@@ -19,6 +20,9 @@ export default function ConversationClient({ otherId }: { otherId: string }) {
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
   const [text, setText] = useState('');
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editText, setEditText] = useState('');
+  const [menuOpen, setMenuOpen] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const router = useRouter();
 
@@ -30,10 +34,8 @@ export default function ConversationClient({ otherId }: { otherId: string }) {
       .then((data) => {
         if (!mounted) return;
         const ms: Msg[] = (data.messages || []).map((m: any) => ({ ...m, createdAt: m.createdAt }));
-        // messages come newest-first; reverse for chronological
         setMessages(ms.reverse());
         setNextCursor(data.nextCursor ?? null);
-        // mark read
         fetch('/api/messages/read', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ other: otherId }) }).catch(() => {});
       })
       .finally(() => setLoading(false));
@@ -50,7 +52,6 @@ export default function ConversationClient({ otherId }: { otherId: string }) {
     const res = await fetch(`/api/messages?with=${otherId}&cursor=${encodeURIComponent(nextCursor)}&limit=25`);
     const data = await res.json();
     const ms: Msg[] = (data.messages || []).map((m: any) => ({ ...m, createdAt: m.createdAt }));
-    // prepend older messages (server returns newest-first)
     setMessages((cur) => [...ms.reverse(), ...cur]);
     setNextCursor(data.nextCursor ?? null);
     setLoading(false);
@@ -72,12 +73,48 @@ export default function ConversationClient({ otherId }: { otherId: string }) {
       const real: Msg = { ...body.message };
       setMessages((cur) => cur.map((it) => (it.id === tempId ? real : it)));
     } catch (err) {
-      // mark failed
       setMessages((cur) => cur.map((it) => (it.id === tempId ? { ...it, _pending: false, text: it.text + ' (failed)' } : it)));
     } finally {
       setSending(false);
-      // scroll to bottom
       bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }
+
+  async function handleDelete(messageId: string) {
+    if (!confirm('Delete this message?')) return;
+    try {
+      const res = await fetch(`/api/messages/${messageId}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('delete failed');
+      setMessages((cur) => cur.filter((m) => m.id !== messageId));
+      setMenuOpen(null);
+    } catch (err) {
+      alert('Failed to delete message');
+    }
+  }
+
+  async function handleEdit(messageId: string) {
+    const msg = messages.find((m) => m.id === messageId);
+    if (!msg) return;
+    setEditingId(messageId);
+    setEditText(msg.text);
+  }
+
+  async function handleSaveEdit(messageId: string) {
+    if (!editText.trim()) return;
+    try {
+      const res = await fetch(`/api/messages/${messageId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: editText.trim() }),
+      });
+      if (!res.ok) throw new Error('edit failed');
+      const data = await res.json();
+      setMessages((cur) => cur.map((m) => (m.id === messageId ? { ...m, text: data.message.text, edited: true } : m)));
+      setEditingId(null);
+      setEditText('');
+      setMenuOpen(null);
+    } catch (err) {
+      alert('Failed to edit message');
     }
   }
 
@@ -105,9 +142,64 @@ export default function ConversationClient({ otherId }: { otherId: string }) {
             </div>
           )}
           {messages.map((m) => (
-            <div key={m.id} className={`p-2 rounded-lg ${m.fromId === 'me' ? 'bg-indigo-100 self-end' : 'bg-gray-100'}`}>
-              <div className="text-sm text-gray-700">{m.text} {m._pending && <span className="text-xs text-gray-500">(sending…)</span>}</div>
-              <div className="text-xs text-gray-400">{new Date(m.createdAt).toLocaleString()}</div>
+            <div key={m.id} className={`flex ${m.fromId === 'me' ? 'justify-end' : 'justify-start'}`}>
+              <div
+                onMouseEnter={() => setMenuOpen(m.id)}
+                onMouseLeave={() => setMenuOpen(null)}
+                className="group relative max-w-xs"
+              >
+                {editingId === m.id ? (
+                  <div className="rounded-lg bg-blue-50 p-2 border border-blue-200">
+                    <input
+                      autoFocus
+                      value={editText}
+                      onChange={(e) => setEditText(e.target.value)}
+                      className="w-full p-2 rounded border text-sm"
+                    />
+                    <div className="flex gap-2 mt-2">
+                      <button
+                        onClick={() => handleSaveEdit(m.id)}
+                        className="text-xs bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700"
+                      >
+                        Save
+                      </button>
+                      <button
+                        onClick={() => setEditingId(null)}
+                        className="text-xs bg-gray-300 px-2 py-1 rounded hover:bg-gray-400"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <div className={`p-2 rounded-lg ${m.fromId === 'me' ? 'bg-purple-100 text-purple-900' : 'bg-gray-100 text-gray-900'}`}>
+                      <div className="text-sm">{m.text}</div>
+                      {m._pending && <span className="text-xs text-gray-500">(sending…)</span>}
+                      {m.edited && <span className="text-xs text-gray-500 ml-2">(edited)</span>}
+                      <div className="text-xs text-gray-500 mt-1">{new Date(m.createdAt).toLocaleTimeString()}</div>
+                    </div>
+                    {m.fromId === 'me' && (menuOpen === m.id) && (
+                      <div className="absolute right-0 top-0 translate-y-[-100%] flex gap-1 bg-white rounded shadow-md p-1 z-10 border border-gray-200">
+                        <button
+                          onClick={() => handleEdit(m.id)}
+                          className="text-xs px-2 py-1 text-blue-600 hover:bg-blue-50 rounded"
+                          title="Edit message"
+                        >
+                          ✎
+                        </button>
+                        <button
+                          onClick={() => handleDelete(m.id)}
+                          className="text-xs px-2 py-1 text-red-600 hover:bg-red-50 rounded"
+                          title="Delete message"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
             </div>
           ))}
           <div ref={bottomRef} />

@@ -15,6 +15,9 @@ export default function ConversationPage() {
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
   const [input, setInput] = useState("");
+  const [editingId, setEditingId] = useState(null);
+  const [editText, setEditText] = useState("");
+  const [menuOpen, setMenuOpen] = useState(null);
   const listRef = useRef(null);
 
   useEffect(() => {
@@ -68,6 +71,44 @@ export default function ConversationPage() {
       });
   }
 
+  async function handleDelete(msgId) {
+    if (!confirm('Delete this message?')) return;
+    try {
+      const res = await fetch(`/api/messages/${msgId}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('delete failed');
+      setMessages((prev) => prev.filter((m) => m.id !== msgId));
+      setMenuOpen(null);
+    } catch (err) {
+      alert('Failed to delete message');
+    }
+  }
+
+  async function handleEdit(msgId) {
+    const msg = messages.find((m) => m.id === msgId);
+    if (!msg) return;
+    setEditingId(msgId);
+    setEditText(msg.text);
+  }
+
+  async function handleSaveEdit(msgId) {
+    if (!editText.trim()) return;
+    try {
+      const res = await fetch(`/api/messages/${msgId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: editText.trim() }),
+      });
+      if (!res.ok) throw new Error('edit failed');
+      const data = await res.json();
+      setMessages((prev) => prev.map((m) => (m.id === msgId ? { ...m, text: data.message.text, edited: true } : m)));
+      setEditingId(null);
+      setEditText('');
+      setMenuOpen(null);
+    } catch (err) {
+      alert('Failed to edit message');
+    }
+  }
+
   return (
     <main className="mx-auto max-w-2xl px-4 py-12">
       <h2 className="text-xl font-bold mb-4">Conversation</h2>
@@ -77,14 +118,69 @@ export default function ConversationPage() {
           <button className="mb-2 text-xs text-blue-500 underline" onClick={loadMore}>Load older messages</button>
         )}
         {messages.map(m => (
-          <div key={m.id} className={"mb-2 flex " + (m.fromId === "me" ? "justify-end" : "justify-start")}>
-            <div className={"px-3 py-2 rounded-lg flex items-center gap-2 " + (m.fromId === "me" ? "bg-purple-100 text-purple-900" : "bg-gray-100 text-gray-900") + (m.optimistic ? " opacity-60" : "")}>{m.text}
-              {m.fromId === "me" && !m.optimistic && (
-                <span className="ml-2 text-xs text-gray-500">
-                  {m.read ? <span title="Read">✓✓</span> : <span title="Delivered">✓</span>}
-                </span>
-              )}
-            </div>
+          <div
+            key={m.id}
+            className="mb-2 flex"
+            onMouseEnter={() => setMenuOpen(m.id)}
+            onMouseLeave={() => setMenuOpen(null)}
+          >
+            {editingId === m.id ? (
+              <div className="flex-1 max-w-md rounded-lg bg-blue-50 p-2 border border-blue-200">
+                <textarea
+                  autoFocus
+                  value={editText}
+                  onChange={e => setEditText(e.target.value)}
+                  className="w-full p-2 rounded border text-sm"
+                  rows={2}
+                />
+                <div className="flex gap-2 mt-2">
+                  <button
+                    onClick={() => handleSaveEdit(m.id)}
+                    className="text-xs bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700"
+                  >
+                    Save
+                  </button>
+                  <button
+                    onClick={() => setEditingId(null)}
+                    className="text-xs bg-gray-300 px-2 py-1 rounded hover:bg-gray-400"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className={`flex gap-2 ${m.fromId === "me" ? "justify-end flex-1" : ""}`}>
+                <div className={"px-3 py-2 rounded-lg flex items-center gap-2 max-w-md " + (m.fromId === "me" ? "bg-gradient-to-r from-purple-100 to-pink-100 text-purple-900" : "bg-gray-100 text-gray-900") + (m.optimistic ? " opacity-60" : "")}>
+                  <div>
+                    <div>{m.text}</div>
+                    {m.edited && <span className="text-xs text-gray-500">(edited)</span>}
+                  </div>
+                  {m.fromId === "me" && !m.optimistic && (
+                    <span className="ml-2 text-xs text-gray-500">
+                      {m.read ? <span title="Read">✓✓</span> : <span title="Delivered">✓</span>}
+                    </span>
+                  )}
+                </div>
+                {m.fromId === "me" && menuOpen === m.id && !m.optimistic && (
+                  <div className="flex gap-1 bg-white rounded shadow-md px-1 border border-gray-200 h-fit">
+                    <button
+                      onClick={() => handleEdit(m.id)}
+                      className="text-sm px-2 py-1 text-blue-600 hover:bg-blue-50 rounded"
+                      title="Edit message"
+                    >
+                      ✎
+                    </button>
+                    <button
+                      onClick={() => handleDelete(m.id)}
+                      className="text-sm px-2 py-1 text-red-600 hover:bg-red-50 rounded"
+                      title="Delete message"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         ))}
         {messages.length === 0 && !loading && <div className="text-gray-400 text-sm">No messages yet</div>}
