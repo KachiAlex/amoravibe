@@ -67,6 +67,23 @@ npx cap sync android
 
 `cap:apply:icons` will attempt to copy images from `apps/web/assets/icons` into `android/app/src/main/res/mipmap-*`.
 
+CI build (GitHub Actions)
+-------------------------
+This repo includes a workflow to build an unsigned debug APK in GitHub Actions and upload it as an artifact:
+
+- Path: `.github/workflows/android-build.yml`
+- Trigger: manual (`workflow_dispatch`) or push to `master`.
+
+Secrets (optional, for signing):
+- `ANDROID_KEYSTORE` — base64-encoded keystore file
+- `ANDROID_KEYSTORE_PASSWORD`
+- `ANDROID_KEY_ALIAS`
+- `ANDROID_KEY_PASSWORD`
+
+If you want the CI to also sign the APK, add those secrets in the repository settings. The workflow will decode the keystore and sign the APK using `apksigner` from the Android build-tools.
+
+To run the workflow manually: go to Actions -> Build Android APK -> Run workflow.
+
 Automated scripts (already added to `apps/web/package.json`)
 - `npm run build:web` — builds and exports static site to `out/`
 - `npm run cap:init` — initialize Capacitor (one-time)
