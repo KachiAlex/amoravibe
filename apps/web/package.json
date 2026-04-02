@@ -27,6 +27,7 @@
     "generate:icons": "node scripts/generate-icons.js",
     "cap:copy": "npx cap copy",
     "cap:sync:android": "npx cap sync android"
+    ,"cap:apply:icons": "node scripts/apply-icons-to-android.js"
   },
   "dependencies": {
     "@lovedate/api": "file:../../packages/api",

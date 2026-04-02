@@ -56,6 +56,16 @@ npm run generate:icons
 ```
 
 After generation, run `npm run cap:copy` to copy the web `out/` plus generated icons into the Android project.
+Then apply the generated icons into the Android project's `res/` folders:
+
+```bash
+cd apps/web
+npm run cap:copy
+npm run cap:apply:icons
+npx cap sync android
+```
+
+`cap:apply:icons` will attempt to copy images from `apps/web/assets/icons` into `android/app/src/main/res/mipmap-*`.
 
 Automated scripts (already added to `apps/web/package.json`)
 - `npm run build:web` — builds and exports static site to `out/`
