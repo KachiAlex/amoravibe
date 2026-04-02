@@ -23,7 +23,10 @@
     "prisma:generate": "node ../../scripts/run-prisma-from-root.mjs generate",
     "prisma:migrate:dev": "node ../../scripts/run-prisma-from-root.mjs migrate dev --name init",
     "postinstall": "node ../../scripts/run-prisma-from-root.mjs generate",
-    "perf:lighthouse": "lighthouse http://localhost:3000 --output=html --output-path=./lighthouse-report.html && echo 'Report saved to lighthouse-report.html'"
+    "perf:lighthouse": "lighthouse http://localhost:3000 --output=html --output-path=./lighthouse-report.html && echo 'Report saved to lighthouse-report.html'",
+    "generate:icons": "node scripts/generate-icons.js",
+    "cap:copy": "npx cap copy",
+    "cap:sync:android": "npx cap sync android"
   },
   "dependencies": {
     "@lovedate/api": "file:../../packages/api",
@@ -66,6 +69,8 @@
     "tailwindcss": "^4.2.1",
     "typescript": "^5",
     "@capacitor/cli": "^5.0.0",
-    "@capacitor/core": "^5.0.0"
+    "@capacitor/core": "^5.0.0",
+    "pwa-asset-generator": "^6.0.0",
+    "cordova-res": "^0.15.4"
   }
 }

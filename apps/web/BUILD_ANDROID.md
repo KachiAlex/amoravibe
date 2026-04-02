@@ -45,6 +45,17 @@ Notes on icons
 - This repo uses `/public/images/logo.jpg` as the web `favicon` and as icons in `manifest.webmanifest`.
 - For a proper Android adaptive icon, generate `mipmap-*` resources (foreground/background PNGs) and place them under `android/app/src/main/res/mipmap-*/` inside the Capacitor Android project.
 - You can generate icons with tools like `pwa-asset-generator` or `cordova-res`.
+- To automate icon generation from the repo logo, run:
+
+```bash
+cd apps/web
+npm install
+npm run generate:icons
+
+# this will try `pwa-asset-generator` first and fall back to `cordova-res`.
+```
+
+After generation, run `npm run cap:copy` to copy the web `out/` plus generated icons into the Android project.
 
 Automated scripts (already added to `apps/web/package.json`)
 - `npm run build:web` — builds and exports static site to `out/`
