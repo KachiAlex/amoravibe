@@ -73,6 +73,42 @@ if (anySrc) {
   }
 }
 
+// Adaptive icon: look for explicit foreground/background images and copy them
+const fgCandidates = ['ic_launcher_foreground.png', 'foreground.png', 'ic_foreground.png'];
+const bgCandidates = ['ic_launcher_background.png', 'background.png', 'ic_background.png'];
+let fgFound = null;
+let bgFound = null;
+for (const f of fs.readdirSync(assetsDir)) {
+  const lower = f.toLowerCase();
+  if (!fgFound && fgCandidates.some(c => lower.includes(c))) fgFound = path.join(assetsDir, f);
+  if (!bgFound && bgCandidates.some(c => lower.includes(c))) bgFound = path.join(assetsDir, f);
+}
+
+// Also accept names containing 'foreground' or 'background'
+if (!fgFound) {
+  const match = fs.readdirSync(assetsDir).find(x => x.toLowerCase().includes('foreground'));
+  if (match) fgFound = path.join(assetsDir, match);
+}
+if (!bgFound) {
+  const match = fs.readdirSync(assetsDir).find(x => x.toLowerCase().includes('background'));
+  if (match) bgFound = path.join(assetsDir, match);
+}
+
+if (fgFound) {
+  const dest = path.join(anydpiDir, 'ic_launcher_foreground.png');
+  if (copyIfExists(fgFound, dest)) {
+    console.log(`Copied foreground ${path.basename(fgFound)} -> ${path.relative(repoRoot, dest)}`);
+    copied++;
+  }
+}
+if (bgFound) {
+  const dest = path.join(anydpiDir, 'ic_launcher_background.png');
+  if (copyIfExists(bgFound, dest)) {
+    console.log(`Copied background ${path.basename(bgFound)} -> ${path.relative(repoRoot, dest)}`);
+    copied++;
+  }
+}
+
 if (copied === 0) {
   console.error('No icons were copied. Inspect the assets folder and generated filenames.');
   process.exit(2);
@@ -80,3 +116,5 @@ if (copied === 0) {
 
 console.log(`Done. ${copied} files copied. Now run 'npx cap sync android' or open Android Studio to verify.`);
 process.exit(0);
+
+

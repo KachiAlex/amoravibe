@@ -97,3 +97,18 @@ Common problems
 If you want, I can:
 - Generate an icons checklist and add scripts to produce Android mipmap assets (requires installing `pwa-asset-generator` or `sharp`).
 - Attempt to run these steps here — note: building Android APK requires Android SDK which is not available in this environment, so I can scaffold everything and produce commands for you to run locally.
+
+CI release & signing
+- The GitHub Actions workflow can optionally sign the APK and attach it to a GitHub Release when the keystore secrets are present.
+- Required secrets (set in repo Settings -> Secrets):
+	- `ANDROID_KEYSTORE` (base64-encoded keystore file)
+	- `ANDROID_KEYSTORE_PASSWORD`
+	- `ANDROID_KEY_ALIAS`
+	- `ANDROID_KEY_PASSWORD`
+
+When those secrets exist, the workflow will:
+1. build the debug APK
+2. decode the keystore and sign the APK using `apksigner`
+3. create a release `android-release-<run_id>` and attach the signed APK as `app-signed.apk`
+
+If you'd prefer automatic Play Store upload, I can add a step to upload to Google Play using a service account JSON stored in secrets (requires `google-play-deploy` action and a service account with the correct permissions).
