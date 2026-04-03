@@ -103,6 +103,17 @@ If you want the CI to also sign the APK, add those secrets in the repository set
 
 To run the workflow manually: go to Actions -> Build Android APK -> Run workflow.
 
+Quick local verification
+------------------------
+After you run the local steps and build the APK, you can run a quick verification that checks for expected files:
+
+```bash
+cd apps/web
+npm run verify:android
+```
+
+The script checks for `out/`, `assets/icons/`, Android `res/` folder, and the debug APK path. It helps validate that icons were applied and the APK was produced.
+
 Automated scripts (already added to `apps/web/package.json`)
 - `npm run build:web` — builds and exports static site to `out/`
 - `npm run cap:init` — initialize Capacitor (one-time)

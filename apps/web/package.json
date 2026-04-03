@@ -28,6 +28,7 @@
     "cap:copy": "npx cap copy",
     "cap:sync:android": "npx cap sync android"
     ,"cap:apply:icons": "node scripts/apply-icons-to-android.js"
+    ,"verify:android": "node scripts/verify-android-build.js"
   },
   "dependencies": {
     "@lovedate/api": "file:../../packages/api",
