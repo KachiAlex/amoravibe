@@ -101,6 +101,15 @@ jobs:
           "$APKSIGNER" sign --ks release.keystore --ks-pass pass:$ANDROID_KEYSTORE_PASSWORD --key-pass pass:$ANDROID_KEY_PASSWORD "$APK_PATH"
 
       - name: Upload to Google Play (optional)
+        if: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON != '' }}
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: com.amoravibe.app
+          releaseFiles: apps/web/android/app/build/outputs/apk/debug/app-debug.apk
+          track: internal
+
+      - name: Upload to Google Play (optional)
         if: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON != '' }}
         uses: r0adkll/upload-google-play@v1
         with:
@@ -111,6 +120,7 @@ jobs:
 
       - name: Create GitHub Release and upload signed APK (optional)
         if: ${{ secrets.ANDROID_KEYSTORE != '' }}
+        id: create_release
         uses: softprops/action-gh-release@v1
         with:
           tag_name: android-release-${{ github.run_id }}
@@ -120,7 +130,7 @@ jobs:
 
       - name: Upload signed APK to Release (if signing completed)
         if: ${{ secrets.ANDROID_KEYSTORE != '' }}
-        uses: actions/upload-release-asset@v2
+        uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: apps/web/android/app/build/outputs/apk/debug/app-debug.apk

@@ -80,6 +80,17 @@ Secrets (optional, for signing):
 - `ANDROID_KEY_ALIAS`
 - `ANDROID_KEY_PASSWORD`
 
+CI play upload secret:
+- `PLAY_SERVICE_ACCOUNT_JSON` — base64-encoded Google Play service account JSON. The workflow uses this to authenticate and upload to the `internal` track.
+
+CI Upload to Google Play (optional)
+- `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON` — the raw JSON contents of a Google Play service account key (add as a repository secret). The workflow will use this secret to upload the built APK to the `internal` track.
+
+To create the service account JSON:
+1. Go to Google Play Console -> Setup -> API access.
+2. Create a service account and grant the `Release Manager` role (or appropriate permission) for the app.
+3. Generate a JSON key and add its contents as the `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON` secret in GitHub (paste entire JSON content).
+
 Play Store upload (optional):
 - `PLAY_SERVICE_ACCOUNT_JSON` — JSON contents of a Google Play service account key (store as a GitHub secret). The workflow will upload the built APK to the `internal` track when this secret is present.
 
