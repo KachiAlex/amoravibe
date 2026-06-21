@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import { PrismaClient } from '@prisma/client';
-import { PrismaPg } from '@prisma/adapter-pg';
+import { PrismaNeon } from '@prisma/adapter-neon';
 
 export function createPgPrismaClient() {
   const connectionString = process.env.DATABASE_URL;
@@ -8,6 +8,6 @@ export function createPgPrismaClient() {
     throw new Error('DATABASE_URL is required to run this script.');
   }
 
-  const adapter = new PrismaPg({ connectionString });
+  const adapter = new PrismaNeon({ connectionString });
   return new PrismaClient({ adapter });
 }

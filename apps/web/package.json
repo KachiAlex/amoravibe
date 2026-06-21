@@ -33,7 +33,8 @@
   "dependencies": {
     "@lovedate/api": "file:../../packages/api",
     "@lovedate/ui": "file:../../packages/ui",
-    "@prisma/adapter-pg": "^7.4.2",
+    "@prisma/adapter-neon": "^7.4.2",
+    "@neondatabase/serverless": "^1.0.0",
     "@prisma/client": "^7.4.2",
     "@sentry/node": "^8.12.0",
     "@upstash/ratelimit": "^2.0.8",

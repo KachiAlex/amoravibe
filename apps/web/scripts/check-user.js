@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 require('dotenv/config');
 const { PrismaClient } = require('../../../prisma/node_modules/.prisma/client');
-const { PrismaPg } = require('@prisma/adapter-pg');
+const { PrismaNeon } = require('@prisma/adapter-neon');
 
 function createPrisma() {
   const connectionString = process.env.DATABASE_URL;
@@ -10,7 +10,7 @@ function createPrisma() {
     process.exit(1);
   }
 
-  const adapter = new PrismaPg({ connectionString });
+  const adapter = new PrismaNeon({ connectionString });
   return new PrismaClient({ adapter });
 }
 

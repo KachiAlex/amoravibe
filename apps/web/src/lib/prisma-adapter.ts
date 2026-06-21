@@ -1,19 +1,19 @@
-import { PrismaPg } from '@prisma/adapter-pg';
+import { PrismaNeon } from '@prisma/adapter-neon';
 
-let cachedPgAdapter: PrismaPg | null = null;
+let cachedNeonAdapter: PrismaNeon | null = null;
 
 export function getPgAdapter() {
-  if (cachedPgAdapter) {
-    return cachedPgAdapter;
+  if (cachedNeonAdapter) {
+    return cachedNeonAdapter;
   }
 
   const connectionString = process.env.DATABASE_URL;
   if (!connectionString) {
-    throw new Error('DATABASE_URL is required to create the Prisma Pg adapter.');
+    throw new Error('DATABASE_URL is required to create the Prisma adapter.');
   }
 
-  cachedPgAdapter = new PrismaPg({ connectionString });
-  return cachedPgAdapter;
+  cachedNeonAdapter = new PrismaNeon({ connectionString });
+  return cachedNeonAdapter;
 }
 
-export type PgAdapter = PrismaPg;
+export type PgAdapter = PrismaNeon;
