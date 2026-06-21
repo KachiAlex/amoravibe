@@ -2,6 +2,6 @@
   "version": 2,
   "framework": "nextjs",
   "installCommand": "npm install",
-  "buildCommand": "npm run build --workspace=web",
+  "buildCommand": "npm run build --workspace=web && cp -r apps/web/public/* apps/web/.next/ 2>/dev/null || true",
   "outputDirectory": "apps/web/.next"
 }
