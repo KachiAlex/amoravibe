@@ -86,10 +86,11 @@ export async function POST(req: Request) {
       type: typeof error,
       constructor: error?.constructor?.name,
       message: error?.message,
-      errorProp: actualError !== error ? { type: typeof actualError, constructor: actualError?.constructor?.name, message: actualError?.message, stringified: String(actualError) } : null,
+      errorProp: actualError !== error ? { type: typeof actualError, constructor: actualError?.constructor?.name, message: actualError?.message, stack: actualError?.stack, stringified: String(actualError) } : null,
       keys: error && typeof error === 'object' ? Object.keys(error) : null,
       stringified: String(error),
       json: error && typeof error === 'object' ? JSON.stringify(error) : String(error),
+      dbUrlPrefix: process.env.DATABASE_URL ? process.env.DATABASE_URL.slice(0, 30) : null,
     };
     console.error('[SignIn] Debug error:', JSON.stringify(errorInfo));
     console.error('[SignIn] Error:', actualError?.message || error?.message);
