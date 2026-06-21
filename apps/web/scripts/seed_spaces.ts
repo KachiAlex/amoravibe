@@ -4,8 +4,8 @@ const prisma = new PrismaClient();
 
 async function main() {
   const spaces = [
-    { name: 'Straight', description: 'A space for straight users.' },
-    { name: 'LGBTQ+', description: 'A space for LGBTQ+ users.' },
+    { name: 'Straight', description: 'A space for straight users.', orientation: 'straight' },
+    { name: 'LGBTQ+', description: 'A space for LGBTQ+ users.', orientation: 'lgbtq' },
   ];
 
   for (const s of spaces) {
@@ -14,8 +14,8 @@ async function main() {
       const id = uuidv4();
       await prisma.space.upsert({
         where: { name: s.name },
-        update: { description: s.description },
-        create: { id, name: s.name, description: s.description },
+        update: { description: s.description, orientation: s.orientation },
+        create: { id, name: s.name, description: s.description, orientation: s.orientation },
       });
       console.log(`Upserted space (delegate): ${s.name}`);
     } catch (err) {

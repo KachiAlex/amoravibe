@@ -26,25 +26,8 @@ export async function GET(req: Request) {
 
     console.log('[Spaces] User orientation:', user.orientation);
 
-    // Filter spaces based on user orientation
-    // Map user orientation to space orientation
-    let spaceOrientation: string;
-    if (user.orientation?.toLowerCase() === 'heterosexual' || user.orientation?.toLowerCase() === 'straight') {
-      spaceOrientation = 'straight';
-    } else if (user.orientation?.toLowerCase() === 'homosexual' || user.orientation?.toLowerCase() === 'lgbtq' || user.orientation?.toLowerCase() === 'lgbtq+') {
-      spaceOrientation = 'lgbtq';
-    } else {
-      // Default to straight if orientation is not set
-      spaceOrientation = 'straight';
-    }
-
-    console.log('[Spaces] Filtering for space orientation:', spaceOrientation);
-
-    const spaces = await prisma.space.findMany({
-      where: {
-        orientation: spaceOrientation,
-      },
-    });
+    // Return all spaces so users can see both Straight and LGBTQ+ spaces
+    const spaces = await prisma.space.findMany({});
     
     console.log('[Spaces] Found spaces:', spaces.length);
 
