@@ -3,6 +3,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import useSWR from 'swr';
 import type { Message } from '../types';
+import { defaultAvatar } from '@/lib/assets';
 
 const quickFilters = (
   counts: { unread: number; muted: number; archived: number }
@@ -58,7 +59,7 @@ export function DashboardMessagesWidget({ messages = [] }: { messages?: Message[
           >
             <div className="relative">
               <Image
-                src={message.avatar ?? '/images/default-avatar.png'}
+                src={message.avatar ?? defaultAvatar}
                 alt={`${message.from} avatar`}
                 width={48}
                 height={48}

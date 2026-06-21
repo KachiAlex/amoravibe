@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { usePathname, useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
+import { logo } from '@/lib/assets';
 
 type NavItem = {
   label: string;
@@ -71,7 +72,7 @@ function Sidebar({ activeTab }: { activeTab?: string }) {
         <div className="flex items-center justify-between mb-6 md:mb-8 gap-2">
           <div className="flex items-center gap-2 min-w-0 flex-1">
             <Image
-              src="/amoravibe.jpg"
+              src={logo}
               alt="AmoraVibe"
               width={40}
               height={40}

@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { defaultAvatar } from '@/lib/assets';
 
 type Conv = {
   otherId: string;
@@ -90,7 +91,7 @@ export default function MessagesList() {
             <Link href={`/messages/${c.otherId}`} key={c.otherId} role="listitem" className="block cursor-pointer stat-card flex items-center gap-4 p-4 rounded-2xl bg-white shadow border border-gray-100 hover:bg-gray-50">
               <div className="relative">
                 <Image
-                  src={c.avatar ?? '/images/default-avatar.png'}
+                  src={c.avatar ?? defaultAvatar}
                   alt={`${c.otherName} avatar`}
                   width={48}
                   height={48}

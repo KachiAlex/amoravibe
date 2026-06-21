@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { Menu, X } from 'lucide-react';
 import { useOnboardingModal } from '@/app/providers/OnboardingModalProvider';
 import { useSignInModal } from '@/app/providers/SignInModalProvider';
+import { logo } from '@/lib/assets';
 
 const navLinks = [
   { label: 'Features', href: '#features' },
@@ -25,7 +26,7 @@ export function Navbar() {
           {/* Logo */}
           <Link href="/" className="flex items-center gap-3">
             <img
-              src="/amoravibe.jpg"
+              src={logo.src}
               alt="AmoraVibe logo"
               width={48}
               height={48}

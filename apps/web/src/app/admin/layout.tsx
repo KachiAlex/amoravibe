@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { logo } from '@/lib/assets';
 import LogoutButton from './LogoutButton';
 
 const NAV_LINKS = [
@@ -22,7 +23,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           <div className="px-4 md:px-6 py-6 md:py-8 border-b border-white/10">
             <div className="flex items-center gap-2 mb-2">
               <Image
-                src="/amoravibe.jpg"
+                src={logo}
                 alt="AmoraVibe"
                 width={40}
                 height={40}

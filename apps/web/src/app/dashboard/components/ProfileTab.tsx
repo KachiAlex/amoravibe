@@ -2,9 +2,10 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import { defaultAvatar } from '@/lib/assets';
 
 export default function ProfileTab({ profile, onEdit }: { profile: any; onEdit: () => void }) {
-  const [avatarPreview, setAvatarPreview] = useState(profile.avatar || '/images/default-avatar.png');
+  const [avatarPreview, setAvatarPreview] = useState(profile.avatar || defaultAvatar);
   const [photos, setPhotos] = useState<string[]>(Array.isArray(profile.photos) ? profile.photos : []);
   const [uploading, setUploading] = useState(false);
   const [uploadingPhotos, setUploadingPhotos] = useState(false);
@@ -13,7 +14,7 @@ export default function ProfileTab({ profile, onEdit }: { profile: any; onEdit: 
   const galleryInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
-    setAvatarPreview(profile.avatar || '/images/default-avatar.png');
+    setAvatarPreview(profile.avatar || defaultAvatar);
     setPhotos(Array.isArray(profile.photos) ? profile.photos : []);
   }, [profile.avatar, profile.photos]);
 

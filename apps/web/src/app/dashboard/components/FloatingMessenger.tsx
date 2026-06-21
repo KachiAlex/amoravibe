@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { defaultAvatar } from '@/lib/assets';
 
 type UnreadCount = {
   total: number;
@@ -91,7 +92,7 @@ export default function FloatingMessenger() {
           {/* Main button */}
           <div className="relative w-16 h-16 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 shadow-lg hover:shadow-xl transition-all flex items-center justify-center cursor-pointer transform group-hover:scale-110 duration-200">
             <Image
-              src="/images/default-avatar.png"
+              src={defaultAvatar}
               alt="Messages"
               width={64}
               height={64}

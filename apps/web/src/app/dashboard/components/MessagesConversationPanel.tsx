@@ -1,6 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import Image from "next/image";
+import { defaultAvatar } from '@/lib/assets';
 
 // Message and Conversation types
 export type Message = {
@@ -75,7 +76,7 @@ export default function MessagesConversationPanel({ conversations = demoConversa
               onClick={() => setActiveId(c.id)}
             >
               <Image
-                src={c.contactAvatar || '/images/default-avatar.png'}
+                src={c.contactAvatar || defaultAvatar}
                 alt="avatar"
                 width={40}
                 height={40}
@@ -102,7 +103,7 @@ export default function MessagesConversationPanel({ conversations = demoConversa
           {activeConv && (
             <>
               <Image
-                src={activeConv.contactAvatar || '/images/default-avatar.png'}
+                src={activeConv.contactAvatar || defaultAvatar}
                 alt="avatar"
                 width={32}
                 height={32}

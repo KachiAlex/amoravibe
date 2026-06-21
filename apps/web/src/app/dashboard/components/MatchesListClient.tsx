@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
+import { defaultAvatar } from '@/lib/assets';
 
 type Match = {
   id: string;
@@ -311,7 +312,7 @@ export default function MatchesListClient({ initialMatches = [] }: { initialMatc
           >
             <div className="relative">
               <Image
-                src={m.avatar || '/images/default-avatar.png'}
+                src={m.avatar || defaultAvatar}
                 alt={`${m.name} avatar`}
                 width={640}
                 height={380}

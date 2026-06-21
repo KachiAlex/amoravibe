@@ -3,6 +3,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import Image from "next/image";
 import { createPortal } from "react-dom";
 import type { Match } from "../types";
+import { defaultAvatar } from '@/lib/assets';
 
 type MatchesGridProps = {
   matches?: Match[];
@@ -220,7 +221,7 @@ const MatchCard = React.memo(function MatchCard({ match, onAction }: MatchCardPr
         )}
       </div>
       <Image
-        src={match.avatar || "/images/default-avatar.png"}
+        src={match.avatar || defaultAvatar}
         alt={match.name}
         width={640}
         height={288}

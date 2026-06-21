@@ -1,6 +1,7 @@
 import React from 'react';
 import Image from 'next/image';
 import type { Match } from '../types';
+import { defaultAvatar } from '@/lib/assets';
 
 export default function MatchesList({ matches }: { matches: Match[] }) {
   return (
@@ -10,7 +11,7 @@ export default function MatchesList({ matches }: { matches: Match[] }) {
         {matches.map((m) => (
           <div key={m.id} role="listitem" className="stat-card flex items-center gap-4">
             <Image
-              src={m.avatar || '/images/default-avatar.png'}
+              src={m.avatar || defaultAvatar}
               alt={`${m.name} avatar`}
               width={80}
               height={80}
