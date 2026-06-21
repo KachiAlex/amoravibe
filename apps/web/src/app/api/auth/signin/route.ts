@@ -81,18 +81,20 @@ export async function POST(req: Request) {
 
     return response;
   } catch (error: any) {
+    const actualError = error?.error ?? error;
     const errorInfo = {
       type: typeof error,
       constructor: error?.constructor?.name,
       message: error?.message,
+      errorProp: actualError !== error ? { type: typeof actualError, constructor: actualError?.constructor?.name, message: actualError?.message, stringified: String(actualError) } : null,
       keys: error && typeof error === 'object' ? Object.keys(error) : null,
       stringified: String(error),
       json: error && typeof error === 'object' ? JSON.stringify(error) : String(error),
     };
     console.error('[SignIn] Debug error:', JSON.stringify(errorInfo));
-    console.error('[SignIn] Error:', error?.message);
+    console.error('[SignIn] Error:', actualError?.message || error?.message);
     return NextResponse.json(
-      { error: error?.message || 'Sign in failed', debug: errorInfo },
+      { error: actualError?.message || error?.message || 'Sign in failed', debug: errorInfo },
       { status: 500 }
     );
   }
