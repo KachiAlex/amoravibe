@@ -61,6 +61,8 @@ export async function GET() {
     avatar: user.avatar,
     about: user.about,
     interests: user.interests,
+    prompts: user.prompts,
+    photos: user.photos,
   });
 }
 
@@ -78,6 +80,7 @@ export async function PATCH(req: Request) {
   if (body.avatar !== undefined) data.avatar = body.avatar;
   if (body.about !== undefined) data.about = body.about;
   if (body.interests !== undefined) data.interests = body.interests;
+  if (body.prompts !== undefined) data.prompts = body.prompts;
   // Photos management
   const wantsReplacePhotos = Array.isArray(body.photos);
   const wantsAddPhoto = typeof body.addPhoto === 'string' && body.addPhoto.length > 0;

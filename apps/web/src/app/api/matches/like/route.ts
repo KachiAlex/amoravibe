@@ -79,6 +79,36 @@ export async function POST(req: Request) {
           status: 'ACCEPTED',
         },
       });
+      // Notify both users of the mutual match
+      await prisma.notification.createMany({
+        data: [
+          {
+            userId,
+            type: 'match',
+            title: "It's a Match! 🎉",
+            message: 'You and someone new matched! Start a conversation.',
+            data: { matchedUserId: profileId },
+          },
+          {
+            userId: profileId,
+            type: 'match',
+            title: "It's a Match! 🎉",
+            message: 'You and someone new matched! Start a conversation.',
+            data: { matchedUserId: userId },
+          },
+        ],
+      });
+    } else {
+      // Notify target they got a like
+      await prisma.notification.create({
+        data: {
+          userId: profileId,
+          type: 'like',
+          title: 'Someone liked you 💜',
+          message: 'A new person liked your profile. Check them out!',
+          data: { likedByUserId: userId },
+        },
+      });
     }
 
     return NextResponse.json({

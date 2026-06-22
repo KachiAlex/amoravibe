@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from '@/lib/motion-shim';
 import { trackEvent } from "@/lib/analytics";
@@ -22,6 +22,7 @@ export default function DiscoverSwipePanel({ onBack, filters }: DiscoverSwipePan
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [showInfo, setShowInfo] = useState(false);
+  const [photoIndex, setPhotoIndex] = useState(0);
   const [pendingQueue, setPendingQueue] = useState<QueueItem[]>([]);
   const hasLoadedRef = useRef(false);
   const processingRef = useRef(false);
@@ -75,6 +76,19 @@ export default function DiscoverSwipePanel({ onBack, filters }: DiscoverSwipePan
   }, [remaining, nextCursor, loadingInitial, loadingMore, fetchProfiles]);
 
   const currentProfile = profiles[0];
+
+  const profilePhotos = useMemo(() => {
+    if (!currentProfile) return [];
+    const pics: string[] = [];
+    if (currentProfile.photos && currentProfile.photos.length > 0) pics.push(...currentProfile.photos);
+    if (currentProfile.cover && !pics.includes(currentProfile.cover)) pics.push(currentProfile.cover);
+    if (pics.length === 0) pics.push('/images/default-cover.jpg');
+    return pics;
+  }, [currentProfile]);
+
+  useEffect(() => {
+    setPhotoIndex(0);
+  }, [currentProfile?.id]);
 
   const enqueueAction = useCallback((action: 'like' | 'pass', profileId: string) => {
     setPendingQueue((prev) => [
@@ -213,24 +227,44 @@ export default function DiscoverSwipePanel({ onBack, filters }: DiscoverSwipePan
             <div className="relative w-full max-w-[460px] rounded-[28px] shadow-2xl overflow-hidden bg-white">
               <div className="relative h-[360px] w-full">
                 <Image
-                  src={(currentProfile.photos && currentProfile.photos[0]) || currentProfile.cover || '/images/default-cover.jpg'}
+                  src={profilePhotos[photoIndex] || '/images/default-cover.jpg'}
                   alt={currentProfile.name || 'profile'}
                   width={900}
                   height={900}
                   className="h-full w-full object-cover"
                   priority={history.length === 0}
                   sizes="(max-width: 640px) 100vw, 460px"
-                  unoptimized={!currentProfile.photos && !currentProfile.cover}
+                  unoptimized={!profilePhotos[photoIndex]?.includes('cloudinary')}
                 />
-                <span className="absolute top-4 right-4 bg-white/90 text-gray-800 text-sm font-semibold px-3 py-1 rounded-full shadow">
+                {profilePhotos.length > 1 && (
+                  <>
+                    <button
+                      className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 text-white rounded-full p-2 hover:bg-black/60 transition"
+                      onClick={(e) => { e.stopPropagation(); setPhotoIndex((i) => (i - 1 + profilePhotos.length) % profilePhotos.length); }}
+                      aria-label="Previous photo"
+                    >
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+                    </button>
+                    <button
+                      className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 text-white rounded-full p-2 hover:bg-black/60 transition"
+                      onClick={(e) => { e.stopPropagation(); setPhotoIndex((i) => (i + 1) % profilePhotos.length); }}
+                      aria-label="Next photo"
+                    >
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+                    </button>
+                    <div className="absolute top-4 left-1/2 -translate-x-1/2 flex gap-1.5">
+                      {profilePhotos.map((_p: string, i: number) => (
+                        <div
+                          key={i}
+                          className={`h-1 rounded-full transition-all duration-300 ${i === photoIndex ? 'w-6 bg-white' : 'w-3 bg-white/50'}`}
+                        />
+                      ))}
+                    </div>
+                  </>
+                )}
+                <span className="absolute bottom-4 left-4 bg-white/90 text-gray-800 text-sm font-semibold px-3 py-1 rounded-full shadow">
                   {currentProfile.distance || '2 miles away'}
                 </span>
-                <button
-                  className="absolute top-4 left-1/2 -translate-x-1/2 h-1 w-3/4 rounded-full bg-white/70"
-                  title="Progress"
-                  aria-label="Progress bar"
-                  tabIndex={-1}
-                />
                 <button
                   className="absolute bottom-4 right-4 bg-white/90 text-fuchsia-600 rounded-full p-3 shadow-lg focus:outline-none focus:ring-2 focus:ring-fuchsia-300"
                   title="More info"
@@ -313,7 +347,16 @@ export default function DiscoverSwipePanel({ onBack, filters }: DiscoverSwipePan
                     <div className="font-bold text-2xl mb-2">{currentProfile.name}, {currentProfile.age}</div>
                     <div className="mb-2 text-gray-600">{currentProfile.job} &mdash; {currentProfile.location}</div>
                     <div className="mb-4 text-gray-700">{currentProfile.about}</div>
-                    {/* Add more details here as needed */}
+                    {currentProfile.prompts && Object.entries(currentProfile.prompts).length > 0 && (
+                      <div className="space-y-3">
+                        {Object.entries(currentProfile.prompts).map(([question, answer]: [string, any]) => (
+                          <div key={question} className="bg-fuchsia-50 rounded-xl p-3">
+                            <div className="text-xs font-semibold text-fuchsia-600 uppercase tracking-wide mb-1">{question}</div>
+                            <div className="text-sm text-gray-800 font-medium">{answer}</div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </motion.div>
                 </motion.div>
               )}

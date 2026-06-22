@@ -15,6 +15,8 @@ const VISIBLE_TABS = [
   { id: 'matches', label: 'Matches' },
   { id: 'messages', label: 'Messages' },
   { id: 'discover', label: 'Discover' },
+  { id: 'spaces', label: 'Spaces' },
+  { id: 'myspaces', label: 'My Spaces' },
   { id: 'profile', label: 'Profile' },
   { id: 'settings', label: 'Settings' },
 ];

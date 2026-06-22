@@ -30,6 +30,7 @@ model User {
   gender               String?
   orientation          String?
   photos               String[]            @default([])
+  prompts              Json?
   lookingFor           String?
   conversationsAsOther ConversationState[] @relation("ConversationStateOther")
   conversationStates   ConversationState[]
@@ -204,4 +205,18 @@ enum MatchActionType {
   LIKE
   PASS
   BLOCK
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  type      String
+  title     String
+  message   String?
+  data      Json?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId, read])
+  @@index([createdAt])
 }

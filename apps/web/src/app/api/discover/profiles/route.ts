@@ -136,6 +136,7 @@ export async function GET(req: Request) {
         gender: true,
         orientation: true,
         isVerified: true,
+        prompts: true,
       },
     });
 
