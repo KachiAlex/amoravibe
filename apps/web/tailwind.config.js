@@ -40,8 +40,16 @@ module.exports = {
     },
     extend: {
       colors: {
-        'ink-900': '#0d0f1a',
+        'ink-50': '#f8f8f9',
+        'ink-100': '#e5e6eb',
+        'ink-200': '#cdcfd9',
+        'ink-300': '#a7abba',
+        'ink-400': '#7a7f94',
+        'ink-500': '#5a5f75',
+        'ink-600': '#3d4259',
         'ink-700': '#1c2238',
+        'ink-800': '#13162a',
+        'ink-900': '#0d0f1a',
         'rose-500': '#ff5c8d',
         'brand-violet': '#8b5cf6',
         'brand-pink': '#ff79c6',
