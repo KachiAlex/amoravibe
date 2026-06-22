@@ -31,6 +31,8 @@ model User {
   orientation          String?
   photos               String[]            @default([])
   prompts              Json?
+  verifiedPhoto        String?
+  boostExpiresAt       DateTime?
   lookingFor           String?
   conversationsAsOther ConversationState[] @relation("ConversationStateOther")
   conversationStates   ConversationState[]
@@ -72,6 +74,9 @@ model MatchAction {
   actorId      String
   targetUserId String
   action       MatchActionType
+  comment      String?
+  targetType   String?         @default("profile")
+  targetPrompt String?
   createdAt    DateTime        @default(now())
   actor        User            @relation(fields: [actorId], references: [id])
   match        Match?          @relation(fields: [matchId], references: [id])

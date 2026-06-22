@@ -120,7 +120,10 @@ export async function GET(req: Request) {
     const take = limit + 1;
     const profiles = await prisma.user.findMany({
       where,
-      orderBy: { createdAt: 'desc' },
+      orderBy: [
+        { boostExpiresAt: 'desc' },
+        { createdAt: 'desc' },
+      ],
       take,
       ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
       select: {
@@ -137,6 +140,7 @@ export async function GET(req: Request) {
         orientation: true,
         isVerified: true,
         prompts: true,
+        boostExpiresAt: true,
       },
     });
 

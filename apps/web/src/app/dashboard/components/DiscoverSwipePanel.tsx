@@ -5,7 +5,7 @@ import { trackEvent } from "@/lib/analytics";
 import type { SwipeFilters } from "./DiscoverPanel";
 
 type HistoryEntry = { profile: any; action: 'like' | 'pass' };
-type QueueItem = { id: string; action: 'like' | 'pass'; attempt: number; nextAttemptAt: number };
+type QueueItem = { id: string; action: 'like' | 'pass' | 'rose'; comment?: string; targetPrompt?: string; attempt: number; nextAttemptAt: number };
 
 const MAX_ATTEMPTS = 3;
 
@@ -90,10 +90,10 @@ export default function DiscoverSwipePanel({ onBack, filters }: DiscoverSwipePan
     setPhotoIndex(0);
   }, [currentProfile?.id]);
 
-  const enqueueAction = useCallback((action: 'like' | 'pass', profileId: string) => {
+  const enqueueAction = useCallback((action: 'like' | 'pass' | 'rose', profileId: string, comment?: string, targetPrompt?: string) => {
     setPendingQueue((prev) => [
       ...prev,
-      { id: profileId, action, attempt: 0, nextAttemptAt: Date.now() },
+      { id: profileId, action, comment, targetPrompt, attempt: 0, nextAttemptAt: Date.now() },
     ]);
   }, []);
 
@@ -107,15 +107,24 @@ export default function DiscoverSwipePanel({ onBack, filters }: DiscoverSwipePan
     const timer = setTimeout(async () => {
       if (cancelled) return;
       try {
-        const endpoint = current.action === 'like' ? '/api/matches/like' : '/api/matches/pass';
+        const endpoint = current.action === 'pass' ? '/api/matches/pass' : '/api/matches/like';
+        const body: any = { profileId: current.id };
+        if (current.comment) body.comment = current.comment;
+        if (current.targetPrompt) {
+          body.targetType = 'prompt';
+          body.targetPrompt = current.targetPrompt;
+        }
+        if (current.action === 'rose') {
+          body.targetType = 'rose';
+        }
         const res = await fetch(endpoint, {
           method: 'POST',
           credentials: 'include',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ profileId: current.id }),
+          body: JSON.stringify(body),
         });
         if (!res.ok) throw new Error('action failed');
-        trackEvent(current.action === 'like' ? 'discover_like_success' : 'discover_pass_success', {
+        trackEvent(current.action === 'pass' ? 'discover_pass_success' : 'discover_like_success', {
           profileId: current.id,
         });
         setPendingQueue((prev) => prev.slice(1));
@@ -158,6 +167,14 @@ export default function DiscoverSwipePanel({ onBack, filters }: DiscoverSwipePan
     setProfiles((prev) => prev.slice(1));
     enqueueAction('like', currentProfile.id);
     trackEvent('discover_like_enqueued', { profileId: currentProfile.id });
+  }
+
+  async function handleRose() {
+    if (!currentProfile) return;
+    setHistory((h) => [...h, { profile: currentProfile, action: 'like' }]);
+    setProfiles((prev) => prev.slice(1));
+    enqueueAction('rose', currentProfile.id);
+    trackEvent('discover_rose_enqueued', { profileId: currentProfile.id });
   }
 
   async function handlePass() {
@@ -265,6 +282,11 @@ export default function DiscoverSwipePanel({ onBack, filters }: DiscoverSwipePan
                 <span className="absolute bottom-4 left-4 bg-white/90 text-gray-800 text-sm font-semibold px-3 py-1 rounded-full shadow">
                   {currentProfile.distance || '2 miles away'}
                 </span>
+                {currentProfile.boostExpiresAt && new Date(currentProfile.boostExpiresAt) > new Date() && (
+                  <span className="absolute top-4 right-4 bg-gradient-to-r from-fuchsia-500 to-purple-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow animate-pulse">
+                    Boosted
+                  </span>
+                )}
                 <button
                   className="absolute bottom-4 right-4 bg-white/90 text-fuchsia-600 rounded-full p-3 shadow-lg focus:outline-none focus:ring-2 focus:ring-fuchsia-300"
                   title="More info"
@@ -316,6 +338,15 @@ export default function DiscoverSwipePanel({ onBack, filters }: DiscoverSwipePan
                 aria-label="Pass"
               >
                 ✕
+              </motion.button>
+              <motion.button
+                whileTap={{ scale: 0.9 }}
+                className="bg-gradient-to-r from-rose-400 to-red-500 text-white rounded-full w-14 h-14 flex items-center justify-center text-2xl shadow-xl hover:shadow-2xl focus:outline-none focus:ring-2 focus:ring-rose-300"
+                onClick={handleRose}
+                title="Super Like (Rose)"
+                aria-label="Super Like"
+              >
+                🌹
               </motion.button>
               <motion.button
                 whileTap={{ scale: 0.9 }}

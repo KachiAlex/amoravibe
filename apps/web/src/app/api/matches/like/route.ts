@@ -12,7 +12,7 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { profileId } = body;
+    const { profileId, comment, targetType, targetPrompt } = body;
 
     if (!profileId) {
       return NextResponse.json({ error: 'Profile ID is required' }, { status: 400 });
@@ -43,11 +43,17 @@ export async function POST(req: Request) {
       update: {
         action: 'LIKE',
         createdAt: new Date(),
+        comment: comment || null,
+        targetType: targetType || 'profile',
+        targetPrompt: targetPrompt || null,
       },
       create: {
         actorId: userId,
         targetUserId: profileId,
         action: 'LIKE',
+        comment: comment || null,
+        targetType: targetType || 'profile',
+        targetPrompt: targetPrompt || null,
       },
     });
 
