@@ -154,15 +154,15 @@ export function SignInModal({ isOpen, onClose }: SignInModalProps) {
                 <button
                   type="button"
                   onClick={onClose}
-                  className="absolute -top-4 -right-4 flex h-11 w-11 items-center justify-center rounded-full bg-white shadow-lg transition hover:bg-ink-50"
+                  className="absolute -top-4 -right-4 flex h-11 w-11 items-center justify-center rounded-full bg-white shadow-lg transition hover:bg-gray-50"
                   aria-label="Close sign-in modal"
                 >
-                  <X className="h-5 w-5 text-ink-700" />
+                  <X className="h-5 w-5 text-gray-700" />
                 </button>
 
                 <div className="rounded-3xl bg-white p-8 shadow-2xl border border-gray-100">
                   <div className="mb-6 text-center">
-                    <p className="text-xs uppercase tracking-[0.4em] text-ink-600">Amoravibe</p>
+                    <p className="text-xs uppercase tracking-[0.4em] text-gray-500">Amoravibe</p>
                     <h2 className="mt-3 font-display text-3xl bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
                       Sign in to continue
                     </h2>
@@ -176,7 +176,7 @@ export function SignInModal({ isOpen, onClose }: SignInModalProps) {
                           type="button"
                           onClick={() => handleModeChange(mode)}
                           className={`flex-1 rounded-full px-4 py-2 text-sm font-bold transition ${
-                            form.mode === mode ? 'bg-white text-ink-900 shadow-sm' : 'text-ink-900'
+                            form.mode === mode ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-900'
                           }`}
                         >
                           {mode === 'email' ? 'Email' : 'Phone'}
@@ -185,15 +185,15 @@ export function SignInModal({ isOpen, onClose }: SignInModalProps) {
                     </div>
 
                     <label className="block space-y-2">
-                      <span className="text-sm font-bold text-ink-900">{identifierLabel}</span>
-                      <div className="flex items-center gap-3 rounded-2xl border border-gray-200 bg-white px-4 py-3 focus-within:border-ink-900 shadow-sm">
-                        <IdentifierIcon className="h-4 w-4 text-ink-500" />
+                      <span className="text-sm font-bold text-gray-900">{identifierLabel}</span>
+                      <div className="flex items-center gap-3 rounded-2xl border border-gray-200 bg-white px-4 py-3 focus-within:border-gray-900 shadow-sm">
+                        <IdentifierIcon className="h-4 w-4 text-gray-400" />
                         <input
                           type={form.mode === 'email' ? 'email' : 'tel'}
                           autoComplete={form.mode === 'email' ? 'email' : 'tel'}
                           value={identifierValue}
                           onChange={(event) => handleChange(form.mode, event.currentTarget.value)}
-                          className="w-full bg-transparent text-ink-900 placeholder:text-ink-400 outline-none"
+                          className="w-full bg-transparent text-gray-900 placeholder:text-gray-400 outline-none"
                           placeholder={
                             form.mode === 'email' ? 'you@example.com' : '+1 (415) 555-0101'
                           }
@@ -202,15 +202,15 @@ export function SignInModal({ isOpen, onClose }: SignInModalProps) {
                     </label>
 
                     <label className="block space-y-2">
-                      <span className="text-sm font-bold text-ink-900">Password</span>
-                      <div className="flex items-center gap-3 rounded-2xl border border-gray-200 bg-white px-4 py-3 focus-within:border-ink-900 shadow-sm">
-                        <Lock className="h-4 w-4 text-ink-500" />
+                      <span className="text-sm font-bold text-gray-900">Password</span>
+                      <div className="flex items-center gap-3 rounded-2xl border border-gray-200 bg-white px-4 py-3 focus-within:border-gray-900 shadow-sm">
+                        <Lock className="h-4 w-4 text-gray-400" />
                         <input
                           type="password"
                           autoComplete="current-password"
                           value={form.password}
                           onChange={(event) => handleChange('password', event.currentTarget.value)}
-                          className="w-full bg-transparent text-ink-900 placeholder:text-ink-400 outline-none"
+                          className="w-full bg-transparent text-gray-900 placeholder:text-gray-400 outline-none"
                           placeholder="At least 8 characters"
                         />
                       </div>
@@ -249,14 +249,14 @@ export function SignInModal({ isOpen, onClose }: SignInModalProps) {
                         <div className="w-full border-t border-gray-200"></div>
                       </div>
                       <div className="relative flex justify-center text-sm">
-                        <span className="px-2 bg-white text-ink-600">Don't have an account?</span>
+                        <span className="px-2 bg-white text-gray-500">Don't have an account?</span>
                       </div>
                     </div>
 
                     <button
                       type="button"
                       onClick={handleCreateAccount}
-                      className="flex w-full items-center justify-center rounded-2xl border-2 border-gray-300 py-3 text-ink-900 font-semibold transition hover:bg-gray-50"
+                      className="flex w-full items-center justify-center rounded-2xl border-2 border-gray-300 py-3 text-gray-900 font-semibold transition hover:bg-gray-50"
                     >
                       Create Account
                     </button>
