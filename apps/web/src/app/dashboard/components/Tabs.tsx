@@ -5,6 +5,7 @@ import type { Message } from '../types';
 import MatchesGrid from './MatchesGrid';
 import MessagesPanel from './MessagesPanel';
 import DiscoverPanel from './DiscoverPanel';
+import StoriesBar from './StoriesBar';
 import dynamic from 'next/dynamic';
 const ProfilePanel = dynamic(() => import('./ProfilePanel'), { ssr: false });
 const SpacesPanel = dynamic(() => import('./SpacesPanel'), { ssr: false });
@@ -83,6 +84,7 @@ export default function Tabs({ messages }: { messages?: Message[] }) {
 
   return (
     <div>
+      <StoriesBar />
       <div>
         <div id="panel-matches" role="tabpanel" aria-labelledby="tab-matches" hidden={active !== 'matches'}>
           {active === 'matches' && <MatchesGrid />}

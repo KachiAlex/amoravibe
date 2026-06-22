@@ -1,16 +1,23 @@
 import React, { useState } from "react";
+import { useTheme } from "@/app/providers/ThemeProvider";
 
 export default function SettingsTab({ settings, onSave, onDelete }: { settings: any, onSave: (s: any) => void, onDelete: () => void }) {
   const [form, setForm] = useState(settings);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const { theme, setTheme } = useTheme();
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
-    const { name, value, type, checked } = e.target;
-    setForm(f => ({ ...f, [name]: type === "checkbox" ? checked : value }));
+    const target = e.target;
+    const name = target.name;
+    const value = target.type === "checkbox" ? (target as HTMLInputElement).checked : target.value;
+    setForm((f: any) => ({ ...f, [name]: value }));
   }
 
   function handleSave(e: React.FormEvent) {
     e.preventDefault();
+    if (form.theme && form.theme !== theme) {
+      setTheme(form.theme as 'light' | 'dark');
+    }
     onSave(form);
   }
 

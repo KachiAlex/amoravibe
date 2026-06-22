@@ -220,3 +220,15 @@ model Notification {
   @@index([userId, read])
   @@index([createdAt])
 }
+
+model Story {
+  id        String   @id @default(uuid())
+  userId    String
+  mediaUrl  String
+  caption   String?
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+
+  @@index([userId, expiresAt])
+  @@index([expiresAt])
+}

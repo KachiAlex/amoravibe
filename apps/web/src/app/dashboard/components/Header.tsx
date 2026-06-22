@@ -2,6 +2,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Image from 'next/image';
 import { useTheme } from '@/app/providers/ThemeProvider';
+import NotificationBell from './NotificationBell';
 
 const SEARCH_EVENT = 'dashboard:matches:search';
 const TELEMETRY_EVENT = 'dashboard:telemetry';
@@ -137,14 +138,7 @@ export default function Header({ userName, userFirstName, userAvatar, userOrient
             {searching ? '…' : '⌘K'}
           </span>
         </form>
-        <button className="relative p-2 md:p-2.5 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-purple-200 min-h-12 min-w-12 flex items-center justify-center flex-shrink-0" aria-label="Notifications" onClick={() => window.dispatchEvent(new CustomEvent(TELEMETRY_EVENT, { detail: { event: 'notifications_opened' } }))}>
-          <span className="text-lg md:text-xl" aria-hidden>
-            🔔
-          </span>
-          <span className="absolute -top-1 -right-1 bg-pink-600 text-white text-xs rounded-full px-1 min-w-[16px] text-center">
-            {notificationCount === null ? '…' : notificationCount}
-          </span>
-        </button>
+        <NotificationBell />
         <button
           onClick={handleThemeToggle}
           className="flex items-center gap-2 rounded-full border border-gray-200 bg-white px-2 md:px-3 py-1 text-xs md:text-sm font-semibold shadow-sm hover:shadow focus:outline-none focus:ring-2 focus:ring-purple-200 min-h-12"
