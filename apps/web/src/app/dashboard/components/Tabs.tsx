@@ -2,7 +2,7 @@
 import React, { useEffect, useMemo, useRef, useState, KeyboardEvent } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import type { Message, Match } from '../types';
-import MatchesGrid from './MatchesGrid';
+import MatchesList from './MatchesList';
 import MessagesPanel from './MessagesPanel';
 import DiscoverPanel from './DiscoverPanel';
 import StoriesBar from './StoriesBar';
@@ -86,8 +86,8 @@ export default function Tabs({ messages, matches }: { messages?: Message[]; matc
     <div>
       <StoriesBar />
       <div>
-        <div id="panel-matches" role="tabpanel" aria-labelledby="tab-matches" hidden={active !== 'matches'}>
-          {active === 'matches' && <MatchesGrid matches={matches} />}
+        <div id="panel-matches" role="tabpanel" aria-labelledby="tab-matches" hidden={active !== 'matches'} className="h-full">
+          {active === 'matches' && <MatchesList matches={matches ?? []} />}
         </div>
 
         <div id="panel-messages" role="tabpanel" aria-labelledby="tab-messages" hidden={active !== 'messages'}>

@@ -1,6 +1,8 @@
 import { cookies } from "next/headers";
 import { verifyToken } from "@/lib/jwt";
 import Sidebar from "./components/Sidebar";
+import BottomNav from "./components/BottomNav";
+import FloatingActionButton from "./components/FloatingActionButton";
 
 async function getSession() {
   try {
@@ -28,13 +30,17 @@ export default async function DashboardLayout({ children }: { children: React.Re
     );
   }
   return (
-    <div className="min-h-screen flex flex-col md:flex-row bg-gradient-to-br from-white via-gray-50 to-purple-50">
+    <div className="min-h-screen flex flex-col md:flex-row bg-white">
       {/* Sidebar - drawer on mobile, fixed on desktop */}
       <Sidebar />
       {/* Main content - full width on mobile, flex-1 on desktop */}
-      <main className="flex-1 w-full md:min-h-screen overflow-auto">
+      <main className="flex-1 w-full md:min-h-screen overflow-auto pb-16 md:pb-0">
         {children}
       </main>
+      {/* Mobile bottom navigation */}
+      <BottomNav />
+      {/* Floating action button */}
+      <FloatingActionButton />
     </div>
   );
 }
