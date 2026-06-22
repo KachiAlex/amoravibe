@@ -5,6 +5,7 @@ import './globals.css';
 import { OnboardingModalProvider } from '@/app/providers/OnboardingModalProvider';
 import { SignInModalProvider } from '@/app/providers/SignInModalProvider';
 import { ThemeProvider } from '@/app/providers/ThemeProvider';
+import logo from '../../public/amoravibe.jpg';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 const spaceGrotesk = Space_Grotesk({
@@ -19,7 +20,7 @@ export const metadata: Metadata = {
   charset: 'utf-8',
   formatDetection: { telephone: false, email: false, address: false },
   appleWebApp: { capable: true, statusBarStyle: 'black-translucent' },
-  icons: { icon: '/amoravibe.jpg', apple: '/amoravibe.jpg' },
+  icons: { icon: logo.src, apple: logo.src },
   manifest: '/manifest.webmanifest',
 };
 
@@ -30,7 +31,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="scroll-smooth">
-      <body className={`${inter.variable} ${spaceGrotesk.variable} flex flex-col min-h-screen w-full bg-white text-ink-900`}>
+      <body className={`${inter.variable} ${spaceGrotesk.variable} flex flex-col min-h-screen w-full bg-white text-gray-900`}>
         <Suspense fallback={null}>
           <ThemeProvider>
             <OnboardingModalProvider>
