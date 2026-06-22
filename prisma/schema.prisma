@@ -48,6 +48,7 @@ model User {
   spaceMembers         SpaceMember[]
   bookmarks            Bookmark[]          @relation("UserBookmarks")
   bookmarkedBy         Bookmark[]          @relation("BookmarkedBy")
+  stories              Story[]
 }
 
 model Match {
@@ -233,6 +234,7 @@ model Story {
   caption   String?
   createdAt DateTime @default(now())
   expiresAt DateTime
+  user      User     @relation(fields: [userId], references: [id])
 
   @@index([userId, expiresAt])
   @@index([expiresAt])

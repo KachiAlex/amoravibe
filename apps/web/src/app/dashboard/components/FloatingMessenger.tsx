@@ -20,18 +20,8 @@ export default function FloatingMessenger() {
     // Poll for updates every 30 seconds
     const interval = setInterval(fetchUnreadCount, 30000);
 
-    // Subscribe to real-time updates via SSE
-    const eventSource = new EventSource('/api/messages/stream?unreadOnly=true');
-    eventSource.onmessage = () => {
-      fetchUnreadCount();
-    };
-    eventSource.onerror = () => {
-      eventSource.close();
-    };
-
     return () => {
       clearInterval(interval);
-      eventSource.close();
     };
   }, []);
 

@@ -47,6 +47,13 @@ export async function POST() {
     await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "idx_story_user_expires" ON "Story"("userId", "expiresAt");`);
     await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "idx_story_expiresAt" ON "Story"("expiresAt");`);
 
+    // Add foreign key constraint to Story table (idempotent - will fail silently if already exists)
+    try {
+      await prisma.$executeRawUnsafe(`ALTER TABLE "Story" ADD CONSTRAINT "Story_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;`);
+    } catch {
+      // Constraint likely already exists, ignore
+    }
+
     return NextResponse.json({ success: true, message: 'Migration applied successfully' });
   } catch (err: any) {
     console.error('[Migrate] Error:', err);
