@@ -1,7 +1,7 @@
 "use client"
 import React, { useEffect, useMemo, useRef, useState, KeyboardEvent } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import type { Message } from '../types';
+import type { Message, Match } from '../types';
 import MatchesGrid from './MatchesGrid';
 import MessagesPanel from './MessagesPanel';
 import DiscoverPanel from './DiscoverPanel';
@@ -25,7 +25,7 @@ const VISIBLE_TABS = [
 const ALL_PANELS = ['matches', 'messages', 'discover', 'spaces', 'myspaces', 'profile', 'settings'] as const;
 type PanelId = (typeof ALL_PANELS)[number];
 
-export default function Tabs({ messages }: { messages?: Message[] }) {
+export default function Tabs({ messages, matches }: { messages?: Message[]; matches?: Match[] }) {
   const tabs = VISIBLE_TABS;
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -87,7 +87,7 @@ export default function Tabs({ messages }: { messages?: Message[] }) {
       <StoriesBar />
       <div>
         <div id="panel-matches" role="tabpanel" aria-labelledby="tab-matches" hidden={active !== 'matches'}>
-          {active === 'matches' && <MatchesGrid />}
+          {active === 'matches' && <MatchesGrid matches={matches} />}
         </div>
 
         <div id="panel-messages" role="tabpanel" aria-labelledby="tab-messages" hidden={active !== 'messages'}>

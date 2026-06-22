@@ -1,6 +1,6 @@
 "use client";
-import React, { useState } from 'react';
-import { usePathname, useSearchParams, useRouter } from 'next/navigation';
+import React, { useEffect, useState } from 'react';
+import { usePathname, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { logo } from '@/lib/assets';
@@ -14,8 +14,8 @@ type NavItem = {
 };
 
 const navItems: NavItem[] = [
-  { label: 'Matches', icon: '💜', href: '/dashboard' },
-  { label: 'Messages', icon: '💬', href: '/dashboard/messages', badge: 2 },
+  { label: 'Dashboard', icon: '💜', href: '/dashboard' },
+  { label: 'Messages', icon: '💬', href: '/dashboard/messages' },
   { label: 'Discover', icon: '🧭', href: '/dashboard/discover' },
   {
     label: 'Spaces',
@@ -35,9 +35,28 @@ const navItems: NavItem[] = [
 
 function Sidebar({ activeTab }: { activeTab?: string }) {
   const [open, setOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const panelParam = searchParams?.get('panel')?.toLowerCase() ?? null;
+
+  useEffect(() => {
+    async function fetchUnread() {
+      try {
+        const res = await fetch('/api/messages/conversations', { cache: 'no-store' });
+        if (!res.ok) return;
+        const data = await res.json();
+        const convs = data.conversations || [];
+        const total = convs.reduce((sum: number, c: any) => sum + (c.unread || 0), 0);
+        setUnreadCount(total);
+      } catch {
+        // ignore
+      }
+    }
+    fetchUnread();
+    const interval = setInterval(fetchUnread, 30000);
+    return () => clearInterval(interval);
+  }, []);
   return (
     <>
       {/* Mobile sidebar toggle */}
@@ -121,9 +140,9 @@ function Sidebar({ activeTab }: { activeTab?: string }) {
                     {item.icon}
                   </span>
                   <span className="flex-1 truncate">{item.label}</span>
-                  {item.badge && (
+                  {item.label === 'Messages' && unreadCount > 0 && (
                     <span className="ml-auto bg-fuchsia-500 text-white text-xs rounded-full px-2 py-0.5 flex-shrink-0" aria-label="Unread messages badge" role="status">
-                      {item.badge}
+                      {unreadCount > 99 ? '99+' : unreadCount}
                     </span>
                   )}
                 </Link>

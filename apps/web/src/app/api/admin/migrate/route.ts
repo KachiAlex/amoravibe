@@ -9,6 +9,7 @@ export async function POST() {
     await prisma.$executeRawUnsafe(`ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "prompts" JSONB;`);
     await prisma.$executeRawUnsafe(`ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "verifiedPhoto" TEXT;`);
     await prisma.$executeRawUnsafe(`ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "boostExpiresAt" TIMESTAMP(3);`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "profileViews" INTEGER DEFAULT 0;`);
 
     // Add columns to MatchAction table
     await prisma.$executeRawUnsafe(`ALTER TABLE "MatchAction" ADD COLUMN IF NOT EXISTS "comment" TEXT;`);

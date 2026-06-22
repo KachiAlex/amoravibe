@@ -24,6 +24,7 @@ async function buildFromDatabase(userId: string) {
         name: true,
         avatar: true,
         orientation: true,
+        profileViews: true,
       }
     }),
     db.match.findMany({
@@ -52,10 +53,13 @@ async function buildFromDatabase(userId: string) {
       name: other.displayName ?? other.name ?? 'Match',
       avatar: other.avatar ?? '',
       tagline: other.about ?? undefined,
-      role: other.job ?? undefined,
-      city: other.location ?? undefined,
-      tags: other.interests ?? [],
+      about: other.about ?? undefined,
+      job: other.job ?? undefined,
+      location: other.location ?? undefined,
+      age: other.age ?? undefined,
       matchPercent: match.compatibilityScore ?? 0,
+      isNew: match.isHighlighted ?? false,
+      online: false,
     };
   });
 
@@ -78,7 +82,7 @@ async function buildFromDatabase(userId: string) {
     userFirstName: firstName,
     userAvatar: user?.avatar ?? null,
     userOrientation: user?.orientation ?? null,
-    stats: { matches: stats, chats: messages.length, views: 0 },
+    stats: { matches: stats, chats: messages.length, views: user?.profileViews ?? 0 },
     matches: formattedMatches,
     messages: formattedMessages,
   } satisfies DashboardData;

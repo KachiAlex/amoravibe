@@ -1,7 +1,8 @@
 import React from 'react';
 import Header from './components/Header';
 import Tabs from './components/Tabs';
-import MatchesGrid from './components/MatchesGrid';
+import StatsCards from './components/StatsCards';
+import ProfileCompletion from './components/ProfileCompletion';
 import FloatingMessenger from './components/FloatingMessenger';
 import { getDashboardData } from './hooks/useDashboardData';
 
@@ -9,8 +10,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function DashboardPage() {
   const data = await getDashboardData();
-  const searchParams = { get: (key: string) => null }; // Server component doesn't have searchParams
-  
+
   return (
     <div className="flex-1 flex flex-col min-h-screen bg-gradient-to-br from-white via-gray-50 to-purple-50">
       <main id="dashboard-main" className="flex-1 flex flex-col">
@@ -18,41 +18,32 @@ export default async function DashboardPage() {
           <div className="py-6 md:py-10">
             {/* Welcome Headline */}
             <div className="max-w-6xl mx-auto px-4 md:px-8">
-              <Header 
-                userName={data?.userName} 
+              <Header
+                userName={data?.userName}
                 userFirstName={data?.userFirstName}
                 userAvatar={data?.userAvatar}
                 userOrientation={data?.userOrientation}
               />
             </div>
-            
+
             {/* Stats Cards */}
             <div className="max-w-6xl mx-auto px-4 md:px-8 mb-6 md:mb-10">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6">
-                <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 md:p-6">
-                  <div className="text-2xl md:text-3xl font-bold text-blue-600 mb-1 md:mb-2">
-                    {data?.stats?.matches ?? 0}
-                  </div>
-                  <div className="text-gray-700 text-sm md:text-base">Matches</div>
-                </div>
-                <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4 md:p-6">
-                  <div className="text-2xl md:text-3xl font-bold text-purple-600 mb-1 md:mb-2">
-                    {data?.stats?.chats ?? 0}
-                  </div>
-                  <div className="text-gray-700 text-sm md:text-base">Chats</div>
-                </div>
-                <div className="bg-gradient-to-br from-pink-50 to-pink-100 rounded-lg p-4 md:p-6">
-                  <div className="text-2xl md:text-3xl font-bold text-pink-600 mb-1 md:mb-2">
-                    {data?.stats?.views ?? 0}
-                  </div>
-                  <div className="text-gray-700 text-sm md:text-base">Views</div>
-                </div>
-              </div>
+              <StatsCards stats={data?.stats} />
             </div>
 
-            {/* Tabbed Interface with all panels */}
+            {/* Main Content Grid */}
             <div className="max-w-6xl mx-auto px-4 md:px-8">
-              <Tabs messages={data?.messages} />
+              <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 md:gap-8">
+                {/* Left Column: Tabs take 3 cols */}
+                <div className="lg:col-span-3">
+                  <Tabs messages={data?.messages} matches={data?.matches} />
+                </div>
+
+                {/* Right Column: Profile Completion + Quick Actions */}
+                <div className="lg:col-span-1 space-y-6">
+                  <ProfileCompletion />
+                </div>
+              </div>
             </div>
           </div>
         </div>

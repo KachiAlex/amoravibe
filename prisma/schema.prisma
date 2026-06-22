@@ -34,6 +34,7 @@ model User {
   verifiedPhoto        String?
   boostExpiresAt       DateTime?
   lookingFor           String?
+  profileViews         Int                 @default(0)
   conversationsAsOther ConversationState[] @relation("ConversationStateOther")
   conversationStates   ConversationState[]
   matchesInitiated     Match[]             @relation("UserMatches")

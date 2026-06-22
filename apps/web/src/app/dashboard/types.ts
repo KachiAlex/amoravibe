@@ -4,6 +4,12 @@ export type Match = {
   avatar: string;
   tagline?: string;
   matchPercent?: number;
+  age?: number;
+  job?: string;
+  location?: string;
+  about?: string;
+  isNew?: boolean;
+  online?: boolean;
 };
 
 export type Message = {
