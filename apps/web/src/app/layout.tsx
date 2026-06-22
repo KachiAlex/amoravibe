@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   charset: 'utf-8',
   formatDetection: { telephone: false, email: false, address: false },
   appleWebApp: { capable: true, statusBarStyle: 'black-translucent' },
-  icons: { icon: '/images/logo.jpg', apple: '/images/logo.jpg' },
+  icons: { icon: '/amoravibe.jpg', apple: '/amoravibe.jpg' },
   manifest: '/manifest.webmanifest',
 };
 
